@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light; }
+
+body { @apply bg-paper text-ink antialiased; }
+
+@layer components {
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-[10px] bg-leaf px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-leaf-dark disabled:opacity-60; }
+  .btn-ghost { @apply inline-flex items-center justify-center gap-2 rounded-[10px] border border-line bg-white px-4 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-paper; }
+  .btn-wa { @apply inline-flex items-center justify-center gap-2 rounded-[10px] bg-whatsapp px-4 py-2.5 text-sm font-bold text-white transition-colors hover:brightness-95; }
+  .card { @apply rounded-card border border-line bg-white; }
+  .input { @apply w-full rounded-[10px] border border-line bg-white px-3 py-2.5 text-[15px] outline-none focus:border-leaf; }
+  .label { @apply mb-1.5 block text-[13px] font-semibold; }
+  .eyebrow { @apply text-[11px] font-bold uppercase tracking-[0.12em] text-muted; }
+  .badge { @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide; }
+}
+
+/* Mobile data is the norm for our users — no decorative animation. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

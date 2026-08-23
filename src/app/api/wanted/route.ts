@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getWanted } from '@/server/queries';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const listings = await getWanted();
 

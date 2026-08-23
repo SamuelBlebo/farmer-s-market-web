@@ -1,4 +1,4 @@
-import { PrismaClient, type Prisma } from '@prisma/client';
+import { PrismaClient, type FarmerProfile, type Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { CATEGORIES } from '../src/lib/constants';
 
@@ -112,7 +112,7 @@ async function main() {
   });
 
   console.log('Farmers…');
-  const farmerProfiles = [];
+  const farmerProfiles: FarmerProfile[] = [];
   for (const f of FARMERS) {
     const user = await prisma.user.create({
       data: {

@@ -20,7 +20,9 @@ function readForm(formData: FormData) {
     quantity: formData.get('quantity'),
     region: formData.get('region'),
     town: String(formData.get('town') ?? ''),
-    ...(images.length ? { images } : {}),
+    // Always present, even empty — the form always renders the current photo
+    // set, so an empty array is a real "no photos" state, not "unchanged".
+    images,
   };
 }
 
@@ -71,6 +73,12 @@ export async function updateProduct(id: string, _prev: ActionState, formData: Fo
       quantity: d.quantity,
       region: d.region,
       town: d.town,
+      // Full replace: the form always submits the complete desired photo set,
+      // so dropping and recreating is simpler and correct than diffing.
+      images: {
+        deleteMany: {},
+        create: (d.images ?? []).map((img, i) => ({ url: img.url, publicId: img.publicId, sortOrder: i })),
+      },
     },
   });
 
@@ -99,9 +107,11 @@ export async function setProductStatus(formData: FormData) {
 
 export async function deleteProduct(formData: FormData) {
   const id = String(formData.get('productId') ?? '');
-  await assertOwnsProduct(id);
+  const product = await assertOwnsProduct(id);
   await prisma.product.delete({ where: { id } });
   revalidatePath('/dashboard');
+  revalidatePath('/');
+  revalidatePath(`/farmers/${product.farmerId}`);
 }
 
 export async function toggleFavorite(formData: FormData) {

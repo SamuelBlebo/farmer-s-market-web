@@ -16,6 +16,7 @@ type Initial = {
   region?: string;
   town?: string;
   description?: string | null;
+  images?: { url: string; publicId: string }[];
 };
 
 export function ProductForm({
@@ -82,7 +83,7 @@ export function ProductForm({
 
       <div className="mb-3.5">
         <span className="label">Photos</span>
-        <ImageUploader />
+        <ImageUploader initial={initial?.images} />
       </div>
 
       <label className="mb-4 block">

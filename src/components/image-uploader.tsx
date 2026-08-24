@@ -4,12 +4,41 @@ import { useState } from 'react';
 
 type Uploaded = { url: string; publicId: string };
 
+const MAX_DIMENSION = 1600;
+const COMPRESS_ABOVE_BYTES = 700_000;
+const JPEG_QUALITY = 0.82;
+
+/**
+ * Downscales large photos to a max 1600px edge and re-encodes as JPEG before
+ * upload — matters on Ghanaian mobile data. Small files pass through untouched.
+ */
+async function prepareFile(file: File): Promise<File | Blob> {
+  if (file.size <= COMPRESS_ABOVE_BYTES || !file.type.startsWith('image/')) return file;
+
+  const bitmap = await createImageBitmap(file).catch(() => null);
+  if (!bitmap) return file;
+
+  const scale = Math.min(1, MAX_DIMENSION / Math.max(bitmap.width, bitmap.height));
+  const width = Math.round(bitmap.width * scale);
+  const height = Math.round(bitmap.height * scale);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return file;
+  ctx.drawImage(bitmap, 0, 0, width, height);
+
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', JPEG_QUALITY));
+  return blob && blob.size < file.size ? blob : file;
+}
+
 /**
  * Unsigned Cloudinary upload straight from the browser — the image never passes
  * through our server, which matters on Ghanaian mobile data.
  */
-export function ImageUploader({ max = 4 }: { max?: number }) {
-  const [images, setImages] = useState<Uploaded[]>([]);
+export function ImageUploader({ max = 5, initial = [] }: { max?: number; initial?: Uploaded[] }) {
+  const [images, setImages] = useState<Uploaded[]>(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,8 +53,9 @@ export function ImageUploader({ max = 4 }: { max?: number }) {
     try {
       const next: Uploaded[] = [];
       for (const file of Array.from(files).slice(0, max - images.length)) {
+        const prepared = await prepareFile(file);
         const body = new FormData();
-        body.append('file', file);
+        body.append('file', prepared, file.name);
         body.append('upload_preset', preset);
 
         const res = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/image/upload`, { method: 'POST', body });
@@ -39,6 +69,10 @@ export function ImageUploader({ max = 4 }: { max?: number }) {
     } finally {
       setBusy(false);
     }
+  }
+
+  function remove(publicId: string) {
+    setImages((prev) => prev.filter((img) => img.publicId !== publicId));
   }
 
   return (
@@ -56,7 +90,10 @@ export function ImageUploader({ max = 4 }: { max?: number }) {
           accept="image/*"
           multiple
           disabled={busy || images.length >= max}
-          onChange={(e) => upload(e.target.files)}
+          onChange={(e) => {
+            upload(e.target.files);
+            e.target.value = '';
+          }}
           className="mx-auto mt-3 block text-sm"
         />
         {busy && <p className="mt-2 text-sm text-muted">Uploading…</p>}
@@ -64,10 +101,20 @@ export function ImageUploader({ max = 4 }: { max?: number }) {
       </div>
 
       {images.length > 0 && (
-        <div className="mt-2 flex gap-2">
+        <div className="mt-2 flex flex-wrap gap-2">
           {images.map((img) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img key={img.publicId} src={img.url} alt="" className="h-14 w-16 rounded-lg object-cover" />
+            <div key={img.publicId} className="relative">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={img.url} alt="" className="h-14 w-16 rounded-lg object-cover" />
+              <button
+                type="button"
+                onClick={() => remove(img.publicId)}
+                aria-label="Remove photo"
+                className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-ink text-[11px] font-bold text-white"
+              >
+                ×
+              </button>
+            </div>
           ))}
         </div>
       )}

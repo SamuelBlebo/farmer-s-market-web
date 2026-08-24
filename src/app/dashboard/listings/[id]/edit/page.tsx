@@ -10,7 +10,10 @@ export default async function EditListingPage({ params }: { params: { id: string
   await assertOwnsProduct(params.id);
 
   const [product, categories] = await Promise.all([
-    prisma.product.findUnique({ where: { id: params.id } }),
+    prisma.product.findUnique({
+      where: { id: params.id },
+      include: { images: { orderBy: { sortOrder: 'asc' } } },
+    }),
     getCategories(),
   ]);
   if (!product) notFound();
@@ -33,6 +36,7 @@ export default async function EditListingPage({ params }: { params: { id: string
           region: product.region,
           town: product.town,
           description: product.description,
+          images: product.images.map((i) => ({ url: i.url, publicId: i.publicId })),
         }}
         submitLabel="Save changes"
       />

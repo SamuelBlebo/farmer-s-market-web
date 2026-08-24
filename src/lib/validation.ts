@@ -39,7 +39,7 @@ export const productSchema = z
     town: z.string().min(2, 'Enter the town'),
     images: z
       .array(z.object({ url: z.string().url(), publicId: z.string() }))
-      .max(4)
+      .max(5)
       .optional(),
   })
   .strict();

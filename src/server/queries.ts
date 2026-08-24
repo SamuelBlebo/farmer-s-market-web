@@ -34,6 +34,8 @@ export async function getMarketProducts(f: MarketFilters) {
         { name: { contains: f.q, mode: 'insensitive' } },
         { description: { contains: f.q, mode: 'insensitive' } },
         { town: { contains: f.q, mode: 'insensitive' } },
+        { category: { name: { contains: f.q, mode: 'insensitive' } } },
+        { farmer: { farmName: { contains: f.q, mode: 'insensitive' } } },
       ],
     }),
     ...(f.category && { category: { slug: f.category } }),
@@ -91,6 +93,34 @@ export async function getFarmer(id: string) {
 
 export async function getCategories() {
   return prisma.category.findMany({ where: { active: true }, orderBy: { sortOrder: 'asc' } });
+}
+
+/** Homepage trust-line numbers — cheap counts, no row data. */
+export async function getMarketStats() {
+  const live = { status: 'ACTIVE' as const, moderation: 'APPROVED' as const };
+  const [listings, verifiedFarmers, regions] = await Promise.all([
+    prisma.product.count({ where: live }),
+    prisma.farmerProfile.count({ where: { verification: 'VERIFIED' } }),
+    prisma.product.findMany({ where: live, select: { region: true }, distinct: ['region'] }),
+  ]);
+  return { listings, verifiedFarmers, regionCount: regions.length };
+}
+
+export async function getFavorites(userId: string) {
+  const favorites = await prisma.favorite.findMany({
+    where: { userId, product: { status: { not: 'REMOVED' } } },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      product: {
+        include: {
+          images: { orderBy: { sortOrder: 'asc' }, take: 1 },
+          category: true,
+          farmer: { select: { id: true, farmName: true, verification: true } },
+        },
+      },
+    },
+  });
+  return favorites.map((f) => f.product);
 }
 
 export async function getWanted() {

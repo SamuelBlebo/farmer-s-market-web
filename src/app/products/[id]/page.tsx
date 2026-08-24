@@ -1,8 +1,8 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { StatusBadge, VerifiedBadge } from '@/components/badges';
 import { PriceQuantity } from '@/components/quantity-bar';
+import { ProductGallery } from '@/components/product-gallery';
 import { WhatsAppButton } from '@/components/whatsapp-button';
 import { formatQty, timeAgo, whatsappProductLink } from '@/lib/format';
 import { getProduct } from '@/server/queries';
@@ -14,7 +14,6 @@ export default async function ProductPage({ params }: { params: { id: string } }
   if (!p) notFound();
 
   const user = await currentUser();
-  const hero = p.images[0]?.url;
 
   return (
     <>
@@ -22,13 +21,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
       <div className="grid gap-6 lg:grid-cols-[1.25fr_1fr]">
         <div>
-          <div className="relative grid h-72 place-items-center overflow-hidden rounded-card bg-gradient-to-br from-[#E9F1E9] to-[#D6E5D8] text-8xl">
-            {hero ? (
-              <Image src={hero} alt={p.name} fill sizes="(max-width:1024px) 100vw, 640px" className="object-cover" priority />
-            ) : (
-              <span aria-hidden>{p.category.emoji ?? '🌿'}</span>
-            )}
-          </div>
+          <ProductGallery images={p.images} name={p.name} emoji={p.category.emoji} />
 
           <h1 className="mt-5 text-2xl font-extrabold tracking-tight">{p.name}</h1>
           <div className="mt-2 flex flex-wrap gap-2">

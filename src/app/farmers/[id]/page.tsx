@@ -19,6 +19,9 @@ export default async function FarmerPage({ params }: { params: { id: string } })
           <div className="min-w-[200px] flex-1">
             <h1 className="text-2xl font-extrabold tracking-tight">{farmer.farmName}</h1>
             <p className="text-muted">📍 {farmer.town}, {farmer.region}</p>
+            <p className="text-[12.5px] text-muted">
+              Member since {farmer.createdAt.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
+            </p>
           </div>
           <VerifiedBadge status={farmer.verification} />
         </div>

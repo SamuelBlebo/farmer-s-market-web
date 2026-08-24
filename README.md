@@ -8,6 +8,8 @@ message the farmer on WhatsApp. No internal chat, no payments, no logistics.
 Next.js 14 (App Router) · TypeScript · PostgreSQL · Prisma · Tailwind ·
 Auth.js v5 (credentials) · Cloudinary for photos.
 
+Deploying? See [DEPLOYMENT.md](./DEPLOYMENT.md) for the Vercel checklist.
+
 ## Run it locally
 
 ```bash
@@ -59,6 +61,7 @@ so the admin dashboard has something to act on.
 | `/farmers/[id]` | anyone | Farmer profile and their active listings |
 | `/wanted` | anyone | Buyer requests, contact buyer on WhatsApp |
 | `/wanted/new` | buyer | Post a request |
+| `/favorites` | signed in | Listings you've saved |
 | `/dashboard` | farmer | Their listings — edit, pause, mark sold |
 | `/dashboard/listings/new` | farmer | Post produce |
 | `/dashboard/listings/[id]/edit` | owner only | Edit a listing |

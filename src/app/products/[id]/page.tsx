@@ -4,7 +4,7 @@ import { StatusBadge, VerifiedBadge } from '@/components/badges';
 import { PriceQuantity } from '@/components/quantity-bar';
 import { ProductGallery } from '@/components/product-gallery';
 import { WhatsAppButton } from '@/components/whatsapp-button';
-import { formatQty, timeAgo, whatsappProductLink } from '@/lib/format';
+import { formatQty, telLink, timeAgo, whatsappProductLink } from '@/lib/format';
 import { getProduct } from '@/server/queries';
 import { currentUser } from '@/server/authz';
 import { reportProduct, toggleFavorite } from '@/server/actions/products';
@@ -57,7 +57,12 @@ export default async function ProductPage({ params }: { params: { id: string } }
             </dl>
 
             {p.status === 'ACTIVE' ? (
-              <WhatsAppButton href={whatsappProductLink(p.farmer.whatsapp, p.name)} className="mt-4 w-full" />
+              <div className="mt-4 space-y-2">
+                <WhatsAppButton href={whatsappProductLink(p.farmer.whatsapp, p.name)} className="w-full" />
+                {p.farmer.phone && (
+                  <a href={telLink(p.farmer.phone)} className="btn-ghost w-full">📞 Call farmer</a>
+                )}
+              </div>
             ) : (
               <p className="mt-4 rounded-[10px] bg-paper p-3 text-center text-sm text-muted">
                 This listing is {p.status.toLowerCase()}. Browse the marketplace for what is available now.

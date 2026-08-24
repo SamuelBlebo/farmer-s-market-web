@@ -26,13 +26,13 @@ export function ProductGallery({
       </div>
 
       {images.length > 1 && (
-        <div className="mt-2 flex gap-2">
+        <div className="mt-2 flex gap-2 overflow-x-auto">
           {images.map((img, i) => (
             <button
               key={img.url}
               type="button"
               onClick={() => setActive(i)}
-              className={`relative h-14 w-16 overflow-hidden rounded-lg border-2 ${
+              className={`relative h-14 w-16 shrink-0 overflow-hidden rounded-lg border-2 ${
                 i === active ? 'border-leaf' : 'border-transparent'
               }`}
               aria-label={`Show photo ${i + 1}`}

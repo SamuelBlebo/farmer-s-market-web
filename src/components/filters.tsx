@@ -17,7 +17,7 @@ export function Filters({ categories }: { categories: { slug: string; name: stri
   }
 
   return (
-    <aside className="card sticky top-4 hidden p-4 md:block">
+    <aside className="card mb-4 p-4 md:sticky md:top-4 md:mb-0">
       <h4 className="eyebrow mb-2">Price per unit (GH¢)</h4>
       <div className="grid grid-cols-2 gap-2">
         <input

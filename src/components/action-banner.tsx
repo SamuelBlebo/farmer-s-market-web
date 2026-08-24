@@ -18,7 +18,7 @@ export function ActionBanner({ messages }: { messages: Record<string, string> })
   return (
     <div className="mb-4 flex items-center justify-between gap-3 rounded-[10px] border border-leaf bg-leaf-light px-4 py-2.5 text-sm font-semibold text-leaf-dark">
       <span>✓ {messages[key]}</span>
-      <button onClick={dismiss} aria-label="Dismiss" className="text-lg leading-none text-leaf-dark">×</button>
+      <button onClick={dismiss} aria-label="Dismiss" className="shrink-0 text-lg leading-none text-leaf-dark">×</button>
     </div>
   );
 }

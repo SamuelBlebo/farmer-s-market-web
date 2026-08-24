@@ -123,11 +123,20 @@ export async function getFavorites(userId: string) {
   return favorites.map((f) => f.product);
 }
 
+/** Only admin-approved requests ever leave this function — same rule as the marketplace query. */
 export async function getWanted() {
   return prisma.wantedListing.findMany({
-    where: { status: 'OPEN' },
+    where: { status: 'OPEN', moderation: 'APPROVED' },
     orderBy: { createdAt: 'desc' },
     take: 50,
     include: { buyer: true },
+  });
+}
+
+/** A buyer's own requests, regardless of moderation status — for their status view. */
+export async function getMyWanted(userId: string) {
+  return prisma.wantedListing.findMany({
+    where: { buyer: { userId } },
+    orderBy: { createdAt: 'desc' },
   });
 }

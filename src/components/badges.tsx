@@ -1,4 +1,4 @@
-import type { ProductStatus, VerificationStatus } from '@prisma/client';
+import type { ModerationStatus, ProductStatus, VerificationStatus } from '@prisma/client';
 
 export function VerifiedBadge({ status }: { status: VerificationStatus }) {
   if (status === 'VERIFIED')
@@ -16,4 +16,10 @@ export function StatusBadge({ status }: { status: ProductStatus }) {
     REMOVED: 'bg-clay-light text-clay',
   };
   return <span className={`badge ${map[status]}`}>{status.toLowerCase()}</span>;
+}
+
+export function ModerationBadge({ status }: { status: ModerationStatus }) {
+  if (status === 'APPROVED') return <span className="badge bg-leaf-light text-leaf-dark">Approved</span>;
+  if (status === 'REJECTED') return <span className="badge bg-clay-light text-clay">Rejected</span>;
+  return <span className="badge bg-gold-light text-[#8A6100]">Pending review</span>;
 }

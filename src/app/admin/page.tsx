@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/server/authz';
 import {
   moderateProduct,
+  moderateWanted,
   removeProduct,
   resolveReport,
   setFarmerVerification,
@@ -14,11 +15,17 @@ import {
 export default async function AdminPage() {
   await requireAdmin();
 
-  const [pending, farmers, reports, categories, counts] = await Promise.all([
+  const [pending, pendingWanted, farmers, reports, categories, counts] = await Promise.all([
     prisma.product.findMany({
       where: { moderation: 'PENDING' },
       orderBy: { createdAt: 'asc' },
       include: { farmer: true, category: true },
+      take: 50,
+    }),
+    prisma.wantedListing.findMany({
+      where: { moderation: 'PENDING' },
+      orderBy: { createdAt: 'asc' },
+      include: { buyer: true },
       take: 50,
     }),
     prisma.farmerProfile.findMany({ orderBy: { createdAt: 'desc' }, take: 50 }),
@@ -70,6 +77,26 @@ export default async function AdminPage() {
             </div>
             <form action={moderateProduct} className="flex gap-2">
               <input type="hidden" name="productId" value={p.id} />
+              <button name="decision" value="APPROVED" className="btn !px-3 !py-1.5 !text-[13px]">Approve</button>
+              <button name="decision" value="REJECTED" className="btn-ghost !px-3 !py-1.5 !text-[13px]">Reject</button>
+            </form>
+          </div>
+        ))}
+      </div>
+
+      <h2 className="mb-2 text-lg font-extrabold tracking-tight">Buyer requests awaiting approval</h2>
+      <div className="card mb-6 divide-y divide-line">
+        {pendingWanted.length === 0 && <p className="p-5 text-sm text-muted">Nothing in the queue. All caught up.</p>}
+        {pendingWanted.map((w) => (
+          <div key={w.id} className="flex flex-wrap items-center gap-3 p-3.5">
+            <div className="min-w-[160px] flex-1">
+              <div className="font-bold">{w.productName}</div>
+              <div className="text-[12.5px] text-muted">
+                {w.buyer.businessName} · {w.quantity} · {w.town}, {w.region}
+              </div>
+            </div>
+            <form action={moderateWanted} className="flex gap-2">
+              <input type="hidden" name="wantedId" value={w.id} />
               <button name="decision" value="APPROVED" className="btn !px-3 !py-1.5 !text-[13px]">Approve</button>
               <button name="decision" value="REJECTED" className="btn-ghost !px-3 !py-1.5 !text-[13px]">Reject</button>
             </form>

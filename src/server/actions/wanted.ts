@@ -30,6 +30,8 @@ export async function createWanted(_prev: WantedState, formData: FormData): Prom
       town: d.town,
       neededBy: d.neededBy ? new Date(d.neededBy) : null,
       description: d.description,
+      // New requests queue for admin approval before they hit /wanted publicly.
+      moderation: 'PENDING',
     },
   });
 

@@ -1,11 +1,19 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
+import { ActionBanner } from '@/components/action-banner';
+import { ModerationBadge } from '@/components/badges';
 import { WhatsAppButton } from '@/components/whatsapp-button';
 import { whatsappWantedLink } from '@/lib/format';
-import { getWanted } from '@/server/queries';
+import { getMyWanted, getWanted } from '@/server/queries';
 import { currentUser } from '@/server/authz';
+import { closeWanted } from '@/server/actions/wanted';
 
 export default async function WantedPage() {
-  const [listings, user] = await Promise.all([getWanted(), currentUser()]);
+  const user = await currentUser();
+  const [listings, mine] = await Promise.all([
+    getWanted(),
+    user?.role === 'BUYER' ? getMyWanted(user.id) : Promise.resolve([]),
+  ]);
 
   return (
     <>
@@ -19,6 +27,34 @@ export default async function WantedPage() {
         )}
       </div>
       <p className="mb-4 text-muted">If you grow it, message the buyer directly.</p>
+
+      <Suspense>
+        <ActionBanner messages={{ posted: 'Request submitted — an admin will review it shortly.' }} />
+      </Suspense>
+
+      {user?.role === 'BUYER' && mine.length > 0 && (
+        <div className="mb-6">
+          <h2 className="mb-2 text-lg font-extrabold tracking-tight">Your requests</h2>
+          <div className="card divide-y divide-line">
+            {mine.map((w) => (
+              <div key={w.id} className="flex flex-wrap items-center gap-3 p-3.5">
+                <div className="min-w-[160px] flex-1">
+                  <div className="font-bold">{w.productName}</div>
+                  <div className="text-[12.5px] text-muted">{w.quantity} · {w.town}, {w.region}</div>
+                </div>
+                <ModerationBadge status={w.moderation} />
+                {w.status === 'CLOSED' && <span className="badge bg-paper text-muted">closed</span>}
+                {w.moderation === 'APPROVED' && w.status === 'OPEN' && (
+                  <form action={closeWanted}>
+                    <input type="hidden" name="wantedId" value={w.id} />
+                    <button className="btn-ghost !px-3 !py-1.5 !text-[13px]">Close</button>
+                  </form>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {listings.length === 0 ? (
         <div className="card p-10 text-center">

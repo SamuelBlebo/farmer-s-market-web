@@ -19,6 +19,21 @@ export async function moderateProduct(formData: FormData) {
   revalidatePath('/');
 }
 
+export async function moderateWanted(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get('wantedId') ?? '');
+  const decision = String(formData.get('decision') ?? '');
+  if (!['APPROVED', 'REJECTED'].includes(decision)) throw new Error('Invalid decision');
+
+  await prisma.wantedListing.update({
+    where: { id },
+    data: { moderation: decision as 'APPROVED' | 'REJECTED' },
+  });
+
+  revalidatePath('/admin');
+  revalidatePath('/wanted');
+}
+
 export async function removeProduct(formData: FormData) {
   await requireAdmin();
   const id = String(formData.get('productId') ?? '');

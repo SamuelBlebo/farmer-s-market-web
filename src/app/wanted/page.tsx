@@ -24,6 +24,9 @@ export default async function WantedPage() {
         <div className="card p-10 text-center">
           <p className="font-bold">No open requests right now.</p>
           <p className="mt-1 text-sm text-muted">Buyers post here when they need produce in bulk.</p>
+          {(!user || user.role === 'BUYER') && (
+            <Link href="/wanted/new" className="btn mt-4">Post the first request</Link>
+          )}
         </div>
       ) : (
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">

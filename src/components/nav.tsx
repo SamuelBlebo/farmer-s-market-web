@@ -14,6 +14,7 @@ export async function Nav() {
       <nav className="flex gap-4 text-sm font-semibold text-muted">
         <Link href="/" className="hover:text-ink">Marketplace</Link>
         <Link href="/wanted" className="hover:text-ink">Wanted</Link>
+        {user && <Link href="/favorites" className="hover:text-ink">Favorites</Link>}
         {user?.role === 'FARMER' && <Link href="/dashboard" className="hover:text-ink">My listings</Link>}
         {user?.role === 'ADMIN' && <Link href="/admin" className="hover:text-ink">Admin</Link>}
       </nav>

@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
+import { deleteCloudinaryImages } from '@/lib/cloudinary';
 import { toMinor } from '@/lib/format';
 import { productSchema, productStatusSchema, reportSchema } from '@/lib/validation';
 import { assertOwnsProduct, requireFarmerProfile, requireUser } from '@/server/authz';
@@ -62,6 +63,11 @@ export async function updateProduct(id: string, _prev: ActionState, formData: Fo
   if (!parsed.success) return { fieldErrors: parsed.error.flatten().fieldErrors };
 
   const d = parsed.data;
+  const before = await prisma.product.findUniqueOrThrow({
+    where: { id },
+    select: { images: { select: { publicId: true } } },
+  });
+
   await prisma.product.update({
     where: { id },
     data: {
@@ -81,6 +87,12 @@ export async function updateProduct(id: string, _prev: ActionState, formData: Fo
       },
     },
   });
+
+  // Clean up whatever Cloudinary assets are no longer referenced — removed or
+  // replaced photos, not ones the farmer kept.
+  const kept = new Set((d.images ?? []).map((img) => img.publicId));
+  const dropped = before.images.map((img) => img.publicId).filter((id) => !kept.has(id));
+  await deleteCloudinaryImages(dropped);
 
   revalidatePath('/dashboard');
   revalidatePath(`/products/${id}`);
@@ -108,7 +120,13 @@ export async function setProductStatus(formData: FormData) {
 export async function deleteProduct(formData: FormData) {
   const id = String(formData.get('productId') ?? '');
   const product = await assertOwnsProduct(id);
+  const images = await prisma.productImage.findMany({ where: { productId: id }, select: { publicId: true } });
+
+  // ProductImage rows cascade-delete with the product; the Cloudinary
+  // assets they pointed at do not, so clean those up too.
   await prisma.product.delete({ where: { id } });
+  await deleteCloudinaryImages(images.map((i) => i.publicId));
+
   revalidatePath('/dashboard');
   revalidatePath('/');
   revalidatePath(`/farmers/${product.farmerId}`);

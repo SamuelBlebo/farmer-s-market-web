@@ -13,7 +13,13 @@ export const authConfig = {
       const role = auth?.user?.role;
       const { pathname } = request.nextUrl;
 
-      if (pathname.startsWith('/admin')) return role === 'ADMIN';
+      // The admin login page itself must stay reachable, and unauthorized
+      // access to the rest of /admin goes to it — not the farmer/buyer login.
+      if (pathname === '/admin/login') return true;
+      if (pathname.startsWith('/admin')) {
+        if (role === 'ADMIN') return true;
+        return Response.redirect(new URL('/admin/login', request.nextUrl));
+      }
       if (pathname.startsWith('/dashboard')) return role === 'FARMER' || role === 'ADMIN';
       if (pathname.startsWith('/wanted/new')) return role === 'BUYER' || role === 'ADMIN';
       return true;

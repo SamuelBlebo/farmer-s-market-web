@@ -75,6 +75,41 @@ const PRODUCTS: P[] = [
   ['Cassava Sticks (planting)', 'other', 120, 'box', 50, 80, 8, 'ACTIVE', 'Improved cassava planting material.'],
 ];
 
+// Local dev placeholder photos — see public/seed/. Never fabricated remote
+// URLs; these are hand-authored SVGs we fully control.
+const SPECIFIC_IMAGES: Record<string, string> = {
+  tomato: '/seed/tomato.svg',
+  yam: '/seed/yam.svg',
+  cassava: '/seed/cassava.svg',
+  maize: '/seed/maize.svg',
+  pepper: '/seed/pepper.svg',
+  shito: '/seed/pepper.svg',
+  onion: '/seed/onion.svg',
+  plantain: '/seed/plantain.svg',
+};
+const CATEGORY_IMAGES: Record<string, string> = {
+  vegetables: '/seed/category-vegetables.svg',
+  fruits: '/seed/category-fruits.svg',
+  grains: '/seed/category-grains.svg',
+  tubers: '/seed/category-tubers.svg',
+  legumes: '/seed/category-legumes.svg',
+  poultry: '/seed/category-poultry.svg',
+  livestock: '/seed/category-livestock.svg',
+  eggs: '/seed/category-eggs.svg',
+  other: '/seed/category-other.svg',
+};
+
+/** A specific match plus its category fallback when they differ — gives most
+ * products two photos so the gallery UI has something real to show in dev. */
+function imagesFor(name: string, categorySlug: string): string[] {
+  const lower = name.toLowerCase();
+  const specificKey = Object.keys(SPECIFIC_IMAGES).find((k) => lower.includes(k));
+  const category = CATEGORY_IMAGES[categorySlug] ?? CATEGORY_IMAGES.other;
+  if (!specificKey) return [category];
+  const specific = SPECIFIC_IMAGES[specificKey];
+  return specific === category ? [specific] : [specific, category];
+}
+
 const WANTED = [
   { buyer: 0, productName: 'Puna Yam', quantity: '2 tonnes', region: 'Greater Accra', town: 'Accra', days: 18, description: 'Looking for good-quality yam for wholesale in Madina market. Can collect.' },
   { buyer: 1, productName: 'White Maize', quantity: '400 bags', region: 'Ashanti', town: 'Kumasi', days: 33, description: 'Dry maize, moisture below 13.5%. Weekly supply preferred over one-off.' },
@@ -188,6 +223,20 @@ async function main() {
     },
   );
   await prisma.product.createMany({ data: products });
+
+  console.log('Product photos…');
+  const createdProducts = await prisma.product.findMany({ select: { id: true, name: true, categoryId: true } });
+  const categorySlugById = new Map(categories.map((c) => [c.id, c.slug]));
+  const imageRows: Prisma.ProductImageCreateManyInput[] = createdProducts.flatMap((p) => {
+    const slug = categorySlugById.get(p.categoryId) ?? 'other';
+    return imagesFor(p.name, slug).map((url, i) => ({
+      productId: p.id,
+      url,
+      publicId: `local:${url}`,
+      sortOrder: i,
+    }));
+  });
+  await prisma.productImage.createMany({ data: imageRows });
 
   console.log('Wanted listings…');
   for (const w of WANTED) {

@@ -26,6 +26,11 @@ export const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+export const phoneLoginSchema = z.object({
+  phone,
+  password: z.string().min(1),
+});
+
 export const productSchema = z
   .object({
     name: z.string().min(2, 'Name the produce').max(80),

@@ -38,6 +38,11 @@ export function whatsappWantedLink(whatsapp: string, productName: string): strin
   return `https://wa.me/${normalizeGhanaPhone(whatsapp)}?text=${encodeURIComponent(msg)}`;
 }
 
+/** "024 410 1234" -> "tel:+233244101234" */
+export function telLink(phone: string): string {
+  return `tel:+${normalizeGhanaPhone(phone)}`;
+}
+
 export function timeAgo(date: Date): string {
   const days = Math.floor((Date.now() - date.getTime()) / 86_400_000);
   if (days < 1) return 'today';

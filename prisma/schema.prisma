@@ -52,7 +52,7 @@ model User {
   emailVerified DateTime?
   passwordHash  String?
   name          String
-  phone         String?
+  phone         String?   @unique
   role          Role      @default(BUYER)
   image         String?
   createdAt     DateTime  @default(now())
@@ -200,7 +200,7 @@ model ProductImage {
 }
 
 model WantedListing {
-  id          String       @id @default(cuid())
+  id          String            @id @default(cuid())
   buyerId     String
   productName String
   categoryId  String?
@@ -209,13 +209,15 @@ model WantedListing {
   town        String
   neededBy    DateTime?
   description String?
-  status      WantedStatus @default(OPEN)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  status      WantedStatus      @default(OPEN)
+  // Admin-approved before it's publicly visible — same enum and flow as Product.moderation.
+  moderation  ModerationStatus  @default(PENDING)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 
   buyer BuyerProfile @relation(fields: [buyerId], references: [id], onDelete: Cascade)
 
-  @@index([status, createdAt])
+  @@index([status, moderation, createdAt])
   @@index([region])
 }
 

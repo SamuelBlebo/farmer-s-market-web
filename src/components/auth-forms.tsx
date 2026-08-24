@@ -2,26 +2,55 @@
 
 import { useState } from 'react';
 import { useFormState } from 'react-dom';
+import { PasswordField } from './password-field';
 import { SubmitButton } from './submit-button';
 import { REGIONS } from '@/lib/constants';
-import { login, register, type AuthState } from '@/server/actions/auth';
+import { login, loginAdmin, loginWithPhone, register, type AuthState } from '@/server/actions/auth';
+
+const tab = (on: boolean) =>
+  `flex-1 rounded-[10px] border px-3 py-2 text-[13px] font-bold ${
+    on ? 'border-ink bg-ink text-white' : 'border-line bg-white text-muted'
+  }`;
 
 export function LoginForm() {
-  const [state, formAction] = useFormState(login, {} as AuthState);
+  const [method, setMethod] = useState<'email' | 'phone'>('email');
+  const [emailState, emailAction] = useFormState(login, {} as AuthState);
+  const [phoneState, phoneAction] = useFormState(loginWithPhone, {} as AuthState);
 
   return (
-    <form action={formAction} className="card p-5">
-      <label className="mb-3.5 block">
-        <span className="label">Email</span>
-        <input name="email" type="email" className="input" required autoComplete="email" />
-      </label>
-      <label className="mb-4 block">
-        <span className="label">Password</span>
-        <input name="password" type="password" className="input" required autoComplete="current-password" />
-      </label>
-      {state.error && <p className="mb-3 text-sm text-clay">{state.error}</p>}
-      <SubmitButton className="btn w-full" pendingLabel="Signing in…">Sign in</SubmitButton>
-    </form>
+    <div className="card p-5">
+      <div className="mb-4 flex gap-2" role="tablist" aria-label="Sign-in method">
+        <button type="button" role="tab" aria-selected={method === 'email'} onClick={() => setMethod('email')} className={tab(method === 'email')}>
+          Email
+        </button>
+        <button type="button" role="tab" aria-selected={method === 'phone'} onClick={() => setMethod('phone')} className={tab(method === 'phone')}>
+          Phone
+        </button>
+      </div>
+
+      {method === 'email' ? (
+        <form action={emailAction}>
+          <label className="mb-3.5 block">
+            <span className="label">Email</span>
+            <input name="email" type="email" className="input" required autoComplete="email" />
+          </label>
+          <PasswordField autoComplete="current-password" />
+          {emailState.error && <p className="mb-3 text-sm text-clay">{emailState.error}</p>}
+          <SubmitButton className="btn w-full" pendingLabel="Signing in…">Sign in</SubmitButton>
+        </form>
+      ) : (
+        <form action={phoneAction}>
+          <label className="mb-3.5 block">
+            <span className="label">Phone number</span>
+            <input name="phone" type="tel" className="input" required inputMode="tel" autoComplete="tel" placeholder="024 410 1234" />
+            {phoneState.fieldErrors?.phone?.[0] && <p className="mt-1 text-sm text-clay">{phoneState.fieldErrors.phone[0]}</p>}
+          </label>
+          <PasswordField autoComplete="current-password" />
+          {phoneState.error && <p className="mb-3 text-sm text-clay">{phoneState.error}</p>}
+          <SubmitButton className="btn w-full" pendingLabel="Signing in…">Sign in</SubmitButton>
+        </form>
+      )}
+    </div>
   );
 }
 
@@ -93,17 +122,29 @@ export function RegisterForm() {
         </label>
       </div>
 
-      <label className="mb-4 block">
-        <span className="label">Password</span>
-        <input name="password" type="password" className="input" required autoComplete="new-password" />
-        {err('password') && <p className="mt-1 text-sm text-clay">{err('password')}</p>}
-      </label>
+      <PasswordField autoComplete="new-password" error={err('password')} />
 
       {state.error && <p className="mb-3 text-sm text-clay">{state.error}</p>}
       <SubmitButton className="btn w-full" pendingLabel="Creating…">Create account</SubmitButton>
       <p className="mt-2 text-center text-[12px] text-muted">
         New farmers start as Unverified. Post a listing and an admin reviews you within a day.
       </p>
+    </form>
+  );
+}
+
+export function AdminLoginForm() {
+  const [state, formAction] = useFormState(loginAdmin, {} as AuthState);
+
+  return (
+    <form action={formAction} className="card border-2 border-ink p-5">
+      <label className="mb-3.5 block">
+        <span className="label">Admin email</span>
+        <input name="email" type="email" className="input" required autoComplete="email" />
+      </label>
+      <PasswordField autoComplete="current-password" />
+      {state.error && <p className="mb-3 text-sm text-clay">{state.error}</p>}
+      <SubmitButton className="btn w-full" pendingLabel="Signing in…">Admin sign in</SubmitButton>
     </form>
   );
 }

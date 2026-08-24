@@ -1,6 +1,7 @@
 import { PrismaClient, type FarmerProfile, type Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { CATEGORIES } from '../src/lib/constants';
+import { normalizeGhanaPhone } from '../src/lib/format';
 
 const prisma = new PrismaClient();
 
@@ -143,7 +144,7 @@ async function main() {
 
   console.log('Admin…');
   await prisma.user.create({
-    data: { email: 'admin@farmersmarket.gh', name: 'Platform Admin', role: 'ADMIN', passwordHash, phone: '0302000000' },
+    data: { email: 'admin@farmersmarket.gh', name: 'Platform Admin', role: 'ADMIN', passwordHash, phone: normalizeGhanaPhone('0302000000') },
   });
 
   console.log('Farmers…');
@@ -153,7 +154,7 @@ async function main() {
       data: {
         email: f.email,
         name: f.person,
-        phone: f.phone,
+        phone: normalizeGhanaPhone(f.phone),
         role: 'FARMER',
         passwordHash,
         farmerProfile: {
@@ -181,7 +182,7 @@ async function main() {
       data: {
         email: b.email,
         name: b.person,
-        phone: b.phone,
+        phone: normalizeGhanaPhone(b.phone),
         role: 'BUYER',
         passwordHash,
         buyerProfile: {
@@ -239,7 +240,7 @@ async function main() {
   await prisma.productImage.createMany({ data: imageRows });
 
   console.log('Wanted listings…');
-  for (const w of WANTED) {
+  for (const [i, w] of WANTED.entries()) {
     await prisma.wantedListing.create({
       data: {
         buyerId: buyerProfiles[w.buyer].id,
@@ -249,6 +250,8 @@ async function main() {
         town: w.town,
         neededBy: w.days ? new Date(Date.now() + w.days * 86_400_000) : null,
         description: w.description,
+        // Most seeded requests are already live; the last two sit in the admin queue.
+        moderation: i >= WANTED.length - 2 ? 'PENDING' : 'APPROVED',
       },
     });
   }

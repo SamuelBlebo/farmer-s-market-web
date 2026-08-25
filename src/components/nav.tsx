@@ -129,8 +129,8 @@ export async function Nav() {
   return (
     <div className="mb-5">
       <header className="card relative z-30 flex items-center gap-4 px-4 py-3">
-        <Link href="/" className="text-[17px] font-extrabold tracking-tight">
-          Farmers<span className="text-leaf">Market</span>
+        <Link href="/" className="flex items-center text-[17px] font-extrabold leading-none tracking-[-0.01em] text-[#111827]">
+          Farmers<span className="text-[#15803D]">Market</span>
         </Link>
 
         <NavLinks items={items} />

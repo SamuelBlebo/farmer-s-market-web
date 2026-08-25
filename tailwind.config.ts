@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss';
+import defaultTheme from 'tailwindcss/defaultTheme';
 
 export default {
   content: ['./src/**/*.{ts,tsx}'],
@@ -14,7 +15,12 @@ export default {
         muted: '#5F6F63',
         whatsapp: '#1FA855',
       },
-      fontFamily: { num: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'] },
+      fontFamily: {
+        // Applies everywhere by default (nothing in the app sets a competing
+        // font-family) — no need to touch individual components.
+        sans: ['var(--font-manrope)', ...defaultTheme.fontFamily.sans],
+        num: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+      },
       borderRadius: { card: '14px' },
     },
   },

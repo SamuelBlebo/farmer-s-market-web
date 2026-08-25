@@ -1,8 +1,16 @@
 import { Suspense } from 'react';
 import type { Metadata, Viewport } from 'next';
+import { Manrope } from 'next/font/google';
 import './globals.css';
 import { Nav } from '@/components/nav';
 import { TopProgressBar } from '@/components/top-progress-bar';
+
+const manrope = Manrope({
+  subsets: ['latin'],
+  weight: ['400', '600', '700', '800'],
+  variable: '--font-manrope',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'Farmers Market — buy and sell produce in Ghana',
@@ -14,7 +22,7 @@ export const viewport: Viewport = { width: 'device-width', initialScale: 1, them
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={manrope.variable}>
       <body>
         <Suspense fallback={null}>
           <TopProgressBar />

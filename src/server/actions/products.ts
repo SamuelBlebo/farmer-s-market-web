@@ -10,6 +10,16 @@ import { assertOwnsProduct, requireFarmerProfile, requireUser } from '@/server/a
 
 export type ActionState = { error?: string; fieldErrors?: Record<string, string[]> };
 
+/** Zips the variantName/variantPrice/variantQuantity[] fields VariantEditor renders back into rows. */
+function readVariants(formData: FormData) {
+  const names = formData.getAll('variantName').map(String);
+  const prices = formData.getAll('variantPrice').map(String);
+  const quantities = formData.getAll('variantQuantity').map(String);
+  return names
+    .map((name, i) => ({ name: name.trim(), price: prices[i] ?? '', quantity: quantities[i]?.trim() || undefined }))
+    .filter((v) => v.name && v.price.trim());
+}
+
 function readForm(formData: FormData) {
   const images = formData.getAll('images').map((v) => JSON.parse(String(v)));
   return {
@@ -24,7 +34,13 @@ function readForm(formData: FormData) {
     // Always present, even empty — the form always renders the current photo
     // set, so an empty array is a real "no photos" state, not "unchanged".
     images,
+    expectedHarvestDate: String(formData.get('expectedHarvestDate') ?? '') || undefined,
+    variants: readVariants(formData),
   };
+}
+
+function toHarvestDate(iso: string | undefined): Date | null {
+  return iso ? new Date(`${iso}T00:00:00`) : null;
 }
 
 export async function createProduct(_prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -45,10 +61,14 @@ export async function createProduct(_prev: ActionState, formData: FormData): Pro
       initialQty: d.quantity,
       region: d.region,
       town: d.town,
+      expectedHarvestDate: toHarvestDate(d.expectedHarvestDate),
       // New listings queue for admin approval before they hit the marketplace.
       moderation: 'PENDING',
       images: d.images?.length
         ? { create: d.images.map((img, i) => ({ url: img.url, publicId: img.publicId, sortOrder: i })) }
+        : undefined,
+      variants: d.variants?.length
+        ? { create: d.variants.map((v, i) => ({ name: v.name, priceMinor: toMinor(v.price), quantity: v.quantity, sortOrder: i })) }
         : undefined,
     },
   });
@@ -57,7 +77,12 @@ export async function createProduct(_prev: ActionState, formData: FormData): Pro
   redirect('/dashboard?posted=1');
 }
 
-export async function updateProduct(id: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
+export async function updateProduct(
+  id: string,
+  redirectTo: string,
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   await assertOwnsProduct(id);
   const parsed = productSchema.safeParse(readForm(formData));
   if (!parsed.success) return { fieldErrors: parsed.error.flatten().fieldErrors };
@@ -79,11 +104,17 @@ export async function updateProduct(id: string, _prev: ActionState, formData: Fo
       quantity: d.quantity,
       region: d.region,
       town: d.town,
+      expectedHarvestDate: toHarvestDate(d.expectedHarvestDate),
       // Full replace: the form always submits the complete desired photo set,
       // so dropping and recreating is simpler and correct than diffing.
       images: {
         deleteMany: {},
         create: (d.images ?? []).map((img, i) => ({ url: img.url, publicId: img.publicId, sortOrder: i })),
+      },
+      // Same full-replace approach for variants.
+      variants: {
+        deleteMany: {},
+        create: (d.variants ?? []).map((v, i) => ({ name: v.name, priceMinor: toMinor(v.price), quantity: v.quantity, sortOrder: i })),
       },
     },
   });
@@ -95,8 +126,9 @@ export async function updateProduct(id: string, _prev: ActionState, formData: Fo
   await deleteCloudinaryImages(dropped);
 
   revalidatePath('/dashboard');
+  revalidatePath('/admin');
   revalidatePath(`/products/${id}`);
-  redirect('/dashboard?saved=1');
+  redirect(redirectTo);
 }
 
 /** Pause / unpause / mark sold. Farmers can never set REMOVED — that is admin-only. */
@@ -114,6 +146,7 @@ export async function setProductStatus(formData: FormData) {
   });
 
   revalidatePath('/dashboard');
+  revalidatePath('/admin');
   revalidatePath('/');
 }
 

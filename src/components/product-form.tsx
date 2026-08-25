@@ -3,6 +3,7 @@
 import { useFormState } from 'react-dom';
 import { ImageUploader } from './image-uploader';
 import { SubmitButton } from './submit-button';
+import { VariantEditor } from './variant-editor';
 import { REGIONS, UNITS } from '@/lib/constants';
 import type { ActionState } from '@/server/actions/products';
 
@@ -17,7 +18,13 @@ type Initial = {
   town?: string;
   description?: string | null;
   images?: { url: string; publicId: string }[];
+  expectedHarvestDate?: string;
+  variants?: { name: string; price: number; quantity?: number | null }[];
 };
+
+function toDateInput(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
 
 export function ProductForm({
   action,
@@ -32,6 +39,10 @@ export function ProductForm({
 }) {
   const [state, formAction] = useFormState(action, {} as ActionState);
   const err = (f: string) => state.fieldErrors?.[f]?.[0];
+
+  const today = new Date();
+  const max = new Date();
+  max.setDate(today.getDate() + 30);
 
   return (
     <form action={formAction} className="card p-5">
@@ -81,9 +92,31 @@ export function ProductForm({
         <input name="town" className="input" defaultValue={initial?.town} placeholder="e.g. Techiman" required />
       </label>
 
+      <label className="mb-3.5 block">
+        <span className="label">
+          Expected harvest date <span className="font-normal text-muted">(optional — leave blank if available now)</span>
+        </span>
+        <input
+          type="date"
+          name="expectedHarvestDate"
+          className="input"
+          defaultValue={initial?.expectedHarvestDate}
+          min={toDateInput(today)}
+          max={toDateInput(max)}
+        />
+        {err('expectedHarvestDate') && <p className="mt-1 text-sm text-clay">{err('expectedHarvestDate')}</p>}
+      </label>
+
       <div className="mb-3.5">
         <span className="label">Photos</span>
         <ImageUploader initial={initial?.images} />
+      </div>
+
+      <div className="mb-3.5">
+        <span className="label">
+          Product variants <span className="font-normal text-muted">(optional — e.g. Small/Medium/Large at different prices)</span>
+        </span>
+        <VariantEditor initial={initial?.variants} />
       </div>
 
       <label className="mb-4 block">

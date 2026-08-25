@@ -12,13 +12,13 @@ export default async function EditListingPage({ params }: { params: { id: string
   const [product, categories] = await Promise.all([
     prisma.product.findUnique({
       where: { id: params.id },
-      include: { images: { orderBy: { sortOrder: 'asc' } } },
+      include: { images: { orderBy: { sortOrder: 'asc' } }, variants: { orderBy: { sortOrder: 'asc' } } },
     }),
     getCategories(),
   ]);
   if (!product) notFound();
 
-  const action = updateProduct.bind(null, product.id);
+  const action = updateProduct.bind(null, product.id, '/dashboard?saved=1');
 
   return (
     <div className="mx-auto max-w-[640px]">
@@ -37,6 +37,8 @@ export default async function EditListingPage({ params }: { params: { id: string
           town: product.town,
           description: product.description,
           images: product.images.map((i) => ({ url: i.url, publicId: i.publicId })),
+          expectedHarvestDate: product.expectedHarvestDate ? product.expectedHarvestDate.toISOString().slice(0, 10) : undefined,
+          variants: product.variants.map((v) => ({ name: v.name, price: v.priceMinor / 100, quantity: v.quantity ? Number(v.quantity) : null })),
         }}
         submitLabel="Save changes"
       />

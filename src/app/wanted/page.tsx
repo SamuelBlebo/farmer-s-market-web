@@ -7,7 +7,7 @@ import { BadgeCheckIcon, ClockIcon, DocumentIcon } from '@/components/icons';
 import { Pagination } from '@/components/pagination';
 import { StatCard } from '@/components/stat-card';
 import { WhatsAppButton } from '@/components/whatsapp-button';
-import { whatsappWantedLink } from '@/lib/format';
+import { timeAgo, whatsappWantedLink } from '@/lib/format';
 import { getMyWanted, getWanted } from '@/server/queries';
 import { currentUser } from '@/server/authz';
 import { closeWanted } from '@/server/actions/wanted';
@@ -87,31 +87,34 @@ export default async function WantedPage({ searchParams }: { searchParams: { pag
           )}
         </div>
       ) : (
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
           {listings.map((w) => (
-            <article key={w.id} className="card border-l-[3px] border-l-clay p-4">
-              <p className="eyebrow text-clay">Wanted</p>
-              <h2 className="mt-1 text-lg font-extrabold tracking-tight">{w.productName}</h2>
+            <article key={w.id} className="card flex flex-col border-l-[3px] border-l-clay p-4 transition-colors hover:border-l-4 hover:border-l-clay">
+              <div className="flex items-start justify-between gap-2">
+                <p className="eyebrow text-clay">Wanted</p>
+                <span className="shrink-0 text-[11px] font-semibold text-muted">{timeAgo(w.createdAt)}</span>
+              </div>
+              <h2 className="mt-1 truncate text-lg font-extrabold tracking-tight">{w.productName}</h2>
               <p className="font-num text-base font-bold">{w.quantity}</p>
 
               <dl className="my-3 text-sm">
-                <div className="flex justify-between border-b border-line py-2">
+                <div className="flex justify-between border-b border-line py-1.5">
                   <dt className="text-muted">Deliver to</dt>
-                  <dd className="font-bold">{w.town}, {w.region}</dd>
+                  <dd className="truncate pl-2 font-bold">{w.town}, {w.region}</dd>
                 </div>
-                <div className="flex justify-between border-b border-line py-2">
+                <div className="flex justify-between border-b border-line py-1.5">
                   <dt className="text-muted">Needed by</dt>
                   <dd className="font-bold">
                     {w.neededBy ? w.neededBy.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Ongoing'}
                   </dd>
                 </div>
-                <div className="flex justify-between py-2">
+                <div className="flex justify-between py-1.5">
                   <dt className="text-muted">Buyer</dt>
-                  <dd className="font-bold">{w.buyer.businessName}</dd>
+                  <dd className="truncate pl-2 font-bold">{w.buyer.businessName}</dd>
                 </div>
               </dl>
 
-              <p className="text-[13.5px] text-muted">{w.description}</p>
+              <p className="line-clamp-2 flex-1 text-[13.5px] text-muted">{w.description}</p>
               {user ? (
                 <WhatsAppButton
                   href={whatsappWantedLink(w.buyer.whatsapp, w.productName)}

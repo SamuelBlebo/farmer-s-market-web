@@ -18,7 +18,7 @@ export default async function EditListingPage({ params }: { params: { id: string
   ]);
   if (!product) notFound();
 
-  const action = updateProduct.bind(null, product.id, '/dashboard?saved=1');
+  const action = updateProduct.bind(null, product.id, '/dashboard/listings?saved=1');
 
   return (
     <div className="mx-auto max-w-[640px]">

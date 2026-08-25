@@ -2,93 +2,34 @@ import { Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ActionBanner } from '@/components/action-banner';
-import { DeleteListingForm } from '@/components/delete-listing-form';
-import { LifecycleBadge } from '@/components/badges';
+import { StatusBadge } from '@/components/badges';
 import { BadgeCheckIcon, DocumentIcon, PauseIcon, StoreIcon } from '@/components/icons';
 import { StatCard } from '@/components/stat-card';
-import {
-  LIFECYCLE_LABEL,
-  formatPrice,
-  formatQty,
-  getProductLifecycle,
-  harvestLabel,
-  timeAgo,
-  type ProductLifecycle,
-} from '@/lib/format';
+import { formatPrice, formatQty, timeAgo } from '@/lib/format';
 import { prisma } from '@/lib/prisma';
 import { requireFarmerProfile } from '@/server/authz';
-import { deleteProduct, setProductStatus } from '@/server/actions/products';
-import type { Prisma } from '@prisma/client';
-
-type Row = Prisma.ProductGetPayload<{ include: { category: true; images: { take: 1 } } }>;
-
-const GROUP_ORDER: ProductLifecycle[] = ['UPCOMING_HARVEST', 'AVAILABLE_NOW', 'ONGOING', 'SOLD_OUT', 'PAUSED'];
-
-function ProductRow({ p }: { p: Row }) {
-  const thumb = p.images[0]?.url;
-  return (
-    <div className="flex flex-wrap items-center gap-3 p-3.5">
-      <div className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-[10px] bg-gradient-to-br from-[#E9F1E9] to-[#D6E5D8] text-xl">
-        {thumb ? (
-          <Image src={thumb} alt="" fill sizes="48px" className="object-cover" />
-        ) : (
-          <span aria-hidden>{p.category.emoji ?? '🌿'}</span>
-        )}
-      </div>
-      <div className="min-w-[160px] flex-1">
-        <div className="font-bold">{p.name}</div>
-        <div className="text-[12.5px] text-muted">
-          {formatPrice(p.priceMinor)} / {p.unit} · {formatQty(String(p.quantity))} left · {timeAgo(p.createdAt)}
-        </div>
-        {p.expectedHarvestDate && p.status === 'ACTIVE' && (
-          <div className="text-[12.5px] text-muted">🌾 {harvestLabel(p.expectedHarvestDate)}</div>
-        )}
-      </div>
-
-      {p.moderation === 'PENDING' && <span className="badge bg-gold-light text-[#8A6100]">Awaiting approval</span>}
-      {p.moderation === 'REJECTED' && <span className="badge bg-clay-light text-clay">Rejected</span>}
-
-      <div className="flex flex-wrap gap-2">
-        <Link href={`/dashboard/listings/${p.id}/edit`} className="btn-ghost !px-3 !py-1.5 !text-[13px]">Edit</Link>
-        <form action={setProductStatus}>
-          <input type="hidden" name="productId" value={p.id} />
-          <input type="hidden" name="status" value={p.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE'} />
-          <button className="btn-ghost !px-3 !py-1.5 !text-[13px]">
-            {p.status === 'ACTIVE' ? 'Pause' : 'Unpause'}
-          </button>
-        </form>
-        {p.status !== 'SOLD' && (
-          <form action={setProductStatus}>
-            <input type="hidden" name="productId" value={p.id} />
-            <input type="hidden" name="status" value="SOLD" />
-            <button className="btn-ghost !px-3 !py-1.5 !text-[13px]">Mark sold</button>
-          </form>
-        )}
-        <DeleteListingForm productId={p.id} action={deleteProduct} />
-      </div>
-    </div>
-  );
-}
 
 export default async function DashboardPage() {
   const { user, profile } = await requireFarmerProfile();
 
-  const products = await prisma.product.findMany({
-    where: { farmerId: profile.id, status: { not: 'REMOVED' } },
-    orderBy: { createdAt: 'desc' },
-    include: { category: true, images: { orderBy: { sortOrder: 'asc' }, take: 1 } },
-  });
+  const [products, recent, openRequests] = await Promise.all([
+    prisma.product.findMany({
+      where: { farmerId: profile.id, status: { not: 'REMOVED' } },
+      select: { status: true, moderation: true },
+    }),
+    prisma.product.findMany({
+      where: { farmerId: profile.id, status: { not: 'REMOVED' } },
+      orderBy: { createdAt: 'desc' },
+      take: 4,
+      include: { category: true, images: { orderBy: { sortOrder: 'asc' }, take: 1 } },
+    }),
+    prisma.wantedListing.count({ where: { status: 'OPEN', moderation: 'APPROVED' } }),
+  ]);
 
   const active = products.filter((p) => p.status === 'ACTIVE' && p.moderation === 'APPROVED').length;
   const sold = products.filter((p) => p.status === 'SOLD').length;
   const paused = products.filter((p) => p.status === 'PAUSED').length;
   const pendingApproval = products.filter((p) => p.moderation === 'PENDING').length;
-
-  const groups = new Map<ProductLifecycle, Row[]>();
-  for (const p of products) {
-    const lifecycle = getProductLifecycle(p.status, p.expectedHarvestDate);
-    groups.set(lifecycle, [...(groups.get(lifecycle) ?? []), p]);
-  }
 
   const firstName = user.name.split(' ')[0];
 
@@ -111,33 +52,71 @@ export default async function DashboardPage() {
         />
       </Suspense>
 
-      <div id="dashboard-listings" className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard icon={<StoreIcon />} label="Active listings" value={active} href="#dashboard-listings" />
-        <StatCard icon={<BadgeCheckIcon />} label="Sold listings" value={sold} href="#lifecycle-SOLD_OUT" />
-        <StatCard icon={<PauseIcon />} label="Paused listings" value={paused} href="#lifecycle-PAUSED" />
-        <StatCard icon={<DocumentIcon />} label="Pending approval" value={pendingApproval} />
+      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatCard icon={<StoreIcon />} label="Active listings" value={active} href="/dashboard/listings" />
+        <StatCard icon={<BadgeCheckIcon />} label="Sold listings" value={sold} href="/dashboard/listings#lifecycle-SOLD_OUT" />
+        <StatCard icon={<PauseIcon />} label="Paused listings" value={paused} href="/dashboard/listings#lifecycle-PAUSED" />
+        <StatCard icon={<DocumentIcon />} label="Pending approval" value={pendingApproval} href="/dashboard/listings" />
       </div>
 
-      {products.length === 0 ? (
-        <div className="card p-10 text-center">
-          <p className="font-bold">You have not posted any produce yet.</p>
-          <p className="mt-1 text-sm text-muted">It takes about a minute — name, price, quantity, a photo.</p>
-          <Link href="/dashboard/listings/new" className="btn mt-4">Post your first listing</Link>
-        </div>
-      ) : (
-        GROUP_ORDER.filter((lifecycle) => groups.has(lifecycle)).map((lifecycle) => (
-          <div key={lifecycle} id={`lifecycle-${lifecycle}`} className="mb-5 scroll-mt-4">
-            <div className="mb-2 flex items-center gap-2">
-              <h2 className="text-[15px] font-extrabold tracking-tight">{LIFECYCLE_LABEL[lifecycle]}</h2>
-              <LifecycleBadge lifecycle={lifecycle} />
-              <span className="text-[12.5px] text-muted">{groups.get(lifecycle)!.length}</span>
-            </div>
-            <div className="card divide-y divide-line">
-              {groups.get(lifecycle)!.map((p) => <ProductRow key={p.id} p={p} />)}
-            </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="card p-4">
+          <div className="mb-1 flex items-center justify-between">
+            <h2 className="font-extrabold tracking-tight">Recent Listings</h2>
+            <Link href="/dashboard/listings" className="text-[12.5px] font-bold text-leaf-dark hover:underline">View all</Link>
           </div>
-        ))
-      )}
+          {recent.length === 0 ? (
+            <p className="py-6 text-center text-sm text-muted">You have not posted any produce yet.</p>
+          ) : (
+            <div className="divide-y divide-line">
+              {recent.map((p) => {
+                const thumb = p.images[0]?.url;
+                return (
+                  <Link
+                    key={p.id}
+                    href={`/dashboard/listings/${p.id}/edit`}
+                    className="flex items-center gap-3 py-2.5 first:pt-3"
+                  >
+                    <div className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-[10px] bg-gradient-to-br from-[#E9F1E9] to-[#D6E5D8] text-lg">
+                      {thumb ? (
+                        <Image src={thumb} alt="" fill sizes="44px" className="object-cover" />
+                      ) : (
+                        <span aria-hidden>{p.category.emoji ?? '🌿'}</span>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-bold">{p.name}</div>
+                      <div className="text-[12.5px] text-muted">
+                        {formatQty(String(p.quantity))} {p.unit} · {formatPrice(p.priceMinor)}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <StatusBadge status={p.status} />
+                      <div className="mt-1 text-[11px] text-muted">{timeAgo(p.createdAt)}</div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="card p-4">
+          <div className="mb-1 flex items-center justify-between">
+            <h2 className="font-extrabold tracking-tight">Market Requests</h2>
+            <Link href="/wanted" className="text-[12.5px] font-bold text-leaf-dark hover:underline">View all</Link>
+          </div>
+          <Link href="/wanted" className="mt-2 flex items-center gap-3 rounded-[10px] border border-line p-3 hover:bg-paper">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-leaf-light font-num text-sm font-extrabold text-leaf-dark">
+              {openRequests}
+            </span>
+            <span>
+              <span className="block font-bold">Open requests from buyers</span>
+              <span className="block text-[12.5px] text-muted">Great opportunities to sell more produce.</span>
+            </span>
+          </Link>
+        </div>
+      </div>
     </>
   );
 }

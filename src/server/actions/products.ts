@@ -74,7 +74,8 @@ export async function createProduct(_prev: ActionState, formData: FormData): Pro
   });
 
   revalidatePath('/dashboard');
-  redirect('/dashboard?posted=1');
+  revalidatePath('/dashboard/listings');
+  redirect('/dashboard/listings?posted=1');
 }
 
 export async function updateProduct(
@@ -126,6 +127,7 @@ export async function updateProduct(
   await deleteCloudinaryImages(dropped);
 
   revalidatePath('/dashboard');
+  revalidatePath('/dashboard/listings');
   revalidatePath('/admin');
   revalidatePath(`/products/${id}`);
   redirect(redirectTo);
@@ -146,6 +148,7 @@ export async function setProductStatus(formData: FormData) {
   });
 
   revalidatePath('/dashboard');
+  revalidatePath('/dashboard/listings');
   revalidatePath('/admin');
   revalidatePath('/');
 }
@@ -161,6 +164,7 @@ export async function deleteProduct(formData: FormData) {
   await deleteCloudinaryImages(images.map((i) => i.publicId));
 
   revalidatePath('/dashboard');
+  revalidatePath('/dashboard/listings');
   revalidatePath('/');
   revalidatePath(`/farmers/${product.farmerId}`);
 }

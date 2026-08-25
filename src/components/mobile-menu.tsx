@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { CloseIcon, MenuIcon } from './icons';
-import { NavLinks } from './nav-links';
+import { NavLinks, type NavItem } from './nav-links';
 import { logout } from '@/server/actions/auth';
 
 type MenuItem = { label: string; href: string };
@@ -11,16 +11,16 @@ type MenuItem = { label: string; href: string };
 /** Collapses the full nav + profile actions into one panel below the header on small screens. */
 export function MobileMenu({
   loggedIn,
-  requestsCount,
+  navItems,
   primary,
   secondary,
-  items,
+  accountItems,
 }: {
   loggedIn: boolean;
-  requestsCount: number;
+  navItems: NavItem[];
   primary?: string;
   secondary?: string;
-  items: MenuItem[];
+  accountItems: MenuItem[];
 }) {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
@@ -40,7 +40,7 @@ export function MobileMenu({
       {open && (
         <div className="card absolute inset-x-4 top-[64px] z-20 divide-y divide-line p-3 shadow-lg">
           <div className="pb-3">
-            <NavLinks loggedIn={loggedIn} requestsCount={requestsCount} orientation="col" onNavigate={close} />
+            <NavLinks items={navItems} orientation="col" onNavigate={close} />
           </div>
 
           {loggedIn ? (
@@ -51,7 +51,7 @@ export function MobileMenu({
                   {secondary && <div className="text-[12px] text-muted">{secondary}</div>}
                 </div>
               )}
-              {items.map((item) => (
+              {accountItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}

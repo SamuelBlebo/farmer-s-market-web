@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { CategoryChips, Filters } from '@/components/filters';
+import { Pagination } from '@/components/pagination';
 import { ProductCard } from '@/components/product-card';
 import { SearchBar } from '@/components/search-bar';
 import { getCategories, getMarketProducts, getMarketStats, type MarketFilters } from '@/server/queries';
@@ -86,11 +87,7 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
               </div>
             )}
 
-            {pages > 1 && (
-              <p className="mt-6 text-center text-sm text-muted">
-                Page {page} of {pages}
-              </p>
-            )}
+            <Pagination page={page} pages={pages} basePath="/" searchParams={searchParams} />
           </div>
         </div>
       </div>

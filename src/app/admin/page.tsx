@@ -1,7 +1,11 @@
-import { VerifiedBadge } from '@/components/badges';
-import { formatPrice } from '@/lib/format';
+import Image from 'next/image';
+import Link from 'next/link';
+import { ModerationBadge, StatusBadge, VerifiedBadge } from '@/components/badges';
+import { Pagination } from '@/components/pagination';
+import { formatPrice, lastActiveLabel } from '@/lib/format';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/server/authz';
+import { getAdminFarmers, getAdminProducts } from '@/server/queries';
 import {
   moderateProduct,
   moderateWanted,
@@ -12,10 +16,15 @@ import {
   upsertCategory,
 } from '@/server/actions/admin';
 
-export default async function AdminPage() {
+type AdminSearchParams = { listingsPage?: string; farmersPage?: string };
+
+export default async function AdminPage({ searchParams }: { searchParams: AdminSearchParams }) {
   await requireAdmin();
 
-  const [pending, pendingWanted, farmers, reports, categories, counts] = await Promise.all([
+  const listingsPage = Number(searchParams.listingsPage ?? 1) || 1;
+  const farmersPage = Number(searchParams.farmersPage ?? 1) || 1;
+
+  const [pending, pendingWanted, farmers, allListings, reports, categories, counts] = await Promise.all([
     prisma.product.findMany({
       where: { moderation: 'PENDING' },
       orderBy: { createdAt: 'asc' },
@@ -28,7 +37,8 @@ export default async function AdminPage() {
       include: { buyer: true },
       take: 50,
     }),
-    prisma.farmerProfile.findMany({ orderBy: { createdAt: 'desc' }, take: 50 }),
+    getAdminFarmers(farmersPage),
+    getAdminProducts(listingsPage),
     prisma.report.findMany({
       where: { status: 'OPEN' },
       orderBy: { createdAt: 'desc' },
@@ -75,6 +85,7 @@ export default async function AdminPage() {
                 {p.farmer.farmName} · {formatPrice(p.priceMinor)} / {p.unit} · {p.town}
               </div>
             </div>
+            <Link href={`/admin/products/${p.id}/edit`} className="btn-ghost !px-3 !py-1.5 !text-[13px]">Edit</Link>
             <form action={moderateProduct} className="flex gap-2">
               <input type="hidden" name="productId" value={p.id} />
               <button name="decision" value="APPROVED" className="btn !px-3 !py-1.5 !text-[13px]">Approve</button>
@@ -104,13 +115,41 @@ export default async function AdminPage() {
         ))}
       </div>
 
-      <h2 className="mb-2 text-lg font-extrabold tracking-tight">Farmer verification</h2>
-      <div className="card mb-6 divide-y divide-line">
-        {farmers.map((f) => (
+      <h2 className="mb-2 text-lg font-extrabold tracking-tight">All listings</h2>
+      <div className="card mb-1 divide-y divide-line">
+        {allListings.items.map((p) => {
+          const thumb = p.images[0]?.url;
+          return (
+            <div key={p.id} className="flex flex-wrap items-center gap-3 p-3.5">
+              <div className="relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-[8px] bg-gradient-to-br from-[#E9F1E9] to-[#D6E5D8] text-lg">
+                {thumb ? (
+                  <Image src={thumb} alt="" fill sizes="40px" className="object-cover" />
+                ) : (
+                  <span aria-hidden>{p.category.emoji ?? '🌿'}</span>
+                )}
+              </div>
+              <div className="min-w-[160px] flex-1">
+                <div className="font-bold">{p.name}</div>
+                <div className="text-[12.5px] text-muted">{p.farmer.farmName} · {formatPrice(p.priceMinor)} / {p.unit}</div>
+              </div>
+              <StatusBadge status={p.status} />
+              <ModerationBadge status={p.moderation} />
+              <Link href={`/admin/products/${p.id}/edit`} className="btn-ghost !px-3 !py-1.5 !text-[13px]">Edit</Link>
+            </div>
+          );
+        })}
+      </div>
+      <Pagination page={allListings.page} pages={allListings.pages} basePath="/admin" searchParams={searchParams} pageParam="listingsPage" />
+
+      <h2 className="mb-2 mt-8 text-lg font-extrabold tracking-tight">Farmer verification</h2>
+      <div className="card mb-1 divide-y divide-line">
+        {farmers.items.map((f) => (
           <div key={f.id} className="flex flex-wrap items-center gap-3 p-3.5">
             <div className="min-w-[160px] flex-1">
               <div className="font-bold">{f.farmName}</div>
-              <div className="text-[12.5px] text-muted">{f.town}, {f.region} · {f.phone}</div>
+              <div className="text-[12.5px] text-muted">
+                {f.town}, {f.region} · {f.phone} · {lastActiveLabel(f.user.lastActiveAt)}
+              </div>
             </div>
             <VerifiedBadge status={f.verification} />
             <form action={setFarmerVerification} className="flex gap-2">
@@ -124,8 +163,9 @@ export default async function AdminPage() {
           </div>
         ))}
       </div>
+      <Pagination page={farmers.page} pages={farmers.pages} basePath="/admin" searchParams={searchParams} pageParam="farmersPage" />
 
-      <h2 className="mb-2 text-lg font-extrabold tracking-tight">Reported listings</h2>
+      <h2 className="mb-2 mt-8 text-lg font-extrabold tracking-tight">Reported listings</h2>
       <div className="card mb-6 divide-y divide-line">
         {reports.length === 0 && <p className="p-5 text-sm text-muted">No open reports.</p>}
         {reports.map((r) => (
@@ -134,6 +174,7 @@ export default async function AdminPage() {
               <div className="font-bold">{r.product.name}</div>
               <div className="text-[12.5px] text-muted">{r.reason} — reported by {r.reporter.name}</div>
             </div>
+            <Link href={`/admin/products/${r.productId}/edit`} className="btn-ghost !px-3 !py-1.5 !text-[13px]">Edit</Link>
             <form action={resolveReport}>
               <input type="hidden" name="reportId" value={r.id} />
               <button name="status" value="DISMISSED" className="btn-ghost !px-3 !py-1.5 !text-[13px]">Dismiss</button>

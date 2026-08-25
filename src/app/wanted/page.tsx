@@ -3,16 +3,17 @@ import Link from 'next/link';
 import { ActionBanner } from '@/components/action-banner';
 import { ModerationBadge } from '@/components/badges';
 import { ContactPrompt } from '@/components/contact-prompt';
+import { Pagination } from '@/components/pagination';
 import { WhatsAppButton } from '@/components/whatsapp-button';
 import { whatsappWantedLink } from '@/lib/format';
 import { getMyWanted, getWanted } from '@/server/queries';
 import { currentUser } from '@/server/authz';
 import { closeWanted } from '@/server/actions/wanted';
 
-export default async function WantedPage() {
+export default async function WantedPage({ searchParams }: { searchParams: { page?: string } }) {
   const user = await currentUser();
-  const [listings, mine] = await Promise.all([
-    getWanted(),
+  const [{ items: listings, page, pages }, mine] = await Promise.all([
+    getWanted(Number(searchParams.page ?? 1) || 1),
     user?.role === 'BUYER' ? getMyWanted(user.id) : Promise.resolve([]),
   ]);
 
@@ -104,6 +105,8 @@ export default async function WantedPage() {
           ))}
         </div>
       )}
+
+      <Pagination page={page} pages={pages} basePath="/wanted" searchParams={searchParams} />
     </>
   );
 }

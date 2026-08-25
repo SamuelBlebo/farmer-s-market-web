@@ -32,7 +32,7 @@ export default async function AdminEditProductPage({ params }: { params: { id: s
 
       <p className="eyebrow">Admin edit · {product.farmer.farmName}</p>
       <div className="mb-4 mt-1 flex flex-wrap items-center gap-2">
-        <h1 className="text-2xl font-extrabold tracking-tight">{product.name}</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{product.name}</h1>
         <StatusBadge status={product.status} />
         <ModerationBadge status={product.moderation} />
       </div>

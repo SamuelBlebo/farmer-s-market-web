@@ -64,7 +64,7 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
   return (
     <>
       <p className="eyebrow">Admin</p>
-      <h1 className="mb-4 mt-1 text-2xl font-extrabold tracking-tight">Platform overview</h1>
+      <h1 className="mb-4 mt-1 text-2xl font-bold tracking-tight">Platform overview</h1>
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stat(farmerCount, 'Farmers')}
@@ -73,7 +73,7 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
         {stat(reportCount, 'Reports open', 'text-clay')}
       </div>
 
-      <h2 className="mb-2 text-lg font-extrabold tracking-tight">Listings awaiting approval</h2>
+      <h2 className="mb-2 text-lg font-semibold tracking-tight">Listings awaiting approval</h2>
       <div className="card mb-6 divide-y divide-line">
         {pending.length === 0 && <p className="p-5 text-sm text-muted">Nothing in the queue. All caught up.</p>}
         {pending.map((p) => (
@@ -95,7 +95,7 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
         ))}
       </div>
 
-      <h2 className="mb-2 text-lg font-extrabold tracking-tight">Buyer requests awaiting approval</h2>
+      <h2 className="mb-2 text-lg font-semibold tracking-tight">Buyer requests awaiting approval</h2>
       <div className="card mb-6 divide-y divide-line">
         {pendingWanted.length === 0 && <p className="p-5 text-sm text-muted">Nothing in the queue. All caught up.</p>}
         {pendingWanted.map((w) => (
@@ -115,7 +115,7 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
         ))}
       </div>
 
-      <h2 className="mb-2 text-lg font-extrabold tracking-tight">All listings</h2>
+      <h2 className="mb-2 text-lg font-semibold tracking-tight">All listings</h2>
       <div className="card mb-1 divide-y divide-line">
         {allListings.items.map((p) => {
           const thumb = p.images[0]?.url;
@@ -141,7 +141,7 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
       </div>
       <Pagination page={allListings.page} pages={allListings.pages} basePath="/admin" searchParams={searchParams} pageParam="listingsPage" />
 
-      <h2 className="mb-2 mt-8 text-lg font-extrabold tracking-tight">Farmer verification</h2>
+      <h2 className="mb-2 mt-8 text-lg font-semibold tracking-tight">Farmer verification</h2>
       <div className="card mb-1 divide-y divide-line">
         {farmers.items.map((f) => (
           <div key={f.id} className="flex flex-wrap items-center gap-3 p-3.5">
@@ -165,7 +165,7 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
       </div>
       <Pagination page={farmers.page} pages={farmers.pages} basePath="/admin" searchParams={searchParams} pageParam="farmersPage" />
 
-      <h2 className="mb-2 mt-8 text-lg font-extrabold tracking-tight">Reported listings</h2>
+      <h2 className="mb-2 mt-8 text-lg font-semibold tracking-tight">Reported listings</h2>
       <div className="card mb-6 divide-y divide-line">
         {reports.length === 0 && <p className="p-5 text-sm text-muted">No open reports.</p>}
         {reports.map((r) => (
@@ -187,7 +187,7 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
         ))}
       </div>
 
-      <h2 className="mb-2 text-lg font-extrabold tracking-tight">Categories</h2>
+      <h2 className="mb-2 text-lg font-semibold tracking-tight">Categories</h2>
       <div className="card divide-y divide-line">
         {categories.map((c) => (
           <div key={c.id} className="flex items-center gap-3 p-3.5">

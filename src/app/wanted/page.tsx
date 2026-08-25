@@ -24,7 +24,7 @@ export default async function WantedPage({ searchParams }: { searchParams: { pag
       <div className="mb-1 flex flex-wrap items-center gap-3">
         <div>
           <p className="eyebrow">Buyers looking for produce</p>
-          <h1 className="text-2xl font-extrabold tracking-tight">Requests</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Requests</h1>
         </div>
         {(!user || user.role === 'BUYER') && (
           <Link href="/wanted/new" className="btn ml-auto !bg-clay hover:!brightness-95">+ Post a request</Link>
@@ -56,7 +56,7 @@ export default async function WantedPage({ searchParams }: { searchParams: { pag
               value={mine.filter((w) => w.status === 'CLOSED').length}
             />
           </div>
-          <h2 className="mb-2 text-lg font-extrabold tracking-tight">Your requests</h2>
+          <h2 className="mb-2 text-lg font-semibold tracking-tight">Your requests</h2>
           <div className="card divide-y divide-line">
             {mine.map((w) => (
               <div key={w.id} className="flex flex-wrap items-center gap-3 p-3.5">
@@ -97,7 +97,7 @@ export default async function WantedPage({ searchParams }: { searchParams: { pag
                 <span className="badge bg-clay-light text-clay">Request</span>
                 <span className="shrink-0 text-[11px] font-semibold text-muted">{timeAgo(w.createdAt)}</span>
               </div>
-              <h2 className="mt-2.5 truncate text-lg font-extrabold tracking-tight">{w.productName}</h2>
+              <h2 className="mt-2.5 truncate text-lg font-semibold tracking-tight">{w.productName}</h2>
               <p className="font-num text-[15px] font-bold text-clay">{w.quantity}</p>
 
               <dl className="my-3.5 space-y-2 text-[13px]">

@@ -37,7 +37,7 @@ export default async function DashboardPage() {
     <>
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">Welcome back, {firstName} 👋</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Welcome back, {firstName} 👋</h1>
           <p className="text-muted">Here&apos;s what&apos;s happening with your farm today.</p>
         </div>
         <Link href="/dashboard/listings/new" className="btn ml-auto">+ Post produce</Link>
@@ -62,7 +62,7 @@ export default async function DashboardPage() {
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="card p-4">
           <div className="mb-1 flex items-center justify-between">
-            <h2 className="font-extrabold tracking-tight">Recent Listings</h2>
+            <h2 className="text-lg font-semibold tracking-tight">Recent Listings</h2>
             <Link href="/dashboard/listings" className="text-[12.5px] font-bold text-leaf-dark hover:underline">View all</Link>
           </div>
           {recent.length === 0 ? (
@@ -103,7 +103,7 @@ export default async function DashboardPage() {
 
         <div className="card p-4">
           <div className="mb-1 flex items-center justify-between">
-            <h2 className="font-extrabold tracking-tight">Market Requests</h2>
+            <h2 className="text-lg font-semibold tracking-tight">Market Requests</h2>
             <Link href="/wanted" className="text-[12.5px] font-bold text-leaf-dark hover:underline">View all</Link>
           </div>
           <Link href="/wanted" className="mt-2 flex items-center gap-3 rounded-[10px] border border-line p-3 hover:bg-paper">

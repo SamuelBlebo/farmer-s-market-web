@@ -10,7 +10,7 @@ export default async function AdminLoginPage() {
     <div className="mx-auto max-w-[380px]">
       <div className="mb-5 text-center">
         <p className="eyebrow">🔒 Restricted access</p>
-        <h1 className="text-2xl font-extrabold tracking-tight">Administrator Login</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Administrator Login</h1>
         <p className="text-muted">Platform administration only. Farmer and buyer accounts cannot sign in here.</p>
       </div>
       <AdminLoginForm />

@@ -14,7 +14,7 @@ export default async function NewListingPage() {
   return (
     <div className="mx-auto max-w-[640px]">
       <p className="eyebrow">Takes about a minute</p>
-      <h1 className="mb-4 mt-1 text-2xl font-extrabold tracking-tight">Post produce</h1>
+      <h1 className="mb-4 mt-1 text-2xl font-bold tracking-tight">Post produce</h1>
       <ListingModeTabs
         quick={
           <QuickPostForm

@@ -19,7 +19,7 @@ export default async function FarmerPage({ params }: { params: { id: string } })
             {farmer.farmName[0]}
           </div>
           <div className="min-w-[200px] flex-1">
-            <h1 className="text-2xl font-extrabold tracking-tight">{farmer.farmName}</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{farmer.farmName}</h1>
             <p className="text-muted">📍 {farmer.town}, {farmer.region}</p>
             <p className="text-[12.5px] text-muted">
               Member since {farmer.createdAt.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
@@ -45,7 +45,7 @@ export default async function FarmerPage({ params }: { params: { id: string } })
         )}
       </section>
 
-      <h2 className="mb-3 text-lg font-extrabold tracking-tight">
+      <h2 className="mb-3 text-lg font-semibold tracking-tight">
         {farmer.products.length} active listing{farmer.products.length === 1 ? '' : 's'}
       </h2>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

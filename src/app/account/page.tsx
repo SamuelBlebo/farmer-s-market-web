@@ -43,7 +43,7 @@ export default async function AccountPage() {
             dbUser.name[0]
           )}
         </div>
-        <h1 className="mt-3 text-2xl font-extrabold tracking-tight">{dbUser.name}</h1>
+        <h1 className="mt-3 text-2xl font-bold tracking-tight">{dbUser.name}</h1>
         <p className="text-muted">{ROLE_LABEL[user.role]}</p>
       </div>
 

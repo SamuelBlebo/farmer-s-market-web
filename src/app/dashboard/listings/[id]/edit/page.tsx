@@ -23,7 +23,7 @@ export default async function EditListingPage({ params }: { params: { id: string
   return (
     <div className="mx-auto max-w-[640px]">
       <p className="eyebrow">Editing</p>
-      <h1 className="mb-4 mt-1 text-2xl font-extrabold tracking-tight">{product.name}</h1>
+      <h1 className="mb-4 mt-1 text-2xl font-bold tracking-tight">{product.name}</h1>
       <ProductForm
         action={action}
         categories={categories}

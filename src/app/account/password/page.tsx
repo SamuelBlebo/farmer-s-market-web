@@ -7,7 +7,7 @@ export default async function AccountPasswordPage() {
   return (
     <div className="mx-auto max-w-[440px]">
       <div className="mb-5 text-center">
-        <h1 className="text-2xl font-extrabold tracking-tight">Change password</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Change password</h1>
       </div>
       <ChangePasswordForm />
     </div>

@@ -24,7 +24,7 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
       {!user && (
         <section className="card mb-5 overflow-hidden p-6 sm:p-8">
           <p className="eyebrow">Ghana&apos;s produce marketplace</p>
-          <h1 className="mt-1 max-w-[520px] text-[26px] font-extrabold leading-tight tracking-tight sm:text-3xl">
+          <h1 className="mt-1 max-w-[520px] text-[26px] font-bold leading-tight tracking-tight sm:text-3xl">
             Fresh from the farm. No middlemen, no fees.
           </h1>
           <p className="mt-2 max-w-[480px] text-[15px] text-muted">
@@ -57,7 +57,7 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
 
           <div>
             <div className="mb-3 flex items-baseline gap-2.5">
-              <h2 className="text-lg font-extrabold tracking-tight">
+              <h2 className="text-lg font-semibold tracking-tight">
                 {categories.find((c) => c.slug === searchParams.category)?.name ?? 'All produce'}
               </h2>
               <span className="text-[13.5px] text-muted">{total} listings</span>

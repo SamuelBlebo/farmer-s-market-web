@@ -88,7 +88,7 @@ export default async function MyListingsPage() {
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div>
           <p className="eyebrow">Manage</p>
-          <h1 className="text-2xl font-extrabold tracking-tight">My Listings</h1>
+          <h1 className="text-2xl font-bold tracking-tight">My Listings</h1>
         </div>
         <Link href="/dashboard/listings/new" className="btn ml-auto">+ Post produce</Link>
       </div>
@@ -112,7 +112,7 @@ export default async function MyListingsPage() {
         GROUP_ORDER.filter((lifecycle) => groups.has(lifecycle)).map((lifecycle) => (
           <div key={lifecycle} id={`lifecycle-${lifecycle}`} className="mb-5 scroll-mt-4">
             <div className="mb-2 flex items-center gap-2">
-              <h2 className="text-[15px] font-extrabold tracking-tight">{LIFECYCLE_LABEL[lifecycle]}</h2>
+              <h2 className="text-lg font-semibold tracking-tight">{LIFECYCLE_LABEL[lifecycle]}</h2>
               <LifecycleBadge lifecycle={lifecycle} />
               <span className="text-[12.5px] text-muted">{groups.get(lifecycle)!.length}</span>
             </div>

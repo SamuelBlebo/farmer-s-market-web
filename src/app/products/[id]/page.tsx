@@ -34,7 +34,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
         <div>
           <ProductGallery images={p.images} name={p.name} emoji={p.category.emoji} />
 
-          <h1 className="mt-5 text-2xl font-extrabold tracking-tight">{p.name}</h1>
+          <h1 className="mt-5 text-2xl font-bold tracking-tight">{p.name}</h1>
           <div className="mt-2 flex flex-wrap gap-2">
             <StatusBadge status={p.status} />
             {lifecycle !== 'ONGOING' && <LifecycleBadge lifecycle={lifecycle} />}

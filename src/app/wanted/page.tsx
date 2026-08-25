@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { ActionBanner } from '@/components/action-banner';
 import { ModerationBadge } from '@/components/badges';
+import { ContactPrompt } from '@/components/contact-prompt';
 import { WhatsAppButton } from '@/components/whatsapp-button';
 import { whatsappWantedLink } from '@/lib/format';
 import { getMyWanted, getWanted } from '@/server/queries';
@@ -90,11 +91,15 @@ export default async function WantedPage() {
               </dl>
 
               <p className="text-[13.5px] text-muted">{w.description}</p>
-              <WhatsAppButton
-                href={whatsappWantedLink(w.buyer.whatsapp, w.productName)}
-                label="Contact buyer"
-                className="mt-3 w-full"
-              />
+              {user ? (
+                <WhatsAppButton
+                  href={whatsappWantedLink(w.buyer.whatsapp, w.productName)}
+                  label="Contact buyer"
+                  className="mt-3 w-full"
+                />
+              ) : (
+                <ContactPrompt message="Sign in to contact this buyer." className="mt-3" />
+              )}
             </article>
           ))}
         </div>

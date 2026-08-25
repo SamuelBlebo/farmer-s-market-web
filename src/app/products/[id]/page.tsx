@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { StatusBadge, VerifiedBadge } from '@/components/badges';
+import { ContactPrompt } from '@/components/contact-prompt';
 import { PriceQuantity } from '@/components/quantity-bar';
 import { ProductGallery } from '@/components/product-gallery';
 import { WhatsAppButton } from '@/components/whatsapp-button';
@@ -57,12 +58,16 @@ export default async function ProductPage({ params }: { params: { id: string } }
             </dl>
 
             {p.status === 'ACTIVE' ? (
-              <div className="mt-4 space-y-2">
-                <WhatsAppButton href={whatsappProductLink(p.farmer.whatsapp, p.name)} className="w-full" />
-                {p.farmer.phone && (
-                  <a href={telLink(p.farmer.phone)} className="btn-ghost w-full">📞 Call farmer</a>
-                )}
-              </div>
+              user ? (
+                <div className="mt-4 space-y-2">
+                  <WhatsAppButton href={whatsappProductLink(p.farmer.whatsapp, p.name)} className="w-full" />
+                  {p.farmer.phone && (
+                    <a href={telLink(p.farmer.phone)} className="btn-ghost w-full">📞 Call farmer</a>
+                  )}
+                </div>
+              ) : (
+                <ContactPrompt message="Sign in to contact this farmer." className="mt-4" />
+              )
             ) : (
               <p className="mt-4 rounded-[10px] bg-paper p-3 text-center text-sm text-muted">
                 This listing is {p.status.toLowerCase()}. Browse the marketplace for what is available now.

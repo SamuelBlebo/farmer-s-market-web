@@ -1,12 +1,14 @@
 import { notFound } from 'next/navigation';
 import { VerifiedBadge } from '@/components/badges';
+import { ContactPrompt } from '@/components/contact-prompt';
 import { ProductCard } from '@/components/product-card';
 import { WhatsAppButton } from '@/components/whatsapp-button';
 import { whatsappProductLink } from '@/lib/format';
 import { getFarmer } from '@/server/queries';
+import { currentUser } from '@/server/authz';
 
 export default async function FarmerPage({ params }: { params: { id: string } }) {
-  const farmer = await getFarmer(params.id);
+  const [farmer, user] = await Promise.all([getFarmer(params.id), currentUser()]);
   if (!farmer) notFound();
 
   return (
@@ -29,11 +31,15 @@ export default async function FarmerPage({ params }: { params: { id: string } })
         <p className="mt-3.5 text-[15px] text-muted">{farmer.description}</p>
 
         {farmer.products[0] && (
-          <WhatsAppButton
-            href={whatsappProductLink(farmer.whatsapp, farmer.products[0].name)}
-            label="Message on WhatsApp"
-            className="mt-3.5"
-          />
+          user ? (
+            <WhatsAppButton
+              href={whatsappProductLink(farmer.whatsapp, farmer.products[0].name)}
+              label="Message on WhatsApp"
+              className="mt-3.5"
+            />
+          ) : (
+            <ContactPrompt message="Sign in to contact this farmer." className="mt-3.5" />
+          )
         )}
       </section>
 

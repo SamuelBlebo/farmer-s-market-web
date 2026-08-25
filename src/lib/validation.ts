@@ -37,6 +37,35 @@ export const phoneLoginSchema = z.object({
   password: z.string().min(1),
 });
 
+function startOfToday(): Date {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+// Blank input means "no scheduled harvest" rather than a validation failure.
+// "YYYY-MM-DD" from <input type="date">, compared as calendar days — today
+// and up to 30 days ahead are allowed, nothing in the past.
+const optionalHarvestDate = z.preprocess(
+  (v) => (v === '' || v === undefined || v === null ? undefined : v),
+  z
+    .string()
+    .refine((v) => !Number.isNaN(Date.parse(v)), 'Enter a valid date')
+    .refine((v) => new Date(`${v}T00:00:00`) >= startOfToday(), 'Harvest date cannot be in the past')
+    .refine((v) => {
+      const max = startOfToday();
+      max.setDate(max.getDate() + 30);
+      return new Date(`${v}T00:00:00`) <= max;
+    }, 'Harvest date must be within 30 days')
+    .optional(),
+);
+
+export const variantSchema = z.object({
+  name: z.string().min(1, 'Name the variant').max(40),
+  price: z.coerce.number().positive('Enter a price').max(1_000_000),
+  quantity: z.coerce.number().positive('Enter a quantity').max(1_000_000).optional(),
+});
+
 export const productSchema = z
   .object({
     name: z.string().min(2, 'Name the produce').max(80),
@@ -52,6 +81,8 @@ export const productSchema = z
       .array(z.object({ url: z.string().url(), publicId: z.string() }))
       .max(5)
       .optional(),
+    expectedHarvestDate: optionalHarvestDate,
+    variants: z.array(variantSchema).max(10).optional(),
   })
   .strict();
 

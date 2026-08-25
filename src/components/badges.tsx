@@ -1,11 +1,24 @@
 import type { ModerationStatus, ProductStatus, VerificationStatus } from '@prisma/client';
+import { LIFECYCLE_LABEL, type ProductLifecycle } from '@/lib/format';
 
-export function VerifiedBadge({ status }: { status: VerificationStatus }) {
+export function VerifiedBadge({ status, large = false }: { status: VerificationStatus; large?: boolean }) {
+  const size = large ? 'px-3 py-1 text-[13px]' : '';
   if (status === 'VERIFIED')
-    return <span className="badge bg-leaf-light text-leaf-dark">✓ Verified</span>;
+    return <span className={`badge bg-leaf-light text-leaf-dark ${size}`}>✓ Verified</span>;
   if (status === 'PENDING')
-    return <span className="badge bg-gold-light text-[#8A6100]">Pending</span>;
-  return <span className="badge bg-paper text-muted">Unverified</span>;
+    return <span className={`badge bg-gold-light text-[#8A6100] ${size}`}>Pending</span>;
+  return <span className={`badge bg-paper text-muted ${size}`}>Unverified</span>;
+}
+
+export function LifecycleBadge({ lifecycle }: { lifecycle: ProductLifecycle }) {
+  const map: Record<ProductLifecycle, string> = {
+    ONGOING: 'bg-leaf-light text-leaf-dark',
+    UPCOMING_HARVEST: 'bg-gold-light text-[#8A6100]',
+    AVAILABLE_NOW: 'bg-leaf-light text-leaf-dark',
+    SOLD_OUT: 'bg-clay-light text-clay',
+    PAUSED: 'bg-paper text-muted',
+  };
+  return <span className={`badge ${map[lifecycle]}`}>{LIFECYCLE_LABEL[lifecycle]}</span>;
 }
 
 export function StatusBadge({ status }: { status: ProductStatus }) {

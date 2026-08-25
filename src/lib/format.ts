@@ -1,3 +1,4 @@
+import type { ProductStatus } from '@prisma/client';
 import { PLATFORM_NAME } from './constants';
 
 /** Money is stored in pesewas. 850 -> "GH¢8.50", 52000 -> "GH¢520" */
@@ -51,3 +52,52 @@ export function timeAgo(date: Date): string {
   if (days < 30) return `${Math.floor(days / 7)} week${days < 14 ? '' : 's'} ago`;
   return `${Math.floor(days / 30)} month${days < 60 ? '' : 's'} ago`;
 }
+
+/** "Active today" / "Active yesterday" / "Last active X hours ago" / older. */
+export function lastActiveLabel(date: Date | null): string {
+  if (!date) return 'Not active yet';
+  const now = new Date();
+  const hours = Math.floor((now.getTime() - date.getTime()) / 3_600_000);
+  if (hours < 1) return 'Active today';
+  if (date.toDateString() === now.toDateString()) return `Last active ${hours} hour${hours === 1 ? '' : 's'} ago`;
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) return 'Active yesterday';
+  return `Active ${Math.floor(hours / 24)} days ago`;
+}
+
+export function harvestDateLabel(date: Date): string {
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+}
+
+/** "Available now" / "Harvests tomorrow (12 Sep)" / "Harvests in 5 days (12 Sep)". */
+export function harvestLabel(date: Date | null): string {
+  if (!date) return 'Available now';
+  const days = Math.ceil((date.getTime() - Date.now()) / 86_400_000);
+  if (days <= 0) return 'Available now';
+  if (days === 1) return `Harvests tomorrow (${harvestDateLabel(date)})`;
+  return `Harvests in ${days} days (${harvestDateLabel(date)})`;
+}
+
+export type ProductLifecycle = 'ONGOING' | 'UPCOMING_HARVEST' | 'AVAILABLE_NOW' | 'SOLD_OUT' | 'PAUSED';
+
+/**
+ * Derived, not stored — Product keeps its existing ACTIVE/PAUSED/SOLD/REMOVED
+ * status; this layers a richer lifecycle label on top of that plus the
+ * optional expectedHarvestDate, so every existing status-based query and
+ * filter keeps working unchanged.
+ */
+export function getProductLifecycle(status: ProductStatus, expectedHarvestDate: Date | null): ProductLifecycle {
+  if (status === 'SOLD') return 'SOLD_OUT';
+  if (status === 'PAUSED') return 'PAUSED';
+  if (!expectedHarvestDate) return 'ONGOING';
+  return expectedHarvestDate.getTime() - Date.now() > 0 ? 'UPCOMING_HARVEST' : 'AVAILABLE_NOW';
+}
+
+export const LIFECYCLE_LABEL: Record<ProductLifecycle, string> = {
+  ONGOING: 'Ongoing',
+  UPCOMING_HARVEST: 'Upcoming harvest',
+  AVAILABLE_NOW: 'Available now',
+  SOLD_OUT: 'Sold out',
+  PAUSED: 'Paused',
+};

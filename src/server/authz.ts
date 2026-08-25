@@ -1,11 +1,34 @@
+import { cache } from 'react';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 
-export async function currentUser() {
-  const session = await auth();
-  return session?.user ?? null;
+const LAST_ACTIVE_STALE_MS = 5 * 60_000;
+
+/**
+ * Best-effort "last active" tracking — refreshed at most once every 5 minutes
+ * per user so a normal browsing session doesn't write on every request.
+ * Never blocks or fails the request it's attached to.
+ */
+async function touchLastActive(userId: string) {
+  try {
+    const row = await prisma.user.findUnique({ where: { id: userId }, select: { lastActiveAt: true } });
+    const stale = !row?.lastActiveAt || Date.now() - row.lastActiveAt.getTime() > LAST_ACTIVE_STALE_MS;
+    if (stale) await prisma.user.update({ where: { id: userId }, data: { lastActiveAt: new Date() } });
+  } catch {
+    // Activity tracking is a nice-to-have; never break the page over it.
+  }
 }
+
+// cache() memoizes per request — Nav and the page itself both call
+// currentUser(), and this keeps that to a single session lookup (and at
+// most one lastActiveAt write) instead of one per caller.
+export const currentUser = cache(async () => {
+  const session = await auth();
+  const user = session?.user ?? null;
+  if (user) await touchLastActive(user.id);
+  return user;
+});
 
 export async function requireUser() {
   const user = await currentUser();

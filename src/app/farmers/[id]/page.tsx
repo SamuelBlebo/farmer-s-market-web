@@ -3,7 +3,7 @@ import { VerifiedBadge } from '@/components/badges';
 import { ContactPrompt } from '@/components/contact-prompt';
 import { ProductCard } from '@/components/product-card';
 import { WhatsAppButton } from '@/components/whatsapp-button';
-import { whatsappProductLink } from '@/lib/format';
+import { lastActiveLabel, whatsappProductLink } from '@/lib/format';
 import { getFarmer } from '@/server/queries';
 import { currentUser } from '@/server/authz';
 
@@ -23,9 +23,11 @@ export default async function FarmerPage({ params }: { params: { id: string } })
             <p className="text-muted">📍 {farmer.town}, {farmer.region}</p>
             <p className="text-[12.5px] text-muted">
               Member since {farmer.createdAt.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
+              {' · '}{farmer.products.length} active listing{farmer.products.length === 1 ? '' : 's'}
+              {' · '}{lastActiveLabel(farmer.user.lastActiveAt)}
             </p>
           </div>
-          <VerifiedBadge status={farmer.verification} />
+          <VerifiedBadge status={farmer.verification} large />
         </div>
 
         <p className="mt-3.5 text-[15px] text-muted">{farmer.description}</p>

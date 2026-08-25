@@ -1,11 +1,20 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { StatusBadge, VerifiedBadge } from '@/components/badges';
+import { LifecycleBadge, StatusBadge, VerifiedBadge } from '@/components/badges';
 import { ContactPrompt } from '@/components/contact-prompt';
 import { PriceQuantity } from '@/components/quantity-bar';
 import { ProductGallery } from '@/components/product-gallery';
 import { WhatsAppButton } from '@/components/whatsapp-button';
-import { formatQty, telLink, timeAgo, whatsappProductLink } from '@/lib/format';
+import {
+  formatPrice,
+  formatQty,
+  getProductLifecycle,
+  harvestLabel,
+  lastActiveLabel,
+  telLink,
+  timeAgo,
+  whatsappProductLink,
+} from '@/lib/format';
 import { getProduct } from '@/server/queries';
 import { currentUser } from '@/server/authz';
 import { reportProduct, toggleFavorite } from '@/server/actions/products';
@@ -15,6 +24,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
   if (!p) notFound();
 
   const user = await currentUser();
+  const lifecycle = getProductLifecycle(p.status, p.expectedHarvestDate);
 
   return (
     <>
@@ -27,9 +37,13 @@ export default async function ProductPage({ params }: { params: { id: string } }
           <h1 className="mt-5 text-2xl font-extrabold tracking-tight">{p.name}</h1>
           <div className="mt-2 flex flex-wrap gap-2">
             <StatusBadge status={p.status} />
+            {lifecycle !== 'ONGOING' && <LifecycleBadge lifecycle={lifecycle} />}
             <span className="badge bg-paper text-muted">{p.category.name}</span>
             <span className="badge bg-paper text-muted">Listed {timeAgo(p.createdAt)}</span>
           </div>
+          {p.status === 'ACTIVE' && (
+            <p className="mt-2 text-sm font-semibold text-muted">🌾 {harvestLabel(p.expectedHarvestDate)}</p>
+          )}
           <p className="mt-3 text-[15px] text-muted">{p.description}</p>
         </div>
 
@@ -40,7 +54,20 @@ export default async function ProductPage({ params }: { params: { id: string } }
               unit={p.unit}
               quantity={String(p.quantity)}
               initialQty={String(p.initialQty)}
+              fromPrice={p.variants[0]?.priceMinor}
             />
+
+            {p.variants.length > 0 && (
+              <div className="mt-3 space-y-1.5 border-t border-line pt-3">
+                <p className="eyebrow">Choose a variant</p>
+                {p.variants.map((v) => (
+                  <div key={v.id} className="flex items-center justify-between text-sm">
+                    <span>{v.name}{v.quantity ? ` · ${formatQty(String(v.quantity))} ${p.unit}` : ''}</span>
+                    <span className="font-num font-bold">{formatPrice(v.priceMinor)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <dl className="mt-4 text-sm">
               <div className="flex justify-between border-b border-line py-2">
@@ -92,8 +119,22 @@ export default async function ProductPage({ params }: { params: { id: string } }
                 <div className="text-[13px] text-muted">{p.farmer.town}, {p.farmer.region}</div>
               </div>
             </div>
-            <div className="my-3"><VerifiedBadge status={p.farmer.verification} /></div>
+            <div className="my-3"><VerifiedBadge status={p.farmer.verification} large /></div>
             <p className="text-sm text-muted">{p.farmer.description}</p>
+            <dl className="mt-3 border-t border-line pt-3 text-[12.5px] text-muted">
+              <div className="flex justify-between py-1">
+                <dt>Member since</dt>
+                <dd className="font-semibold">{p.farmer.createdAt.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}</dd>
+              </div>
+              <div className="flex justify-between py-1">
+                <dt>Active listings</dt>
+                <dd className="font-semibold">{p.farmer._count.products}</dd>
+              </div>
+              <div className="flex justify-between py-1">
+                <dt>Activity</dt>
+                <dd className="font-semibold">{lastActiveLabel(p.farmer.user.lastActiveAt)}</dd>
+              </div>
+            </dl>
             <Link href={`/farmers/${p.farmer.id}`} className="btn-ghost mt-3 w-full">View farmer profile</Link>
           </div>
 

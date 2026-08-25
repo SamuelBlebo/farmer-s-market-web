@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ActionBanner } from '@/components/action-banner';
 import { ModerationBadge } from '@/components/badges';
 import { ContactPrompt } from '@/components/contact-prompt';
-import { BadgeCheckIcon, ClockIcon, DocumentIcon } from '@/components/icons';
+import { BadgeCheckIcon, CalendarIcon, ClockIcon, DocumentIcon, PinIcon, StoreIcon } from '@/components/icons';
 import { Pagination } from '@/components/pagination';
 import { StatCard } from '@/components/stat-card';
 import { WhatsAppButton } from '@/components/whatsapp-button';
@@ -24,7 +24,7 @@ export default async function WantedPage({ searchParams }: { searchParams: { pag
       <div className="mb-1 flex flex-wrap items-center gap-3">
         <div>
           <p className="eyebrow">Buyers looking for produce</p>
-          <h1 className="text-2xl font-extrabold tracking-tight">Wanted</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight">Requests</h1>
         </div>
         {(!user || user.role === 'BUYER') && (
           <Link href="/wanted/new" className="btn ml-auto !bg-clay hover:!brightness-95">+ Post a request</Link>
@@ -89,32 +89,37 @@ export default async function WantedPage({ searchParams }: { searchParams: { pag
       ) : (
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
           {listings.map((w) => (
-            <article key={w.id} className="card flex flex-col border-l-[3px] border-l-clay p-4 transition-colors hover:border-l-4 hover:border-l-clay">
+            <article
+              key={w.id}
+              className="card flex flex-col p-4 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_8px_20px_-8px_rgba(18,33,26,0.18)]"
+            >
               <div className="flex items-start justify-between gap-2">
-                <p className="eyebrow text-clay">Wanted</p>
+                <span className="badge bg-clay-light text-clay">Request</span>
                 <span className="shrink-0 text-[11px] font-semibold text-muted">{timeAgo(w.createdAt)}</span>
               </div>
-              <h2 className="mt-1 truncate text-lg font-extrabold tracking-tight">{w.productName}</h2>
-              <p className="font-num text-base font-bold">{w.quantity}</p>
+              <h2 className="mt-2.5 truncate text-lg font-extrabold tracking-tight">{w.productName}</h2>
+              <p className="font-num text-[15px] font-bold text-clay">{w.quantity}</p>
 
-              <dl className="my-3 text-sm">
-                <div className="flex justify-between border-b border-line py-1.5">
-                  <dt className="text-muted">Deliver to</dt>
-                  <dd className="truncate pl-2 font-bold">{w.town}, {w.region}</dd>
+              <dl className="my-3.5 space-y-2 text-[13px]">
+                <div className="flex items-center gap-2">
+                  <dt><PinIcon className="h-4 w-4 shrink-0 text-muted" /></dt>
+                  <dd className="truncate font-semibold text-ink">{w.town}, {w.region}</dd>
                 </div>
-                <div className="flex justify-between border-b border-line py-1.5">
-                  <dt className="text-muted">Needed by</dt>
-                  <dd className="font-bold">
-                    {w.neededBy ? w.neededBy.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Ongoing'}
+                <div className="flex items-center gap-2">
+                  <dt><CalendarIcon className="h-4 w-4 shrink-0 text-muted" /></dt>
+                  <dd className="font-semibold text-ink">
+                    {w.neededBy
+                      ? `Needed by ${w.neededBy.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`
+                      : 'Ongoing need'}
                   </dd>
                 </div>
-                <div className="flex justify-between py-1.5">
-                  <dt className="text-muted">Buyer</dt>
-                  <dd className="truncate pl-2 font-bold">{w.buyer.businessName}</dd>
+                <div className="flex items-center gap-2">
+                  <dt><StoreIcon className="h-4 w-4 shrink-0 text-muted" /></dt>
+                  <dd className="truncate font-semibold text-ink">{w.buyer.businessName}</dd>
                 </div>
               </dl>
 
-              <p className="line-clamp-2 flex-1 text-[13.5px] text-muted">{w.description}</p>
+              <p className="line-clamp-2 flex-1 border-t border-line pt-3 text-[13.5px] text-muted">{w.description}</p>
               {user ? (
                 <WhatsAppButton
                   href={whatsappWantedLink(w.buyer.whatsapp, w.productName)}

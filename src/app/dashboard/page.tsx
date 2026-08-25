@@ -3,7 +3,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ActionBanner } from '@/components/action-banner';
 import { DeleteListingForm } from '@/components/delete-listing-form';
-import { LifecycleBadge, VerifiedBadge } from '@/components/badges';
+import { LifecycleBadge } from '@/components/badges';
+import { BadgeCheckIcon, DocumentIcon, PauseIcon, StoreIcon } from '@/components/icons';
+import { StatCard } from '@/components/stat-card';
 import {
   LIFECYCLE_LABEL,
   formatPrice,
@@ -69,7 +71,7 @@ function ProductRow({ p }: { p: Row }) {
 }
 
 export default async function DashboardPage() {
-  const { profile } = await requireFarmerProfile();
+  const { user, profile } = await requireFarmerProfile();
 
   const products = await prisma.product.findMany({
     where: { farmerId: profile.id, status: { not: 'REMOVED' } },
@@ -80,6 +82,7 @@ export default async function DashboardPage() {
   const active = products.filter((p) => p.status === 'ACTIVE' && p.moderation === 'APPROVED').length;
   const sold = products.filter((p) => p.status === 'SOLD').length;
   const paused = products.filter((p) => p.status === 'PAUSED').length;
+  const pendingApproval = products.filter((p) => p.moderation === 'PENDING').length;
 
   const groups = new Map<ProductLifecycle, Row[]>();
   for (const p of products) {
@@ -87,15 +90,14 @@ export default async function DashboardPage() {
     groups.set(lifecycle, [...(groups.get(lifecycle) ?? []), p]);
   }
 
+  const firstName = user.name.split(' ')[0];
+
   return (
     <>
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div>
-          <p className="eyebrow">Farmer dashboard</p>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-extrabold tracking-tight">{profile.farmName}</h1>
-            <VerifiedBadge status={profile.verification} />
-          </div>
+          <h1 className="text-2xl font-extrabold tracking-tight">Welcome back, {firstName} 👋</h1>
+          <p className="text-muted">Here&apos;s what&apos;s happening with your farm today.</p>
         </div>
         <Link href="/dashboard/listings/new" className="btn ml-auto">+ Post produce</Link>
       </div>
@@ -109,23 +111,11 @@ export default async function DashboardPage() {
         />
       </Suspense>
 
-      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <div className="card p-4">
-          <div className="font-num text-2xl font-bold">{products.length}</div>
-          <p className="text-[13px] text-muted">Total listings</p>
-        </div>
-        <div className="card p-4">
-          <div className="font-num text-2xl font-bold">{active}</div>
-          <p className="text-[13px] text-muted">Active listings</p>
-        </div>
-        <div className="card p-4">
-          <div className="font-num text-2xl font-bold">{sold}</div>
-          <p className="text-[13px] text-muted">Sold listings</p>
-        </div>
-        <div className="card p-4">
-          <div className="font-num text-2xl font-bold">{paused}</div>
-          <p className="text-[13px] text-muted">Paused listings</p>
-        </div>
+      <div id="dashboard-listings" className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatCard icon={<StoreIcon />} label="Active listings" value={active} href="#dashboard-listings" />
+        <StatCard icon={<BadgeCheckIcon />} label="Sold listings" value={sold} href="#lifecycle-SOLD_OUT" />
+        <StatCard icon={<PauseIcon />} label="Paused listings" value={paused} href="#lifecycle-PAUSED" />
+        <StatCard icon={<DocumentIcon />} label="Pending approval" value={pendingApproval} />
       </div>
 
       {products.length === 0 ? (
@@ -136,7 +126,7 @@ export default async function DashboardPage() {
         </div>
       ) : (
         GROUP_ORDER.filter((lifecycle) => groups.has(lifecycle)).map((lifecycle) => (
-          <div key={lifecycle} className="mb-5">
+          <div key={lifecycle} id={`lifecycle-${lifecycle}`} className="mb-5 scroll-mt-4">
             <div className="mb-2 flex items-center gap-2">
               <h2 className="text-[15px] font-extrabold tracking-tight">{LIFECYCLE_LABEL[lifecycle]}</h2>
               <LifecycleBadge lifecycle={lifecycle} />

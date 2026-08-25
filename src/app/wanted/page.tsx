@@ -3,7 +3,9 @@ import Link from 'next/link';
 import { ActionBanner } from '@/components/action-banner';
 import { ModerationBadge } from '@/components/badges';
 import { ContactPrompt } from '@/components/contact-prompt';
+import { BadgeCheckIcon, ClockIcon, DocumentIcon } from '@/components/icons';
 import { Pagination } from '@/components/pagination';
+import { StatCard } from '@/components/stat-card';
 import { WhatsAppButton } from '@/components/whatsapp-button';
 import { whatsappWantedLink } from '@/lib/format';
 import { getMyWanted, getWanted } from '@/server/queries';
@@ -36,6 +38,24 @@ export default async function WantedPage({ searchParams }: { searchParams: { pag
 
       {user?.role === 'BUYER' && mine.length > 0 && (
         <div className="mb-6">
+          <p className="mb-3 text-[15px] font-bold">Welcome back, {user.name.split(' ')[0]} 👋</p>
+          <div className="mb-4 grid grid-cols-3 gap-3">
+            <StatCard
+              icon={<DocumentIcon />}
+              label="Open requests"
+              value={mine.filter((w) => w.status === 'OPEN' && w.moderation === 'APPROVED').length}
+            />
+            <StatCard
+              icon={<ClockIcon />}
+              label="Pending review"
+              value={mine.filter((w) => w.moderation === 'PENDING').length}
+            />
+            <StatCard
+              icon={<BadgeCheckIcon />}
+              label="Closed requests"
+              value={mine.filter((w) => w.status === 'CLOSED').length}
+            />
+          </div>
           <h2 className="mb-2 text-lg font-extrabold tracking-tight">Your requests</h2>
           <div className="card divide-y divide-line">
             {mine.map((w) => (

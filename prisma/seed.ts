@@ -239,6 +239,33 @@ async function main() {
   });
   await prisma.productImage.createMany({ data: imageRows });
 
+  console.log('Harvest dates & variants…');
+  const productByName = new Map(createdProducts.map((p) => [p.name, p.id]));
+  const HARVEST_DAYS: Record<string, number> = {
+    'Fresh Tomatoes': 3,
+    'White Maize (dry)': 1,
+    'Keitt Mango': 15,
+  };
+  for (const [name, days] of Object.entries(HARVEST_DAYS)) {
+    const id = productByName.get(name);
+    if (!id) continue;
+    await prisma.product.update({
+      where: { id },
+      data: { expectedHarvestDate: new Date(Date.now() + days * 86_400_000) },
+    });
+  }
+
+  const tomatoId = productByName.get('Fresh Tomatoes');
+  if (tomatoId) {
+    await prisma.productVariant.createMany({
+      data: [
+        { productId: tomatoId, name: 'Small', priceMinor: 6500, sortOrder: 0 },
+        { productId: tomatoId, name: 'Medium', priceMinor: 7200, sortOrder: 1 },
+        { productId: tomatoId, name: 'Large', priceMinor: 8000, sortOrder: 2 },
+      ],
+    });
+  }
+
   console.log('Wanted listings…');
   for (const [i, w] of WANTED.entries()) {
     await prisma.wantedListing.create({

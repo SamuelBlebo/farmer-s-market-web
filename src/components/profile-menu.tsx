@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ChevronDownIcon, ShieldIcon } from './icons';
+import { ChevronDownIcon, ShieldIcon, SignOutIcon } from './icons';
 import { logout } from '@/server/actions/auth';
 
-type MenuItem = { label: string; href: string };
+type MenuItem = { label: string; href: string; icon?: React.ReactNode };
 
 /** Desktop-only profile trigger + dropdown. Mobile gets the same items inside MobileMenu instead. */
 export function ProfileMenu({
@@ -74,14 +74,16 @@ export function ProfileMenu({
                 href={item.href}
                 role="menuitem"
                 onClick={() => setOpen(false)}
-                className="block rounded-[8px] px-3 py-2 text-sm font-semibold text-ink hover:bg-paper"
+                className="flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-sm font-semibold text-ink hover:bg-paper"
               >
+                {item.icon}
                 {item.label}
               </Link>
             ))}
           </div>
           <form action={logout} className="p-1">
-            <button role="menuitem" className="block w-full rounded-[8px] px-3 py-2 text-left text-sm font-semibold text-clay hover:bg-clay-light">
+            <button role="menuitem" className="flex w-full items-center gap-2.5 rounded-[8px] px-3 py-2 text-left text-sm font-semibold text-clay hover:bg-clay-light">
+              <SignOutIcon />
               Sign out
             </button>
           </form>

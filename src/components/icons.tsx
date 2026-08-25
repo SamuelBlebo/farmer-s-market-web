@@ -119,6 +119,24 @@ export function ClockIcon({ className = 'h-4 w-4' }: IconProps) {
   );
 }
 
+export function SignOutIcon({ className = 'h-4 w-4' }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} className={className} aria-hidden>
+      <path d="M9 5H5.5a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1H9" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M13 8l4 4-4 4M17 12H9" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function UserIcon({ className = 'h-4 w-4' }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} className={className} aria-hidden>
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M5 20c1-4 4-6 7-6s6 2 7 6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function PauseIcon({ className = 'h-[18px] w-[18px]' }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} className={className} aria-hidden>

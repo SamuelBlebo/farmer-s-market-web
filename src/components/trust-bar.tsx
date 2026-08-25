@@ -1,14 +1,19 @@
-type Item = { icon: React.ReactNode; label: string; tone?: 'leaf' | 'muted' };
+type Item = { icon: React.ReactNode; label: string; sublabel?: string; tone?: 'leaf' | 'muted' };
 
 /** Persistent trust strip under the header for farmers/buyers — verification, location, tenure, activity. */
 export function TrustBar({ items }: { items: Item[] }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-card border border-line bg-paper px-4 py-2.5 text-[13px]">
+    <div className="flex flex-wrap items-start gap-x-7 gap-y-3 rounded-card border border-line bg-paper px-4 py-3">
       {items.map((item, i) => (
-        <span key={i} className={`inline-flex items-center gap-1.5 font-semibold ${item.tone === 'leaf' ? 'text-leaf-dark' : 'text-muted'}`}>
-          {item.icon}
-          {item.label}
-        </span>
+        <div key={i} className="flex items-center gap-2">
+          <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${item.tone === 'leaf' ? 'bg-leaf-light text-leaf-dark' : 'bg-white text-muted'}`}>
+            {item.icon}
+          </span>
+          <span className="leading-tight">
+            <span className={`block text-[13px] font-bold ${item.tone === 'leaf' ? 'text-leaf-dark' : 'text-ink'}`}>{item.label}</span>
+            {item.sublabel && <span className="block text-[11.5px] text-muted">{item.sublabel}</span>}
+          </span>
+        </div>
       ))}
     </div>
   );

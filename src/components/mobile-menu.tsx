@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { CloseIcon, MenuIcon } from './icons';
+import { CloseIcon, MenuIcon, SignOutIcon } from './icons';
 import { NavLinks, type NavItem } from './nav-links';
 import { logout } from '@/server/actions/auth';
 
-type MenuItem = { label: string; href: string };
+type MenuItem = { label: string; href: string; icon?: React.ReactNode };
 
 /** Collapses the full nav + profile actions into one panel below the header on small screens. */
 export function MobileMenu({
@@ -56,13 +56,15 @@ export function MobileMenu({
                   key={item.href}
                   href={item.href}
                   onClick={close}
-                  className="block rounded-[8px] px-2 py-2 text-sm font-semibold text-ink hover:bg-paper"
+                  className="flex items-center gap-2.5 rounded-[8px] px-2 py-2 text-sm font-semibold text-ink hover:bg-paper"
                 >
+                  {item.icon}
                   {item.label}
                 </Link>
               ))}
               <form action={logout}>
-                <button className="mt-1 block w-full rounded-[8px] px-2 py-2 text-left text-sm font-semibold text-clay hover:bg-clay-light">
+                <button className="mt-1 flex w-full items-center gap-2.5 rounded-[8px] px-2 py-2 text-left text-sm font-semibold text-clay hover:bg-clay-light">
+                  <SignOutIcon />
                   Sign out
                 </button>
               </form>

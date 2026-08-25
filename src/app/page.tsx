@@ -4,9 +4,11 @@ import { CategoryChips, Filters } from '@/components/filters';
 import { ProductCard } from '@/components/product-card';
 import { SearchBar } from '@/components/search-bar';
 import { getCategories, getMarketProducts, getMarketStats, type MarketFilters } from '@/server/queries';
+import { currentUser } from '@/server/authz';
 
 export default async function MarketplacePage({ searchParams }: { searchParams: MarketFilters }) {
-  const [{ items, total, page, pages }, categories, stats] = await Promise.all([
+  const [user, { items, total, page, pages }, categories, stats] = await Promise.all([
+    currentUser(),
     getMarketProducts(searchParams),
     getCategories(),
     getMarketStats(),
@@ -18,22 +20,24 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
 
   return (
     <>
-      <section className="card mb-5 overflow-hidden p-6 sm:p-8">
-        <p className="eyebrow">Ghana&apos;s produce marketplace</p>
-        <h1 className="mt-1 max-w-[520px] text-[26px] font-extrabold leading-tight tracking-tight sm:text-3xl">
-          Fresh from the farm. No middlemen, no fees.
-        </h1>
-        <p className="mt-2 max-w-[480px] text-[15px] text-muted">
-          Farmers list what they have. Buyers browse, filter by region, and message the farmer directly on WhatsApp.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2.5">
-          <a href="#listings" className="btn">Browse produce</a>
-          <Link href="/register" className="btn-ghost">Sell on Farmers Market</Link>
-        </div>
-        <p className="mt-4 text-[12.5px] font-semibold text-muted">
-          🌾 {stats.listings} listings live · ✓ {stats.verifiedFarmers} verified farmers · 📍 {stats.regionCount} regions across Ghana
-        </p>
-      </section>
+      {!user && (
+        <section className="card mb-5 overflow-hidden p-6 sm:p-8">
+          <p className="eyebrow">Ghana&apos;s produce marketplace</p>
+          <h1 className="mt-1 max-w-[520px] text-[26px] font-extrabold leading-tight tracking-tight sm:text-3xl">
+            Fresh from the farm. No middlemen, no fees.
+          </h1>
+          <p className="mt-2 max-w-[480px] text-[15px] text-muted">
+            Farmers list what they have. Buyers browse, filter by region, and message the farmer directly on WhatsApp.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2.5">
+            <a href="#listings" className="btn">Browse produce</a>
+            <Link href="/register" className="btn-ghost">Sell on Farmers Market</Link>
+          </div>
+          <p className="mt-4 text-[12.5px] font-semibold text-muted">
+            🌾 {stats.listings} listings live · ✓ {stats.verifiedFarmers} verified farmers · 📍 {stats.regionCount} regions across Ghana
+          </p>
+        </section>
+      )}
 
       <h2 className="eyebrow mb-2">Browse by category</h2>
       <Suspense>

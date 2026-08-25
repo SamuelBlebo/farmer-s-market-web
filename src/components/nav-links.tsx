@@ -41,11 +41,11 @@ export function NavLinks({
             aria-label={item.iconOnly ? item.label : undefined}
             className={
               orientation === 'row'
-                ? `flex items-center gap-2 rounded-full px-3 py-1.5 text-[13.5px] font-semibold transition-colors ${
-                    active ? 'bg-leaf-light text-leaf-dark' : 'text-muted hover:bg-paper hover:text-ink'
+                ? `flex items-center gap-2 rounded-full px-3 py-1.5 text-[13.5px] transition-colors ${
+                    active ? 'bg-leaf-light font-bold text-leaf-dark' : 'font-semibold text-muted hover:bg-paper hover:text-ink'
                   }`
-                : `flex items-center gap-2.5 rounded-[8px] px-2 py-2 text-[15px] font-semibold transition-colors ${
-                    active ? 'bg-leaf-light text-leaf-dark' : 'text-ink hover:bg-paper'
+                : `flex items-center gap-2.5 rounded-[8px] px-2 py-2 text-[15px] transition-colors ${
+                    active ? 'bg-leaf-light font-bold text-leaf-dark' : 'font-semibold text-ink hover:bg-paper'
                   }`
             }
           >

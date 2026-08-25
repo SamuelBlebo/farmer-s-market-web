@@ -17,6 +17,7 @@ export async function Nav() {
         {user && <Link href="/favorites" className="hover:text-ink">Favorites</Link>}
         {user?.role === 'FARMER' && <Link href="/dashboard" className="hover:text-ink">My listings</Link>}
         {user?.role === 'ADMIN' && <Link href="/admin" className="hover:text-ink">Admin</Link>}
+        {user && <Link href="/account" className="hover:text-ink">Account</Link>}
       </nav>
 
       <div className="ml-auto flex items-center gap-2">

@@ -6,12 +6,18 @@ const phone = z
   .min(9, 'Enter a valid phone number')
   .regex(/^[\d\s+()-]+$/, 'Digits only');
 
+// Blank input means "no email" rather than a validation failure.
+const optionalEmail = z.preprocess(
+  (v) => (v === '' || v === undefined || v === null ? undefined : v),
+  z.string().email('Enter a valid email').optional(),
+);
+
 export const registerSchema = z
   .object({
     role: z.enum(['FARMER', 'BUYER']),
     name: z.string().min(2, 'Enter your name'),
     businessName: z.string().min(2, 'Enter your farm or business name'),
-    email: z.string().email('Enter a valid email'),
+    email: optionalEmail,
     password: z.string().min(8, 'Use at least 8 characters'),
     phone,
     whatsapp: phone,
@@ -70,6 +76,50 @@ export const reportSchema = z.object({
   reason: z.string().min(3).max(120),
   details: z.string().max(500).optional(),
 });
+
+// Blank input means "no photo change" rather than a validation failure.
+const optionalImage = z.preprocess(
+  (v) => (v === '' || v === undefined || v === null ? undefined : v),
+  z.string().url('Invalid image').optional(),
+);
+
+export const farmerProfileSchema = z
+  .object({
+    name: z.string().min(2, 'Enter your name'),
+    businessName: z.string().min(2, 'Enter your farm name'),
+    phone,
+    email: optionalEmail,
+    region: z.enum(REGIONS),
+    town: z.string().min(2, 'Enter your town'),
+    image: optionalImage,
+  })
+  .strict();
+
+export const buyerProfileSchema = z
+  .object({
+    name: z.string().min(2, 'Enter your name'),
+    businessName: z.string().min(2, 'Enter your business name'),
+    phone,
+    email: optionalEmail,
+    image: optionalImage,
+  })
+  .strict();
+
+export const adminProfileSchema = z
+  .object({
+    name: z.string().min(2, 'Enter your name'),
+    phone,
+    // Phone sign-in is blocked for admins (see auth.ts), so email is their only way in — keep it required.
+    email: z.string().email('Enter a valid email'),
+  })
+  .strict();
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Enter your current password'),
+    newPassword: z.string().min(8, 'Use at least 8 characters'),
+  })
+  .strict();
 
 export type ProductInput = z.infer<typeof productSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;

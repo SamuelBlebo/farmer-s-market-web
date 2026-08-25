@@ -15,7 +15,7 @@ export async function register(_prev: AuthState, formData: FormData): Promise<Au
     role: formData.get('role'),
     name: String(formData.get('name') ?? ''),
     businessName: String(formData.get('businessName') ?? ''),
-    email: String(formData.get('email') ?? '').toLowerCase(),
+    email: String(formData.get('email') ?? '').toLowerCase() || undefined,
     password: String(formData.get('password') ?? ''),
     phone: String(formData.get('phone') ?? ''),
     whatsapp: String(formData.get('whatsapp') ?? '') || String(formData.get('phone') ?? ''),
@@ -28,8 +28,10 @@ export async function register(_prev: AuthState, formData: FormData): Promise<Au
   const d = parsed.data;
   const normalizedPhone = normalizeGhanaPhone(d.phone);
 
-  const taken = await prisma.user.findUnique({ where: { email: d.email } });
-  if (taken) return { error: 'That email already has an account. Sign in instead.' };
+  if (d.email) {
+    const taken = await prisma.user.findUnique({ where: { email: d.email } });
+    if (taken) return { error: 'That email already has an account. Sign in instead.' };
+  }
 
   const phoneTaken = await prisma.user.findUnique({ where: { phone: normalizedPhone } });
   if (phoneTaken) return { error: 'That phone number already has an account. Sign in instead.' };
@@ -75,8 +77,10 @@ export async function register(_prev: AuthState, formData: FormData): Promise<Au
     },
   });
 
-  await signIn('credentials', {
-    email: d.email,
+  // Phone is always present at this point (email may not be), so sign in with
+  // the phone provider — same as the phone tab on /login.
+  await signIn('phone-credentials', {
+    phone: d.phone,
     password: d.password,
     redirectTo: d.role === 'FARMER' ? '/dashboard' : '/',
   });

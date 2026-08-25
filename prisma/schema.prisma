@@ -48,11 +48,11 @@ enum ReportStatus {
 // ---------- auth ----------
 model User {
   id            String    @id @default(cuid())
-  email         String    @unique
+  email         String?   @unique
   emailVerified DateTime?
   passwordHash  String?
   name          String
-  phone         String?   @unique
+  phone         String    @unique
   role          Role      @default(BUYER)
   image         String?
   createdAt     DateTime  @default(now())

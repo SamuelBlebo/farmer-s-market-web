@@ -92,8 +92,8 @@ export function RegisterForm() {
       </label>
 
       <label className="mb-3.5 block">
-        <span className="label">Email</span>
-        <input name="email" type="email" className="input" required autoComplete="email" />
+        <span className="label">Email <span className="font-normal text-muted">(optional)</span></span>
+        <input name="email" type="email" className="input" autoComplete="email" />
         {err('email') && <p className="mt-1 text-sm text-clay">{err('email')}</p>}
       </label>
 

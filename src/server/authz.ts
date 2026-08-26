@@ -10,10 +10,9 @@ const LAST_ACTIVE_STALE_MS = 5 * 60_000;
  * per user so a normal browsing session doesn't write on every request.
  * Never blocks or fails the request it's attached to.
  */
-async function touchLastActive(userId: string) {
+async function touchLastActive(userId: string, lastActiveAt: Date | null) {
   try {
-    const row = await prisma.user.findUnique({ where: { id: userId }, select: { lastActiveAt: true } });
-    const stale = !row?.lastActiveAt || Date.now() - row.lastActiveAt.getTime() > LAST_ACTIVE_STALE_MS;
+    const stale = !lastActiveAt || Date.now() - lastActiveAt.getTime() > LAST_ACTIVE_STALE_MS;
     if (stale) await prisma.user.update({ where: { id: userId }, data: { lastActiveAt: new Date() } });
   } catch {
     // Activity tracking is a nice-to-have; never break the page over it.
@@ -25,9 +24,18 @@ async function touchLastActive(userId: string) {
 // most one lastActiveAt write) instead of one per caller.
 export const currentUser = cache(async () => {
   const session = await auth();
-  const user = session?.user ?? null;
-  if (user) await touchLastActive(user.id);
-  return user;
+  const sessionUser = session?.user ?? null;
+  if (!sessionUser) return null;
+
+  // Sessions are JWTs, so a cookie from before a `prisma migrate dev` reset
+  // or reseed still decodes fine even though its user id no longer exists.
+  // Treat that as signed-out here so no caller downstream (account actions,
+  // ownership checks, etc.) ever runs a write against a row that's gone.
+  const dbUser = await prisma.user.findUnique({ where: { id: sessionUser.id }, select: { lastActiveAt: true } });
+  if (!dbUser) return null;
+
+  await touchLastActive(sessionUser.id, dbUser.lastActiveAt);
+  return sessionUser;
 });
 
 export async function requireUser() {

@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { CategoryChips, Filters } from '@/components/filters';
+import { HorizontalScroller } from '@/components/horizontal-scroller';
 import { Pagination } from '@/components/pagination';
 import { ProductCard } from '@/components/product-card';
 import { QuickFilterChips } from '@/components/quick-filter-chips';
@@ -38,7 +39,7 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
     getMarketStats(),
     getFeaturedProducts(),
     user?.role === 'BUYER' ? getFollowedFarmsProducts(user.id) : Promise.resolve([]),
-    user ? getRecentlyViewedProducts(user.id) : Promise.resolve([]),
+    user && user.role !== 'FARMER' ? getRecentlyViewedProducts(user.id) : Promise.resolve([]),
     notifyNewlyAvailableHarvests(),
   ]);
 
@@ -116,11 +117,13 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
       {featured.length > 0 && !hasFilters && (
         <div className="mb-5">
           <h2 className="eyebrow mb-2">⭐ Featured Today</h2>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <HorizontalScroller>
             {featured.map((p) => (
-              <ProductCard key={p.id} p={p} />
+              <div key={p.id} className="w-40 shrink-0 sm:w-48">
+                <ProductCard p={p} />
+              </div>
             ))}
-          </div>
+          </HorizontalScroller>
         </div>
       )}
 
@@ -195,8 +198,8 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                {items.map((p) => (
-                  <ProductCard key={p.id} p={p} />
+                {items.map((p, i) => (
+                  <ProductCard key={p.id} p={p} priority={i < 4} />
                 ))}
               </div>
             )}

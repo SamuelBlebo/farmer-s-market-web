@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useFormState } from 'react-dom';
 import { ImageUploader } from './image-uploader';
 import { SubmitButton } from './submit-button';
@@ -20,6 +21,9 @@ type Initial = {
   images?: { url: string; publicId: string }[];
   expectedHarvestDate?: string;
   variants?: { name: string; price: number; quantity?: number | null }[];
+  deliveryAvailable?: boolean;
+  deliveryRadiusKm?: number | null;
+  deliveryFee?: number | null;
 };
 
 function toDateInput(d: Date): string {
@@ -39,6 +43,7 @@ export function ProductForm({
 }) {
   const [state, formAction] = useFormState(action, {} as ActionState);
   const err = (f: string) => state.fieldErrors?.[f]?.[0];
+  const [deliveryAvailable, setDeliveryAvailable] = useState(initial?.deliveryAvailable ?? false);
 
   const today = new Date();
   const max = new Date();
@@ -110,6 +115,32 @@ export function ProductForm({
       <div className="mb-3.5">
         <span className="label">Photos</span>
         <ImageUploader initial={initial?.images} />
+      </div>
+
+      <div className="mb-3.5 rounded-[10px] border border-line p-3">
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            name="deliveryAvailable"
+            defaultChecked={initial?.deliveryAvailable ?? false}
+            onChange={(e) => setDeliveryAvailable(e.target.checked)}
+          />
+          <span className="text-sm font-semibold">Delivery available (leave unchecked for pickup only)</span>
+        </label>
+        {deliveryAvailable && (
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            <label className="block">
+              <span className="label">Delivery radius (km) <span className="font-normal text-muted">(optional)</span></span>
+              <input name="deliveryRadiusKm" inputMode="decimal" className="input" defaultValue={initial?.deliveryRadiusKm ?? ''} />
+              {err('deliveryRadiusKm') && <p className="mt-1 text-sm text-clay">{err('deliveryRadiusKm')}</p>}
+            </label>
+            <label className="block">
+              <span className="label">Delivery fee (GH¢) <span className="font-normal text-muted">(optional, blank = free)</span></span>
+              <input name="deliveryFee" inputMode="decimal" className="input" defaultValue={initial?.deliveryFee ?? ''} />
+              {err('deliveryFee') && <p className="mt-1 text-sm text-clay">{err('deliveryFee')}</p>}
+            </label>
+          </div>
+        )}
       </div>
 
       <div className="mb-3.5">

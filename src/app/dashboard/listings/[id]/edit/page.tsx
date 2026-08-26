@@ -39,6 +39,9 @@ export default async function EditListingPage({ params }: { params: { id: string
           images: product.images.map((i) => ({ url: i.url, publicId: i.publicId })),
           expectedHarvestDate: product.expectedHarvestDate ? product.expectedHarvestDate.toISOString().slice(0, 10) : undefined,
           variants: product.variants.map((v) => ({ name: v.name, price: v.priceMinor / 100, quantity: v.quantity ? Number(v.quantity) : null })),
+          deliveryAvailable: product.deliveryAvailable,
+          deliveryRadiusKm: product.deliveryRadiusKm,
+          deliveryFee: product.deliveryFeeMinor !== null ? product.deliveryFeeMinor / 100 : null,
         }}
         submitLabel="Save changes"
       />

@@ -1,12 +1,13 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ModerationBadge, StatusBadge } from '@/components/badges';
+import { StarIcon } from '@/components/icons';
 import { ProductForm } from '@/components/product-form';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/server/authz';
 import { getCategories } from '@/server/queries';
 import { setProductStatus, updateProduct } from '@/server/actions/products';
-import { moderateProduct, removeProduct } from '@/server/actions/admin';
+import { moderateProduct, removeProduct, toggleFeatured } from '@/server/actions/admin';
 
 export default async function AdminEditProductPage({ params }: { params: { id: string } }) {
   await requireAdmin();
@@ -35,6 +36,11 @@ export default async function AdminEditProductPage({ params }: { params: { id: s
         <h1 className="text-2xl font-bold tracking-tight">{product.name}</h1>
         <StatusBadge status={product.status} />
         <ModerationBadge status={product.moderation} />
+        {product.featured && (
+          <span className="badge bg-gold-light text-[#8A6100]">
+            <StarIcon className="h-3 w-3" filled /> Featured
+          </span>
+        )}
       </div>
 
       <div className="card mb-4 p-4">
@@ -81,6 +87,12 @@ export default async function AdminEditProductPage({ params }: { params: { id: s
               <button className="btn-ghost !px-3 !py-1.5 !text-[13px]">Remove listing</button>
             </form>
           )}
+          <form action={toggleFeatured}>
+            <input type="hidden" name="productId" value={product.id} />
+            <button className="btn-ghost !px-3 !py-1.5 !text-[13px]">
+              {product.featured ? '★ Unfeature' : '☆ Feature this listing'}
+            </button>
+          </form>
         </div>
       </div>
 
@@ -99,6 +111,9 @@ export default async function AdminEditProductPage({ params }: { params: { id: s
           images: product.images.map((i) => ({ url: i.url, publicId: i.publicId })),
           expectedHarvestDate: product.expectedHarvestDate ? product.expectedHarvestDate.toISOString().slice(0, 10) : undefined,
           variants: product.variants.map((v) => ({ name: v.name, price: v.priceMinor / 100, quantity: v.quantity ? Number(v.quantity) : null })),
+          deliveryAvailable: product.deliveryAvailable,
+          deliveryRadiusKm: product.deliveryRadiusKm,
+          deliveryFee: product.deliveryFeeMinor !== null ? product.deliveryFeeMinor / 100 : null,
         }}
         submitLabel="Save changes"
       />

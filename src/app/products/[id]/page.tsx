@@ -4,6 +4,7 @@ import { LifecycleBadge, StatusBadge, VerifiedBadge } from '@/components/badges'
 import { ContactPrompt } from '@/components/contact-prompt';
 import { PriceQuantity } from '@/components/quantity-bar';
 import { ProductGallery } from '@/components/product-gallery';
+import { SectionCard, SectionRow } from '@/components/section-card';
 import { WhatsAppButton } from '@/components/whatsapp-button';
 import {
   formatPrice,
@@ -107,6 +108,26 @@ export default async function ProductPage({ params }: { params: { id: string } }
                 <button className="btn-ghost w-full">♡ Save listing</button>
               </form>
             )}
+          </div>
+
+          <div className="mb-3.5">
+            <SectionCard title="Delivery">
+              <dl className="divide-y divide-line">
+                <SectionRow label="Pickup location" value={`${p.town}, ${p.region}`} />
+                {p.deliveryAvailable ? (
+                  <>
+                    <SectionRow label="Delivery" value={<span className="badge bg-leaf-light text-leaf-dark">🚚 Available</span>} />
+                    {p.deliveryRadiusKm && <SectionRow label="Delivery radius" value={`Up to ${p.deliveryRadiusKm} km`} />}
+                    <SectionRow
+                      label="Delivery fee"
+                      value={p.deliveryFeeMinor ? formatPrice(p.deliveryFeeMinor) : 'Free'}
+                    />
+                  </>
+                ) : (
+                  <SectionRow label="Delivery" value="Pickup only" />
+                )}
+              </dl>
+            </SectionCard>
           </div>
 
           <div className="card p-4">

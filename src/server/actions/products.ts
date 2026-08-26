@@ -36,11 +36,25 @@ function readForm(formData: FormData) {
     images,
     expectedHarvestDate: String(formData.get('expectedHarvestDate') ?? '') || undefined,
     variants: readVariants(formData),
+    // Checkboxes only appear in FormData when checked.
+    deliveryAvailable: formData.get('deliveryAvailable') === 'on',
+    deliveryRadiusKm: String(formData.get('deliveryRadiusKm') ?? '') || undefined,
+    deliveryFee: String(formData.get('deliveryFee') ?? '') || undefined,
   };
 }
 
 function toHarvestDate(iso: string | undefined): Date | null {
   return iso ? new Date(`${iso}T00:00:00`) : null;
+}
+
+/** Radius/fee only mean anything when delivery is actually offered — clear them otherwise. */
+function deliveryFields(d: { deliveryAvailable?: boolean; deliveryRadiusKm?: number; deliveryFee?: number }) {
+  const available = d.deliveryAvailable ?? false;
+  return {
+    deliveryAvailable: available,
+    deliveryRadiusKm: available ? (d.deliveryRadiusKm ?? null) : null,
+    deliveryFeeMinor: available && d.deliveryFee !== undefined ? toMinor(d.deliveryFee) : null,
+  };
 }
 
 export async function createProduct(_prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -62,6 +76,7 @@ export async function createProduct(_prev: ActionState, formData: FormData): Pro
       region: d.region,
       town: d.town,
       expectedHarvestDate: toHarvestDate(d.expectedHarvestDate),
+      ...deliveryFields(d),
       // New listings queue for admin approval before they hit the marketplace.
       moderation: 'PENDING',
       images: d.images?.length
@@ -106,6 +121,7 @@ export async function updateProduct(
       region: d.region,
       town: d.town,
       expectedHarvestDate: toHarvestDate(d.expectedHarvestDate),
+      ...deliveryFields(d),
       // Full replace: the form always submits the complete desired photo set,
       // so dropping and recreating is simpler and correct than diffing.
       images: {

@@ -183,3 +183,18 @@ export async function getAdminFarmers(page = 1) {
   ]);
   return { items, total, page: p, pages: Math.max(1, Math.ceil(total / ADMIN_PAGE_SIZE)) };
 }
+
+/** Admin: buyer list, paginated. */
+export async function getAdminBuyers(page = 1) {
+  const p = Math.max(1, page);
+  const [items, total] = await Promise.all([
+    prisma.buyerProfile.findMany({
+      orderBy: { createdAt: 'desc' },
+      skip: (p - 1) * ADMIN_PAGE_SIZE,
+      take: ADMIN_PAGE_SIZE,
+      include: { user: { select: { lastActiveAt: true } } },
+    }),
+    prisma.buyerProfile.count(),
+  ]);
+  return { items, total, page: p, pages: Math.max(1, Math.ceil(total / ADMIN_PAGE_SIZE)) };
+}

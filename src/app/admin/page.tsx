@@ -5,7 +5,7 @@ import { Pagination } from '@/components/pagination';
 import { formatPrice, lastActiveLabel } from '@/lib/format';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/server/authz';
-import { getAdminFarmers, getAdminProducts } from '@/server/queries';
+import { getAdminBuyers, getAdminFarmers, getAdminProducts } from '@/server/queries';
 import {
   moderateProduct,
   moderateWanted,
@@ -16,15 +16,16 @@ import {
   upsertCategory,
 } from '@/server/actions/admin';
 
-type AdminSearchParams = { listingsPage?: string; farmersPage?: string };
+type AdminSearchParams = { listingsPage?: string; farmersPage?: string; buyersPage?: string };
 
 export default async function AdminPage({ searchParams }: { searchParams: AdminSearchParams }) {
   await requireAdmin();
 
   const listingsPage = Number(searchParams.listingsPage ?? 1) || 1;
   const farmersPage = Number(searchParams.farmersPage ?? 1) || 1;
+  const buyersPage = Number(searchParams.buyersPage ?? 1) || 1;
 
-  const [pending, pendingWanted, farmers, allListings, reports, categories, counts] = await Promise.all([
+  const [pending, pendingWanted, farmers, buyers, allListings, reports, categories, counts] = await Promise.all([
     prisma.product.findMany({
       where: { moderation: 'PENDING' },
       orderBy: { createdAt: 'asc' },
@@ -38,6 +39,7 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
       take: 50,
     }),
     getAdminFarmers(farmersPage),
+    getAdminBuyers(buyersPage),
     getAdminProducts(listingsPage),
     prisma.report.findMany({
       where: { status: 'OPEN' },
@@ -68,7 +70,7 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stat(farmerCount, 'Farmers', '#farmer-verification')}
-        {stat(buyerCount, 'Buyers', '#buyer-requests')}
+        {stat(buyerCount, 'Buyers', '#buyers')}
         {stat(productCount, 'Listings', '#all-listings')}
         {stat(reportCount, 'Reports open', '#reported-listings', 'text-clay')}
       </div>
@@ -164,6 +166,22 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
         ))}
       </div>
       <Pagination page={farmers.page} pages={farmers.pages} basePath="/admin" searchParams={searchParams} pageParam="farmersPage" />
+
+      <h2 id="buyers" className="mb-2 mt-8 scroll-mt-4 text-lg font-semibold tracking-tight">Buyers</h2>
+      <div className="card mb-1 divide-y divide-line">
+        {buyers.items.length === 0 && <p className="p-5 text-sm text-muted">No buyers yet.</p>}
+        {buyers.items.map((b) => (
+          <div key={b.id} className="flex flex-wrap items-center gap-3 p-3.5">
+            <div className="min-w-[160px] flex-1">
+              <div className="font-bold">{b.businessName}</div>
+              <div className="text-[12.5px] text-muted">
+                {b.town}, {b.region} · {b.phone} · {lastActiveLabel(b.user.lastActiveAt)}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <Pagination page={buyers.page} pages={buyers.pages} basePath="/admin" searchParams={searchParams} pageParam="buyersPage" />
 
       <h2 id="reported-listings" className="mb-2 mt-8 scroll-mt-4 text-lg font-semibold tracking-tight">Reported listings</h2>
       <div className="card mb-6 divide-y divide-line">

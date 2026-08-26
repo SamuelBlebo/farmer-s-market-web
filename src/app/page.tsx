@@ -4,16 +4,27 @@ import { CategoryChips, Filters } from '@/components/filters';
 import { Pagination } from '@/components/pagination';
 import { ProductCard } from '@/components/product-card';
 import { SearchBar } from '@/components/search-bar';
-import { getCategories, getFeaturedProducts, getMarketProducts, getMarketStats, type MarketFilters } from '@/server/queries';
+import {
+  getCategories,
+  getFeaturedProducts,
+  getFollowedFarmsProducts,
+  getMarketProducts,
+  getMarketStats,
+  type MarketFilters,
+} from '@/server/queries';
+import { notifyNewlyAvailableHarvests } from '@/server/notifications';
 import { currentUser } from '@/server/authz';
 
 export default async function MarketplacePage({ searchParams }: { searchParams: MarketFilters }) {
-  const [user, { items, total, page, pages }, categories, stats, featured] = await Promise.all([
-    currentUser(),
+  const user = await currentUser();
+
+  const [{ items, total, page, pages }, categories, stats, featured, followedProducts] = await Promise.all([
     getMarketProducts(searchParams),
     getCategories(),
     getMarketStats(),
     getFeaturedProducts(),
+    user?.role === 'BUYER' ? getFollowedFarmsProducts(user.id) : Promise.resolve([]),
+    notifyNewlyAvailableHarvests(),
   ]);
 
   const hasFilters = Boolean(
@@ -46,6 +57,17 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
           <h2 className="eyebrow mb-2">⭐ Featured Today</h2>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {featured.map((p) => (
+              <ProductCard key={p.id} p={p} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {followedProducts.length > 0 && !hasFilters && (
+        <div className="mb-5">
+          <h2 className="eyebrow mb-2">🌱 From Farmers You Follow</h2>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {followedProducts.map((p) => (
               <ProductCard key={p.id} p={p} />
             ))}
           </div>

@@ -1,23 +1,9 @@
 import Link from 'next/link';
-import {
-  BadgeCheckIcon,
-  CalendarIcon,
-  ClockIcon,
-  DocumentIcon,
-  GridIcon,
-  HeartIcon,
-  PinIcon,
-  PlusIcon,
-  ShieldIcon,
-  StoreIcon,
-  UserIcon,
-} from './icons';
+import { DocumentIcon, GridIcon, HeartIcon, PlusIcon, ShieldIcon, StoreIcon, UserIcon } from './icons';
 import { MobileMenu } from './mobile-menu';
 import { NavLinks, type NavItem } from './nav-links';
 import { NotificationBell } from './notification-bell';
 import { ProfileMenu } from './profile-menu';
-import { TrustBar } from './trust-bar';
-import { lastActiveLabel } from '@/lib/format';
 import { prisma } from '@/lib/prisma';
 import { currentUser } from '@/server/authz';
 
@@ -29,7 +15,7 @@ export async function Nav() {
 
   const [requestsCount, dbUser, farmerProfile, buyerProfile, farmerAttention, buyerAttention, adminAttention] = await Promise.all([
     prisma.wantedListing.count({ where: { status: 'OPEN', moderation: 'APPROVED' } }),
-    user ? prisma.user.findUnique({ where: { id: user.id }, select: { image: true, lastActiveAt: true } }) : null,
+    user ? prisma.user.findUnique({ where: { id: user.id }, select: { image: true } }) : null,
     user?.role === 'FARMER' ? prisma.farmerProfile.findUnique({ where: { userId: user.id } }) : null,
     user?.role === 'BUYER' ? prisma.buyerProfile.findUnique({ where: { userId: user.id } }) : null,
     // "Needs attention" counts — real, per-role, not decorative.
@@ -103,38 +89,8 @@ export async function Nav() {
     bellLabel = 'Items awaiting review';
   }
 
-  const trustItems: { icon: React.ReactNode; label: string; sublabel?: string; tone?: 'leaf' }[] = [];
-  if (user?.role === 'FARMER' && farmerProfile) {
-    trustItems.push(
-      {
-        icon: <BadgeCheckIcon />,
-        label: `${VERIFICATION_LABEL[farmerProfile.verification]} Farmer`,
-        sublabel: `ID: FM-${farmerProfile.id.slice(-6).toUpperCase()}`,
-        tone: 'leaf',
-      },
-      { icon: <PinIcon />, label: farmerProfile.region, sublabel: `${farmerProfile.town}, Ghana` },
-      {
-        icon: <CalendarIcon />,
-        label: 'Member since',
-        sublabel: farmerProfile.createdAt.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }),
-      },
-      { icon: <ClockIcon />, label: lastActiveLabel(dbUser?.lastActiveAt ?? null), sublabel: undefined, tone: 'leaf' },
-    );
-  } else if (user?.role === 'BUYER' && buyerProfile) {
-    trustItems.push(
-      { icon: <PinIcon />, label: buyerProfile.region, sublabel: `${buyerProfile.town}, Ghana` },
-      {
-        icon: <CalendarIcon />,
-        label: 'Member since',
-        sublabel: buyerProfile.createdAt.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }),
-      },
-      { icon: <ClockIcon />, label: lastActiveLabel(dbUser?.lastActiveAt ?? null), tone: 'leaf' },
-    );
-  }
-
   return (
-    <div className="mb-5">
-      <header className="card relative z-30 flex items-center gap-4 px-4 py-3">
+    <header className="card relative z-30 mb-5 flex items-center gap-4 px-4 py-3">
         <Link href="/" className="flex items-center text-[17px] font-extrabold leading-none tracking-[-0.01em] text-[#111827]">
           Farmers<span className="text-[#15803D]">Market</span>
         </Link>
@@ -176,13 +132,6 @@ export async function Nav() {
             accountItems={accountItems}
           />
         </div>
-      </header>
-
-      {trustItems.length > 0 && (
-        <div className="mt-3">
-          <TrustBar items={trustItems} />
-        </div>
-      )}
-    </div>
+    </header>
   );
 }

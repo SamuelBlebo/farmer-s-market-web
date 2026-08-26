@@ -5,12 +5,14 @@ import { AccountActionRow } from '@/components/account-action-row';
 import { ToastListener } from '@/components/toast-listener';
 import { StatusBadge } from '@/components/badges';
 import { BadgeCheckIcon, DocumentIcon, HeartIcon, PauseIcon, PlusIcon, StoreIcon, UserIcon } from '@/components/icons';
+import { LifecycleBadge } from '@/components/badges';
 import { ProfileHero } from '@/components/profile-hero';
 import { SectionCard } from '@/components/section-card';
 import { StatCard } from '@/components/stat-card';
-import { formatPrice, formatQty, lastActiveLabel, timeAgo } from '@/lib/format';
+import { formatPrice, formatQty, getProductLifecycle, harvestLabel, lastActiveLabel, timeAgo } from '@/lib/format';
 import { prisma } from '@/lib/prisma';
 import { requireFarmerProfile } from '@/server/authz';
+import { getUpcomingHarvests, getWeeklyFarmerSummary } from '@/server/queries';
 
 export default async function DashboardPage() {
   const { user, profile } = await requireFarmerProfile();
@@ -18,7 +20,7 @@ export default async function DashboardPage() {
   const now = new Date();
   const weekFromNow = new Date(now.getTime() + 7 * 86_400_000);
 
-  const [dbUser, products, recent, openRequests, savedByBuyers, harvestsThisWeek] = await Promise.all([
+  const [dbUser, products, recent, openRequests, savedByBuyers, harvestsThisWeek, upcomingHarvests, weeklySummary] = await Promise.all([
     prisma.user.findUniqueOrThrow({ where: { id: user.id }, select: { image: true, lastActiveAt: true } }),
     prisma.product.findMany({
       where: { farmerId: profile.id, status: { not: 'REMOVED' } },
@@ -35,6 +37,8 @@ export default async function DashboardPage() {
     prisma.product.count({
       where: { farmerId: profile.id, status: 'ACTIVE', expectedHarvestDate: { gte: now, lte: weekFromNow } },
     }),
+    getUpcomingHarvests(profile.id),
+    getWeeklyFarmerSummary(profile.id, user.id),
   ]);
 
   const active = products.filter((p) => p.status === 'ACTIVE' && p.moderation === 'APPROVED').length;
@@ -83,6 +87,17 @@ export default async function DashboardPage() {
         }
       />
 
+      <div className="mb-6">
+        <SectionCard title="This Week">
+          <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4">
+            <StatCard icon={<UserIcon />} label="New followers" value={weeklySummary.newFollowers} />
+            <StatCard icon={<HeartIcon className="h-[18px] w-[18px]" />} label="Saved listings" value={weeklySummary.savedListings} />
+            <StatCard icon={<PlusIcon className="h-4 w-4" />} label="Listings posted" value={weeklySummary.listingsPosted} />
+            <StatCard icon={<DocumentIcon />} label="Harvests coming up" value={harvestsThisWeek} />
+          </div>
+        </SectionCard>
+      </div>
+
       <Suspense>
         <ToastListener
           messages={{
@@ -110,6 +125,27 @@ export default async function DashboardPage() {
         </SectionCard>
       </div>
 
+      {upcomingHarvests.length > 0 && (
+        <div className="mb-6">
+          <SectionCard title="Upcoming Harvest Calendar">
+            <div className="divide-y divide-line">
+              {upcomingHarvests.map((p) => {
+                const lifecycle = getProductLifecycle(p.status, p.expectedHarvestDate);
+                return (
+                  <div key={p.id} className="flex items-center gap-3 p-3.5">
+                    <span className="flex-1 truncate text-sm font-semibold">{p.name}</span>
+                    <span className="shrink-0 text-[12.5px] text-muted">
+                      {p.expectedHarvestDate ? harvestLabel(p.expectedHarvestDate) : '—'}
+                    </span>
+                    <LifecycleBadge lifecycle={lifecycle} />
+                  </div>
+                );
+              })}
+            </div>
+          </SectionCard>
+        </div>
+      )}
+
       <div className="grid gap-5 lg:grid-cols-2">
         <div className="card rounded-2xl p-4 shadow-sm transition-shadow hover:shadow-md">
           <div className="mb-1 flex items-center justify-between">
@@ -118,8 +154,8 @@ export default async function DashboardPage() {
           </div>
           {recent.length === 0 ? (
             <div className="py-8 text-center">
-              <p className="text-sm font-semibold text-muted">You have not posted any produce yet.</p>
-              <Link href="/dashboard/listings/new" className="btn mt-3 inline-flex">Post your first listing</Link>
+              <p className="text-sm font-semibold text-muted">Post your first harvest.</p>
+              <Link href="/dashboard/listings/new?mode=full" className="btn mt-3 inline-flex">New Listing</Link>
             </div>
           ) : (
             <div className="divide-y divide-line">

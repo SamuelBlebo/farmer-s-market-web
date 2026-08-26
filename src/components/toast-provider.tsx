@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useCallback, useContext, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 
 type ToastKind = 'success' | 'error';
 type Toast = { id: number; kind: ToastKind; message: string };
@@ -23,10 +23,15 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), AUTO_DISMISS_MS);
   }, []);
 
-  const value: ToastContextValue = {
-    success: (message) => push('success', message),
-    error: (message) => push('error', message),
-  };
+  // Memoized so a toast being shown/dismissed (which re-renders this provider)
+  // doesn't also re-render every consumer of useToast() elsewhere in the tree.
+  const value: ToastContextValue = useMemo(
+    () => ({
+      success: (message: string) => push('success', message),
+      error: (message: string) => push('error', message),
+    }),
+    [push],
+  );
 
   return (
     <ToastContext.Provider value={value}>

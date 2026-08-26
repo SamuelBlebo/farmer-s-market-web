@@ -7,7 +7,8 @@ import { REGIONS } from '@/lib/constants';
 import { formatPrice } from '@/lib/format';
 import { trackClient } from '@/lib/analytics-client';
 
-type Suggestion = {
+type ProductSuggestion = {
+  kind: 'product';
   id: string;
   name: string;
   unit: string;
@@ -15,9 +16,22 @@ type Suggestion = {
   image: string | null;
   category: { name: string; emoji: string | null };
 };
+type FarmerSuggestion = { kind: 'farmer'; id: string; farmName: string; region: string; verification: string };
+type CategorySuggestion = { kind: 'category'; slug: string; name: string; emoji: string | null };
+type Suggestion = ProductSuggestion | FarmerSuggestion | CategorySuggestion;
 
 const DEBOUNCE_MS = 250;
 const MIN_QUERY_LENGTH = 2;
+
+function suggestionKey(s: Suggestion): string {
+  return s.kind === 'category' ? `category:${s.slug}` : `${s.kind}:${s.id}`;
+}
+
+function suggestionHref(s: Suggestion): string {
+  if (s.kind === 'product') return `/products/${s.id}`;
+  if (s.kind === 'farmer') return `/farmers/${s.id}`;
+  return `/?category=${s.slug}`;
+}
 
 export function SearchBar() {
   const router = useRouter();
@@ -40,8 +54,13 @@ export function SearchBar() {
     const timer = setTimeout(() => {
       fetch(`/api/search/suggest?q=${encodeURIComponent(query)}`, { signal: controller.signal })
         .then((r) => r.json())
-        .then((data: { items: Suggestion[] }) => {
-          setSuggestions(data.items ?? []);
+        .then((data: { products: Omit<ProductSuggestion, 'kind'>[]; farmers: Omit<FarmerSuggestion, 'kind'>[]; categories: Omit<CategorySuggestion, 'kind'>[] }) => {
+          const combined: Suggestion[] = [
+            ...(data.categories ?? []).map((c) => ({ kind: 'category' as const, ...c })),
+            ...(data.farmers ?? []).map((f) => ({ kind: 'farmer' as const, ...f })),
+            ...(data.products ?? []).map((p) => ({ kind: 'product' as const, ...p })),
+          ];
+          setSuggestions(combined);
           setOpen(true);
           setHighlight(-1);
         })
@@ -76,7 +95,7 @@ export function SearchBar() {
 
   function selectSuggestion(s: Suggestion) {
     setOpen(false);
-    router.push(`/products/${s.id}`);
+    router.push(suggestionHref(s));
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -101,7 +120,7 @@ export function SearchBar() {
         <input
           name="q"
           className="input w-full"
-          placeholder="Search produce — tomatoes, maize, yam…"
+          placeholder="Search produce, farms, categories…"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onFocus={() => suggestions.length > 0 && setOpen(true)}
@@ -120,7 +139,7 @@ export function SearchBar() {
             className="absolute left-0 right-0 top-full z-30 mt-1 max-h-80 overflow-y-auto rounded-[10px] border border-line bg-white shadow-md"
           >
             {suggestions.map((s, i) => (
-              <li key={s.id} role="option" aria-selected={i === highlight}>
+              <li key={suggestionKey(s)} role="option" aria-selected={i === highlight}>
                 <button
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
@@ -129,19 +148,44 @@ export function SearchBar() {
                   className={`flex w-full items-center gap-3 px-3 py-2 text-left ${i === highlight ? 'bg-paper' : ''}`}
                 >
                   <div className="relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-lg bg-leaf-light text-lg">
-                    {s.image ? (
+                    {s.kind === 'product' && s.image ? (
                       <Image src={s.image} alt="" fill sizes="36px" className="object-cover" />
-                    ) : (
+                    ) : s.kind === 'product' ? (
                       <span aria-hidden>{s.category.emoji ?? '🌿'}</span>
+                    ) : s.kind === 'farmer' ? (
+                      <span aria-hidden>🧑‍🌾</span>
+                    ) : (
+                      <span aria-hidden>{s.emoji ?? '🏷️'}</span>
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold">{s.name}</div>
-                    <div className="truncate text-[12px] text-muted">{s.category.name}</div>
+                    {s.kind === 'product' && (
+                      <>
+                        <div className="truncate text-sm font-semibold">{s.name}</div>
+                        <div className="truncate text-[12px] text-muted">{s.category.name}</div>
+                      </>
+                    )}
+                    {s.kind === 'farmer' && (
+                      <>
+                        <div className="truncate text-sm font-semibold">{s.farmName}</div>
+                        <div className="truncate text-[12px] text-muted">Farm · {s.region}</div>
+                      </>
+                    )}
+                    {s.kind === 'category' && (
+                      <>
+                        <div className="truncate text-sm font-semibold">{s.name}</div>
+                        <div className="truncate text-[12px] text-muted">Category</div>
+                      </>
+                    )}
                   </div>
-                  <div className="shrink-0 text-[12.5px] font-bold">
-                    {formatPrice(s.priceMinor)}<span className="font-normal text-muted">/{s.unit}</span>
-                  </div>
+                  {s.kind === 'product' && (
+                    <div className="shrink-0 text-[12.5px] font-bold">
+                      {formatPrice(s.priceMinor)}<span className="font-normal text-muted">/{s.unit}</span>
+                    </div>
+                  )}
+                  {s.kind === 'farmer' && s.verification === 'VERIFIED' && (
+                    <span className="badge shrink-0 bg-leaf-light text-leaf-dark">✓</span>
+                  )}
                 </button>
               </li>
             ))}

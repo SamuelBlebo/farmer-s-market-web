@@ -77,7 +77,6 @@ export async function Nav() {
     bellCount = buyerAttention;
     bellLabel = 'Requests needing attention';
   } else if (user?.role === 'ADMIN') {
-    items.push({ label: 'Admin Panel', href: '/admin', icon: <ShieldIcon className="h-[18px] w-[18px]" /> });
     useShield = true;
     accountItems = [
       { label: 'Admin Dashboard', href: '/admin', icon: <ShieldIcon className="h-4 w-4" /> },

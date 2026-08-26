@@ -1,18 +1,22 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
+import { captureException } from '@/lib/monitoring';
 
-export default function GlobalError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function ErrorBoundary({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  useEffect(() => {
+    captureException(error, { digest: error.digest });
+  }, [error]);
+
   return (
-    <div className="card mx-auto max-w-[440px] p-10 text-center">
-      <div className="text-4xl" aria-hidden>⚠️</div>
-      <p className="mt-2 font-bold">Something went wrong.</p>
-      <p className="mt-1 text-sm text-muted">
-        That didn&apos;t work — often a permissions issue or a dropped connection. Try again.
-      </p>
-      <div className="mt-4 flex justify-center gap-2">
-        <button onClick={reset} className="btn">Try again</button>
-        <Link href="/" className="btn-ghost">Back to marketplace</Link>
+    <div className="card mx-auto max-w-[480px] p-8 text-center">
+      <p aria-hidden className="text-3xl">⚠️</p>
+      <h1 className="mt-2 text-xl font-bold tracking-tight">Something went wrong</h1>
+      <p className="mt-1 text-sm text-muted">We&apos;ve logged the issue. Try again, or head back to the marketplace.</p>
+      <div className="mt-4 flex justify-center gap-2.5">
+        <button type="button" onClick={() => reset()} className="btn">Try again</button>
+        <Link href="/" className="btn-ghost">Marketplace</Link>
       </div>
     </div>
   );

@@ -1,7 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Image from 'next/image';
+import { ChevronLeftIcon, ChevronRightIcon, ZoomIcon } from './icons';
+
+const SWIPE_THRESHOLD = 40;
 
 export function ProductGallery({
   images,
@@ -13,13 +16,66 @@ export function ProductGallery({
   emoji: string | null;
 }) {
   const [active, setActive] = useState(0);
+  const [zoomed, setZoomed] = useState(false);
+  const touchStartX = useRef<number | null>(null);
   const hero = images[active]?.url;
+
+  const go = (delta: number) => {
+    if (images.length < 2) return;
+    setActive((i) => (i + delta + images.length) % images.length);
+  };
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(delta) > SWIPE_THRESHOLD) go(delta < 0 ? 1 : -1);
+    touchStartX.current = null;
+  };
 
   return (
     <div>
-      <div className="relative grid h-72 place-items-center overflow-hidden rounded-card bg-gradient-to-br from-[#E9F1E9] to-[#D6E5D8] text-8xl">
+      <div
+        className="relative grid h-72 place-items-center overflow-hidden rounded-card bg-gradient-to-br from-[#E9F1E9] to-[#D6E5D8] text-8xl"
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+      >
         {hero ? (
-          <Image src={hero} alt={name} fill sizes="(max-width:1024px) 100vw, 640px" className="object-cover" priority />
+          <>
+            <button
+              type="button"
+              onClick={() => setZoomed(true)}
+              className="absolute inset-0"
+              aria-label="Zoom photo"
+            >
+              <Image src={hero} alt={name} fill sizes="(max-width:1024px) 100vw, 640px" className="object-cover object-center" priority />
+            </button>
+            <span className="pointer-events-none absolute bottom-2 right-2 grid h-8 w-8 place-items-center rounded-full bg-black/40 text-white">
+              <ZoomIcon />
+            </span>
+            {images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => go(-1)}
+                  aria-label="Previous photo"
+                  className="absolute left-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full bg-black/40 text-white"
+                >
+                  <ChevronLeftIcon />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => go(1)}
+                  aria-label="Next photo"
+                  className="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full bg-black/40 text-white"
+                >
+                  <ChevronRightIcon />
+                </button>
+              </>
+            )}
+          </>
         ) : (
           <span aria-hidden>{emoji ?? '🌿'}</span>
         )}
@@ -40,6 +96,47 @@ export function ProductGallery({
               <Image src={img.url} alt="" fill sizes="64px" className="object-cover" />
             </button>
           ))}
+        </div>
+      )}
+
+      {zoomed && hero && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/90 p-4"
+          onClick={() => setZoomed(false)}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+        >
+          <button
+            type="button"
+            onClick={() => setZoomed(false)}
+            aria-label="Close zoom"
+            className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-white/10 text-2xl text-white"
+          >
+            ✕
+          </button>
+          <div className="relative h-full max-h-[85vh] w-full max-w-3xl" onClick={(e) => e.stopPropagation()}>
+            <Image src={hero} alt={name} fill sizes="100vw" className="object-contain" />
+          </div>
+          {images.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); go(-1); }}
+                aria-label="Previous photo"
+                className="absolute left-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white"
+              >
+                <ChevronLeftIcon />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); go(1); }}
+                aria-label="Next photo"
+                className="absolute right-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white"
+              >
+                <ChevronRightIcon />
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>

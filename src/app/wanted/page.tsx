@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ToastListener } from '@/components/toast-listener';
 import { ModerationBadge } from '@/components/badges';
@@ -11,6 +12,15 @@ import { timeAgo, whatsappWantedLink } from '@/lib/format';
 import { getMyWanted, getWanted } from '@/server/queries';
 import { currentUser } from '@/server/authz';
 import { closeWanted } from '@/server/actions/wanted';
+
+export const metadata: Metadata = {
+  title: 'Requests',
+  description: 'Buyers looking for produce across Ghana. If you grow it, message the buyer directly on WhatsApp.',
+  openGraph: {
+    title: 'Requests | Farmers Market',
+    description: 'Buyers looking for produce across Ghana. If you grow it, message the buyer directly on WhatsApp.',
+  },
+};
 
 export default async function WantedPage({ searchParams }: { searchParams: { page?: string } }) {
   const user = await currentUser();

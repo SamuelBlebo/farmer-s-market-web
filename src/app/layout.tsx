@@ -5,6 +5,8 @@ import './globals.css';
 import { Nav } from '@/components/nav';
 import { TopProgressBar } from '@/components/top-progress-bar';
 import { ToastProvider } from '@/components/toast-provider';
+import { ErrorMonitor } from '@/components/error-monitor';
+import { PLATFORM_NAME, SITE_URL } from '@/lib/constants';
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -13,10 +15,28 @@ const manrope = Manrope({
   display: 'swap',
 });
 
+const DESCRIPTION = 'Farmers list what they have. Buyers find it and message them on WhatsApp. No middlemen, no fees.';
+
 export const metadata: Metadata = {
-  title: 'Farmers Market — buy and sell produce in Ghana',
-  description:
-    'Farmers list what they have. Buyers find it and message them on WhatsApp. No middlemen, no fees.',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${PLATFORM_NAME} — buy and sell produce in Ghana`,
+    template: `%s | ${PLATFORM_NAME}`,
+  },
+  description: DESCRIPTION,
+  icons: { icon: '/icon.svg', shortcut: '/icon.svg', apple: '/icon.svg' },
+  openGraph: {
+    siteName: PLATFORM_NAME,
+    type: 'website',
+    locale: 'en_GH',
+    title: `${PLATFORM_NAME} — buy and sell produce in Ghana`,
+    description: DESCRIPTION,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${PLATFORM_NAME} — buy and sell produce in Ghana`,
+    description: DESCRIPTION,
+  },
 };
 
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#0D4E37' };
@@ -25,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={manrope.variable}>
       <body>
+        <ErrorMonitor />
         <ToastProvider>
           <Suspense fallback={null}>
             <TopProgressBar />

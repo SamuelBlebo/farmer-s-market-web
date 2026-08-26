@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { LifecycleBadge, StatusBadge, VerifiedBadge } from '@/components/badges';
@@ -10,6 +11,7 @@ import { RecordView } from '@/components/record-view';
 import { SaveButton } from '@/components/save-button';
 import { SectionCard, SectionRow } from '@/components/section-card';
 import { StickyContactBar } from '@/components/sticky-contact-bar';
+import { TrackedCallLink } from '@/components/tracked-call-link';
 import { TrustScoreBadge } from '@/components/trust-score-badge';
 import { WhatsAppButton } from '@/components/whatsapp-button';
 import {
@@ -26,6 +28,24 @@ import { computeTrustScore } from '@/lib/trust';
 import { getFollowerCount, getProduct, getRelatedProducts, recordProductView } from '@/server/queries';
 import { currentUser } from '@/server/authz';
 import { reportProduct } from '@/server/actions/products';
+import { track } from '@/server/analytics';
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const p = await getProduct(params.id);
+  if (!p) return {};
+
+  const title = `${p.name} — ${formatPrice(p.priceMinor)}/${p.unit}`;
+  const description = `${p.name} from ${p.farmer.farmName} in ${p.region}, Ghana.${p.description ? ` ${p.description}` : ''}`.slice(0, 160);
+  // Only ever the listing's own real photo — no fabricated stand-in when there isn't one.
+  const image = p.images[0]?.url;
+
+  return {
+    title,
+    description,
+    openGraph: { title, description, images: image ? [{ url: image }] : undefined },
+    twitter: { card: 'summary_large_image', title, description, images: image ? [image] : undefined },
+  };
+}
 
 export default async function ProductPage({ params }: { params: { id: string } }) {
   const p = await getProduct(params.id);
@@ -36,7 +56,10 @@ export default async function ProductPage({ params }: { params: { id: string } }
     getFollowerCount(p.farmer.user.id),
     getRelatedProducts({ id: p.id, categoryId: p.categoryId, region: p.region }),
   ]);
-  if (user) await recordProductView(user.id, p.id);
+  // Recently Viewed is a buyer/admin feature — farmers don't get it, so don't bother recording for them.
+  if (user && user.role !== 'FARMER') await recordProductView(user.id, p.id);
+  // Fire-and-forget — never await analytics from a page render.
+  void track({ type: 'PRODUCT_VIEWED', userId: user?.id, entityId: p.id });
 
   const lifecycle = getProductLifecycle(p.status, p.expectedHarvestDate);
   const trustScore = computeTrustScore({
@@ -49,7 +72,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
   return (
     <>
-      <RecordView productId={p.id} />
+      {(!user || user.role !== 'FARMER') && <RecordView productId={p.id} />}
       <Breadcrumbs
         items={[
           { label: 'Marketplace', href: '/' },
@@ -57,6 +80,13 @@ export default async function ProductPage({ params }: { params: { id: string } }
           { label: p.name },
         ]}
       />
+
+      {user?.role === 'ADMIN' && (
+        <div className="mb-4 flex items-center justify-between rounded-[10px] border border-line bg-paper px-4 py-2.5">
+          <span className="text-[13px] font-semibold text-muted">👁 Viewing as admin</span>
+          <Link href={`/admin/products/${p.id}/edit`} className="btn-ghost !px-3 !py-1.5 !text-[13px]">✎ Edit listing</Link>
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[1.25fr_1fr]">
         <div>
@@ -138,9 +168,9 @@ export default async function ProductPage({ params }: { params: { id: string } }
             {p.status === 'ACTIVE' ? (
               user ? (
                 <div className="mt-4 space-y-2">
-                  <WhatsAppButton href={whatsappProductLink(p.farmer.whatsapp, p.name)} className="w-full" />
+                  <WhatsAppButton href={whatsappProductLink(p.farmer.whatsapp, p.name)} className="w-full" trackEntityId={p.id} />
                   {p.farmer.phone && (
-                    <a href={telLink(p.farmer.phone)} className="btn-ghost w-full">📞 Call farmer</a>
+                    <TrackedCallLink href={telLink(p.farmer.phone)} productId={p.id} className="btn-ghost w-full" />
                   )}
                 </div>
               ) : (

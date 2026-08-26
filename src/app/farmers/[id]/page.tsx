@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { ContactPrompt } from '@/components/contact-prompt';
@@ -15,6 +16,26 @@ import { computeTrustScore } from '@/lib/trust';
 import { prisma } from '@/lib/prisma';
 import { getFarmer, getFollowerCount, isFollowingFarmer } from '@/server/queries';
 import { currentUser } from '@/server/authz';
+import { track } from '@/server/analytics';
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const farmer = await getFarmer(params.id);
+  if (!farmer) return {};
+
+  const title = `${farmer.farmName} — ${farmer.region}`;
+  const description = `${farmer.farmName} in ${farmer.town}, ${farmer.region}. ${
+    farmer.verification === 'VERIFIED' ? 'Verified farmer on' : 'Farmer on'
+  } Farmers Market.${farmer.description ? ` ${farmer.description}` : ''}`.slice(0, 160);
+  // Only the farmer's own uploaded cover photo — no fabricated stand-in when there isn't one.
+  const image = farmer.coverImage;
+
+  return {
+    title,
+    description,
+    openGraph: { title, description, images: image ? [{ url: image }] : undefined },
+    twitter: { card: 'summary_large_image', title, description, images: image ? [image] : undefined },
+  };
+}
 
 const GROUP_ORDER: Extract<ProductLifecycle, 'AVAILABLE_NOW' | 'UPCOMING_HARVEST' | 'ONGOING'>[] = [
   'AVAILABLE_NOW',
@@ -30,6 +51,7 @@ const GROUP_TITLE: Record<(typeof GROUP_ORDER)[number], string> = {
 export default async function FarmerPage({ params }: { params: { id: string } }) {
   const [farmer, user] = await Promise.all([getFarmer(params.id), currentUser()]);
   if (!farmer) notFound();
+  void track({ type: 'FARMER_VIEWED', userId: user?.id, entityId: farmer.id });
 
   const [savedByBuyers, followerCount, isFollowing] = await Promise.all([
     prisma.favorite.count({ where: { product: { farmerId: farmer.id } } }),
@@ -88,6 +110,7 @@ export default async function FarmerPage({ params }: { params: { id: string } })
                   href={whatsappProductLink(farmer.whatsapp, farmer.products[0].name)}
                   label="Message on WhatsApp"
                   className="sm:flex-1"
+                  trackEntityId={farmer.id}
                 />
               )}
             </>

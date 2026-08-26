@@ -1,5 +1,9 @@
 export const PLATFORM_NAME = process.env.NEXT_PUBLIC_PLATFORM_NAME ?? 'Farmers Market';
 
+// Used to build absolute URLs for metadataBase and Open Graph images —
+// social platforms (WhatsApp, Twitter) require absolute, not relative, URLs.
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+
 export const REGIONS = [
   'Greater Accra', 'Ashanti', 'Bono', 'Bono East', 'Ahafo', 'Eastern', 'Central',
   'Western', 'Western North', 'Volta', 'Oti', 'Northern', 'Savannah',

@@ -70,12 +70,14 @@ export function harvestDateLabel(date: Date): string {
   return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
 }
 
-/** "Available now" / "Harvests tomorrow (12 Sep)" / "Harvests in 5 days (12 Sep)". */
+/** Same day-count math as before — only the copy changed: "Ready Today" / "Tomorrow" / "In 3 days" / "Next Week" / a dated fallback further out. */
 export function harvestLabel(date: Date | null): string {
   if (!date) return 'Available now';
   const days = Math.ceil((date.getTime() - Date.now()) / 86_400_000);
-  if (days <= 0) return 'Available now';
-  if (days === 1) return `Harvests tomorrow (${harvestDateLabel(date)})`;
+  if (days <= 0) return 'Ready Today';
+  if (days === 1) return 'Tomorrow';
+  if (days < 7) return `In ${days} days`;
+  if (days < 14) return 'Next Week';
   return `Harvests in ${days} days (${harvestDateLabel(date)})`;
 }
 

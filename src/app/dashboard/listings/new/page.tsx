@@ -6,16 +6,18 @@ import { requireFarmerProfile } from '@/server/authz';
 import { getCategories } from '@/server/queries';
 import { createProduct } from '@/server/actions/products';
 
-export default async function NewListingPage() {
+export default async function NewListingPage({ searchParams }: { searchParams: { mode?: string } }) {
   const { profile } = await requireFarmerProfile();
   const categories = await getCategories();
   const defaultCategory = categories.find((c) => c.slug === 'other') ?? categories[0];
+  const initialMode = searchParams.mode === 'full' ? 'full' : 'quick';
 
   return (
     <div className="mx-auto max-w-[640px]">
       <p className="eyebrow">Takes about a minute</p>
       <h1 className="mb-4 mt-1 text-2xl font-bold tracking-tight">Post produce</h1>
       <ListingModeTabs
+        initialMode={initialMode}
         quick={
           <QuickPostForm
             categoryId={defaultCategory.id}

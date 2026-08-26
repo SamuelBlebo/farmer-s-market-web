@@ -1,18 +1,25 @@
 import { Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { AccountActionRow } from '@/components/account-action-row';
 import { ActionBanner } from '@/components/action-banner';
 import { StatusBadge } from '@/components/badges';
-import { BadgeCheckIcon, DocumentIcon, PauseIcon, StoreIcon } from '@/components/icons';
+import { BadgeCheckIcon, DocumentIcon, HeartIcon, PauseIcon, PlusIcon, StoreIcon, UserIcon } from '@/components/icons';
+import { ProfileHero } from '@/components/profile-hero';
+import { SectionCard } from '@/components/section-card';
 import { StatCard } from '@/components/stat-card';
-import { formatPrice, formatQty, timeAgo } from '@/lib/format';
+import { formatPrice, formatQty, lastActiveLabel, timeAgo } from '@/lib/format';
 import { prisma } from '@/lib/prisma';
 import { requireFarmerProfile } from '@/server/authz';
 
 export default async function DashboardPage() {
   const { user, profile } = await requireFarmerProfile();
 
-  const [products, recent, openRequests] = await Promise.all([
+  const now = new Date();
+  const weekFromNow = new Date(now.getTime() + 7 * 86_400_000);
+
+  const [dbUser, products, recent, openRequests, savedByBuyers, harvestsThisWeek] = await Promise.all([
+    prisma.user.findUniqueOrThrow({ where: { id: user.id }, select: { image: true, lastActiveAt: true } }),
     prisma.product.findMany({
       where: { farmerId: profile.id, status: { not: 'REMOVED' } },
       select: { status: true, moderation: true },
@@ -24,6 +31,10 @@ export default async function DashboardPage() {
       include: { category: true, images: { orderBy: { sortOrder: 'asc' }, take: 1 } },
     }),
     prisma.wantedListing.count({ where: { status: 'OPEN', moderation: 'APPROVED' } }),
+    prisma.favorite.count({ where: { product: { farmerId: profile.id } } }),
+    prisma.product.count({
+      where: { farmerId: profile.id, status: 'ACTIVE', expectedHarvestDate: { gte: now, lte: weekFromNow } },
+    }),
   ]);
 
   const active = products.filter((p) => p.status === 'ACTIVE' && p.moderation === 'APPROVED').length;
@@ -32,16 +43,45 @@ export default async function DashboardPage() {
   const pendingApproval = products.filter((p) => p.moderation === 'PENDING').length;
 
   const firstName = user.name.split(' ')[0];
+  const memberSince = profile.createdAt.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
 
   return (
     <>
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Welcome back, {firstName} 👋</h1>
-          <p className="text-muted">Here&apos;s what&apos;s happening with your farm today.</p>
-        </div>
-        <Link href="/dashboard/listings/new" className="btn ml-auto">+ Post produce</Link>
-      </div>
+      <ProfileHero
+        avatarUrl={dbUser.image}
+        avatarLetter={user.name[0]}
+        name={user.name}
+        heading={`Welcome back, ${firstName} 👋`}
+        roleLabel="Farmer"
+        verification={profile.verification}
+        region={profile.region}
+        memberSince={memberSince}
+        lastActive={lastActiveLabel(dbUser.lastActiveAt)}
+        summary={
+          <>
+            <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold">
+              <span aria-hidden>🌱</span> {active} Active Listing{active === 1 ? '' : 's'}
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold">
+              <span aria-hidden>⭐</span> {savedByBuyers} Saved by Buyers
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold">
+              <span aria-hidden>📅</span> {harvestsThisWeek} Harvest{harvestsThisWeek === 1 ? '' : 's'} This Week
+            </span>
+          </>
+        }
+        actions={
+          <>
+            <Link href="/dashboard/listings/new?mode=full" className="btn sm:flex-1">
+              <PlusIcon className="h-4 w-4" />
+              New Listing
+            </Link>
+            <Link href="/dashboard/listings/new" className="btn-ghost sm:flex-1">
+              ⚡ Quick Post
+            </Link>
+          </>
+        }
+      />
 
       <Suspense>
         <ActionBanner
@@ -52,21 +92,35 @@ export default async function DashboardPage() {
         />
       </Suspense>
 
-      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard icon={<StoreIcon />} label="Active listings" value={active} href="/dashboard/listings" />
         <StatCard icon={<BadgeCheckIcon />} label="Sold listings" value={sold} href="/dashboard/listings#lifecycle-SOLD_OUT" />
         <StatCard icon={<PauseIcon />} label="Paused listings" value={paused} href="/dashboard/listings#lifecycle-PAUSED" />
         <StatCard icon={<DocumentIcon />} label="Pending approval" value={pendingApproval} href="/dashboard/listings" />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="card p-4">
+      <div className="mb-6">
+        <SectionCard title="Quick Actions">
+          <div className="divide-y divide-line">
+            <AccountActionRow href="/dashboard/listings" icon={<DocumentIcon className="h-4 w-4" />} label="My Listings" />
+            <AccountActionRow href="/wanted" icon={<DocumentIcon className="h-4 w-4" />} label="Requests" />
+            <AccountActionRow href="/favorites" icon={<HeartIcon className="h-4 w-4" />} label="Saved" />
+            <AccountActionRow href="/account" icon={<UserIcon />} label="Account" />
+          </div>
+        </SectionCard>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-2">
+        <div className="card rounded-2xl p-4 shadow-sm transition-shadow hover:shadow-md">
           <div className="mb-1 flex items-center justify-between">
             <h2 className="text-lg font-semibold tracking-tight">Recent Listings</h2>
             <Link href="/dashboard/listings" className="text-[12.5px] font-bold text-leaf-dark hover:underline">View all</Link>
           </div>
           {recent.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted">You have not posted any produce yet.</p>
+            <div className="py-8 text-center">
+              <p className="text-sm font-semibold text-muted">You have not posted any produce yet.</p>
+              <Link href="/dashboard/listings/new" className="btn mt-3 inline-flex">Post your first listing</Link>
+            </div>
           ) : (
             <div className="divide-y divide-line">
               {recent.map((p) => {
@@ -101,12 +155,12 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        <div className="card p-4">
+        <div className="card rounded-2xl p-4 shadow-sm transition-shadow hover:shadow-md">
           <div className="mb-1 flex items-center justify-between">
             <h2 className="text-lg font-semibold tracking-tight">Market Requests</h2>
             <Link href="/wanted" className="text-[12.5px] font-bold text-leaf-dark hover:underline">View all</Link>
           </div>
-          <Link href="/wanted" className="mt-2 flex items-center gap-3 rounded-[10px] border border-line p-3 hover:bg-paper">
+          <Link href="/wanted" className="mt-2 flex items-center gap-3 rounded-[10px] border border-line p-3 transition-colors hover:bg-paper">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-leaf-light font-num text-sm font-extrabold text-leaf-dark">
               {openRequests}
             </span>

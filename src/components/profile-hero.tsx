@@ -6,21 +6,30 @@ export function ProfileHero({
   avatarUrl,
   avatarLetter,
   name,
+  heading,
   roleLabel,
   verification,
   region,
   memberSince,
   lastActive,
+  summary,
+  actions,
 }: {
   avatarUrl?: string | null;
   avatarLetter: string;
   name: string;
+  /** Overrides the h1 (e.g. a "Welcome back, Kofi 👋" greeting) — name is still used for the avatar's fallback letter. */
+  heading?: string;
   roleLabel: string;
   /** Farmers only — buyers/admins have no verification concept in this app. */
   verification?: VerificationStatus;
   region?: string;
   memberSince: string;
   lastActive: string;
+  /** Optional row of quick-glance chips (e.g. "🌱 4 Active listings") between the meta line and the actions. */
+  summary?: React.ReactNode;
+  /** Overrides the default Edit Profile / Change Password button pair. */
+  actions?: React.ReactNode;
 }) {
   return (
     <div className="card mb-4 rounded-2xl p-5 shadow-sm transition-shadow hover:shadow-md sm:p-6">
@@ -34,7 +43,7 @@ export function ProfileHero({
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-bold tracking-tight">{name}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{heading ?? name}</h1>
           <div className="mt-1.5 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
             <span className="badge bg-paper text-muted">{roleLabel}</span>
             {verification && <VerifiedBadge status={verification} />}
@@ -46,9 +55,19 @@ export function ProfileHero({
         </div>
       </div>
 
+      {summary && (
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-line pt-4 sm:justify-start">
+          {summary}
+        </div>
+      )}
+
       <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-        <Link href="/account/edit" className="btn sm:flex-1">Edit Profile</Link>
-        <Link href="/account/password" className="btn-ghost sm:flex-1">Change Password</Link>
+        {actions ?? (
+          <>
+            <Link href="/account/edit" className="btn sm:flex-1">Edit Profile</Link>
+            <Link href="/account/password" className="btn-ghost sm:flex-1">Change Password</Link>
+          </>
+        )}
       </div>
     </div>
   );

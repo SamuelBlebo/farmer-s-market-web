@@ -8,8 +8,16 @@ const tab = (on: boolean) =>
   }`;
 
 /** Same tab pattern as the email/phone toggle on the login form. */
-export function ListingModeTabs({ quick, full }: { quick: React.ReactNode; full: React.ReactNode }) {
-  const [mode, setMode] = useState<'quick' | 'full'>('quick');
+export function ListingModeTabs({
+  quick,
+  full,
+  initialMode = 'quick',
+}: {
+  quick: React.ReactNode;
+  full: React.ReactNode;
+  initialMode?: 'quick' | 'full';
+}) {
+  const [mode, setMode] = useState<'quick' | 'full'>(initialMode);
 
   return (
     <div>

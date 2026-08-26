@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import Link from 'next/link';
 import { ActionBanner } from '@/components/action-banner';
 import { AccountActionButton, AccountActionRow } from '@/components/account-action-row';
 import { VerifiedBadge } from '@/components/badges';
@@ -62,9 +63,9 @@ export default async function AccountPage() {
         label: 'Harvests this week',
         value: harvestsThisWeek,
         emptyIcon: '🌱',
-        emptyMessage: 'No harvests scheduled this week.',
-        emptyHref: '/dashboard/listings',
-        emptyLinkLabel: 'Manage listings',
+        emptyMessage: 'No upcoming harvests.',
+        emptyHref: '/dashboard/listings/new?mode=full',
+        emptyLinkLabel: 'Add Harvest',
       },
     ];
   } else if (buyerProfile) {
@@ -189,12 +190,20 @@ export default async function AccountPage() {
         )}
       </div>
 
-      {savedFarms.length > 0 && (
+      {buyerProfile && (
         <div className="mt-4">
           <SectionCard title="Saved Farms">
-            <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3">
-              {savedFarms.map((f) => <FarmCard key={f.id} farm={f} />)}
-            </div>
+            {savedFarms.length > 0 ? (
+              <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3">
+                {savedFarms.map((f) => <FarmCard key={f.id} farm={f} />)}
+              </div>
+            ) : (
+              <div className="p-8 text-center">
+                <p aria-hidden className="text-2xl">❤️</p>
+                <p className="mt-1 text-sm font-semibold text-muted">No saved farms yet.</p>
+                <Link href="/" className="btn mt-3 inline-flex">Browse Farmers</Link>
+              </div>
+            )}
           </SectionCard>
         </div>
       )}

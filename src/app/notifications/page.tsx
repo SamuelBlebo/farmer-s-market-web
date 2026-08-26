@@ -17,7 +17,8 @@ export default async function NotificationsPage() {
 
       {notifications.length === 0 ? (
         <div className="card p-10 text-center">
-          <p className="font-bold">No notifications yet.</p>
+          <p aria-hidden className="text-2xl">🔔</p>
+          <p className="mt-1 font-bold">You&apos;re all caught up.</p>
           <p className="mt-1 text-sm text-muted">Follow a farm to hear about new listings and harvests.</p>
         </div>
       ) : (

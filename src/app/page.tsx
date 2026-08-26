@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
+import { Breadcrumbs } from '@/components/breadcrumbs';
 import { CategoryChips, Filters } from '@/components/filters';
 import { Pagination } from '@/components/pagination';
 import { ProductCard } from '@/components/product-card';
@@ -14,6 +15,17 @@ import {
 } from '@/server/queries';
 import { notifyNewlyAvailableHarvests } from '@/server/notifications';
 import { currentUser } from '@/server/authz';
+
+/** Builds a "remove just this filter" URL by dropping the given keys from the current search params. */
+function withoutParams(searchParams: MarketFilters, keys: (keyof MarketFilters)[]): string {
+  const next = new URLSearchParams();
+  for (const [key, value] of Object.entries(searchParams) as [keyof MarketFilters, string | undefined][]) {
+    if (keys.includes(key) || key === 'page' || value === undefined) continue;
+    next.set(key, value);
+  }
+  const qs = next.toString();
+  return qs ? `/?${qs}` : '/';
+}
 
 export default async function MarketplacePage({ searchParams }: { searchParams: MarketFilters }) {
   const user = await currentUser();
@@ -31,8 +43,26 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
     searchParams.q || searchParams.category || searchParams.region || searchParams.min || searchParams.max || searchParams.verified,
   );
 
+  const activeCategory = categories.find((c) => c.slug === searchParams.category);
+
+  const chips: { label: string; href: string }[] = [];
+  if (searchParams.q) chips.push({ label: `"${searchParams.q}"`, href: withoutParams(searchParams, ['q']) });
+  if (activeCategory) chips.push({ label: activeCategory.name, href: withoutParams(searchParams, ['category']) });
+  if (searchParams.region) chips.push({ label: searchParams.region, href: withoutParams(searchParams, ['region']) });
+  if (searchParams.verified === '1') chips.push({ label: 'Verified', href: withoutParams(searchParams, ['verified']) });
+  if (searchParams.min || searchParams.max) {
+    chips.push({
+      label: `GH¢${searchParams.min ?? '0'}–${searchParams.max ?? '∞'}`,
+      href: withoutParams(searchParams, ['min', 'max']),
+    });
+  }
+
   return (
     <>
+      {activeCategory && (
+        <Breadcrumbs items={[{ label: 'Marketplace', href: '/' }, { label: activeCategory.name }]} />
+      )}
+
       {!user && (
         <section className="card mb-5 overflow-hidden p-6 sm:p-8">
           <p className="eyebrow">Ghana&apos;s produce marketplace</p>
@@ -92,10 +122,25 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
           <div>
             <div className="mb-3 flex items-baseline gap-2.5">
               <h2 className="text-lg font-semibold tracking-tight">
-                {categories.find((c) => c.slug === searchParams.category)?.name ?? 'All produce'}
+                {activeCategory?.name ?? 'All produce'}
               </h2>
               <span className="text-[13.5px] text-muted">{total} listings</span>
             </div>
+
+            {chips.length > 0 && (
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                {chips.map((c) => (
+                  <Link
+                    key={c.label}
+                    href={c.href}
+                    className="badge inline-flex items-center gap-1 bg-paper text-ink transition-colors hover:bg-line"
+                  >
+                    {c.label} <span aria-hidden>×</span>
+                  </Link>
+                ))}
+                <Link href="/" className="text-[12.5px] font-bold text-leaf-dark hover:underline">Clear All</Link>
+              </div>
+            )}
 
             {items.length === 0 ? (
               <div className="card p-10 text-center">

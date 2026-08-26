@@ -15,6 +15,7 @@ import {
   StoreIcon,
   UserIcon,
 } from '@/components/icons';
+import { FarmCard } from '@/components/farm-card';
 import { ProfileHero } from '@/components/profile-hero';
 import { SectionCard, SectionRow } from '@/components/section-card';
 import { StatCard } from '@/components/stat-card';
@@ -23,6 +24,7 @@ import { lastActiveLabel } from '@/lib/format';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/server/authz';
 import { logout } from '@/server/actions/auth';
+import { getSavedFarms } from '@/server/queries';
 
 const ROLE_LABEL = { FARMER: 'Farmer', BUYER: 'Buyer', ADMIN: 'Platform Admin' } as const;
 
@@ -106,6 +108,7 @@ export default async function AccountPage() {
 
   const memberSince = dbUser.createdAt.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
   const activeLabel = lastActiveLabel(dbUser.lastActiveAt);
+  const savedFarms = buyerProfile ? await getSavedFarms(user.id) : [];
 
   return (
     <div className="mx-auto max-w-[760px]">
@@ -185,6 +188,16 @@ export default async function AccountPage() {
           </SectionCard>
         )}
       </div>
+
+      {savedFarms.length > 0 && (
+        <div className="mt-4">
+          <SectionCard title="Saved Farms">
+            <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3">
+              {savedFarms.map((f) => <FarmCard key={f.id} farm={f} />)}
+            </div>
+          </SectionCard>
+        </div>
+      )}
 
       <div className="mt-4">
         <SectionCard title="Account Actions">

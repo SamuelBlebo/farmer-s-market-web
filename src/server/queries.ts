@@ -93,7 +93,9 @@ export async function getFarmer(id: string) {
   return prisma.farmerProfile.findUnique({
     where: { id },
     include: {
-      user: { select: { image: true, lastActiveAt: true } },
+      // id is needed here (not just for display) because FarmFollow keys off
+      // the farmer's User row, not FarmerProfile.id — see prisma/schema.prisma.
+      user: { select: { id: true, image: true, lastActiveAt: true } },
       products: {
         where: { status: 'ACTIVE', moderation: 'APPROVED' },
         orderBy: { createdAt: 'desc' },
@@ -235,4 +237,90 @@ export async function getAdminBuyers(page = 1) {
     prisma.buyerProfile.count(),
   ]);
   return { items, total, page: p, pages: Math.max(1, Math.ceil(total / ADMIN_PAGE_SIZE)) };
+}
+
+/** Whether this buyer already follows this farmer — farmerUserId is the farmer's User.id. */
+export async function isFollowingFarmer(buyerId: string, farmerUserId: string) {
+  const follow = await prisma.farmFollow.findUnique({
+    where: { buyerId_farmerId: { buyerId, farmerId: farmerUserId } },
+    select: { id: true },
+  });
+  return Boolean(follow);
+}
+
+/** Real follower count for a storefront — farmerUserId is the farmer's User.id. */
+export async function getFollowerCount(farmerUserId: string) {
+  return prisma.farmFollow.count({ where: { farmerId: farmerUserId } });
+}
+
+/** Account Hub "Saved Farms" — cards reuse the same fields as the storefront hero. */
+export async function getSavedFarms(buyerId: string) {
+  const follows = await prisma.farmFollow.findMany({
+    where: { buyerId },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      farmer: {
+        select: {
+          farmerProfile: {
+            select: {
+              id: true,
+              farmName: true,
+              coverImage: true,
+              verification: true,
+              region: true,
+              town: true,
+            },
+          },
+          image: true,
+          lastActiveAt: true,
+        },
+      },
+    },
+  });
+
+  // A followed farmer whose account/profile was since removed leaves a
+  // dangling follow row rather than cascading away a live farm — skip those.
+  const farms = follows
+    .map((f) => f.farmer.farmerProfile && { ...f.farmer.farmerProfile, avatarUrl: f.farmer.image, lastActiveAt: f.farmer.lastActiveAt })
+    .filter((f): f is NonNullable<typeof f> => Boolean(f));
+  if (farms.length === 0) return [];
+
+  const listingCounts = await prisma.product.groupBy({
+    by: ['farmerId'],
+    where: { farmerId: { in: farms.map((f) => f.id) }, status: 'ACTIVE', moderation: 'APPROVED' },
+    _count: true,
+  });
+  const countByFarmerId = new Map(listingCounts.map((c) => [c.farmerId, c._count]));
+
+  return farms.map((f) => ({ ...f, activeListings: countByFarmerId.get(f.id) ?? 0 }));
+}
+
+/** Homepage "From Farmers You Follow" — recent listings from farms this buyer follows. */
+export async function getFollowedFarmsProducts(buyerId: string) {
+  const follows = await prisma.farmFollow.findMany({
+    where: { buyerId },
+    select: { farmer: { select: { farmerProfile: { select: { id: true } } } } },
+  });
+  const farmerProfileIds = follows.map((f) => f.farmer.farmerProfile?.id).filter((id): id is string => Boolean(id));
+  if (farmerProfileIds.length === 0) return [];
+
+  return prisma.product.findMany({
+    where: { farmerId: { in: farmerProfileIds }, status: 'ACTIVE', moderation: 'APPROVED' },
+    orderBy: { createdAt: 'desc' },
+    take: 8,
+    include: LIVE_PRODUCT_FARMER_CARD,
+  });
+}
+
+export async function getUnreadNotificationCount(userId: string) {
+  return prisma.notification.count({ where: { userId, readAt: null } });
+}
+
+export async function getNotifications(userId: string) {
+  return prisma.notification.findMany({
+    where: { userId },
+    orderBy: { createdAt: 'desc' },
+    take: 30,
+    include: { product: { select: { id: true, images: { orderBy: { sortOrder: 'asc' }, take: 1, select: { url: true } } } } },
+  });
 }

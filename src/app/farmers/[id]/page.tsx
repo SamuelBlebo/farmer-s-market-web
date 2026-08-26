@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation';
 import { ContactPrompt } from '@/components/contact-prompt';
 import { LifecycleBadge } from '@/components/badges';
-import { CalendarIcon, DocumentIcon, HeartIcon, PinIcon, StoreIcon } from '@/components/icons';
+import { FollowButton } from '@/components/follow-button';
+import { CalendarIcon, DocumentIcon, HeartIcon, PinIcon, StoreIcon, UserIcon } from '@/components/icons';
 import { ProductCard } from '@/components/product-card';
 import { ProfileHero } from '@/components/profile-hero';
 import { SectionCard, SectionRow } from '@/components/section-card';
@@ -9,7 +10,7 @@ import { StatCard } from '@/components/stat-card';
 import { WhatsAppButton } from '@/components/whatsapp-button';
 import { getProductLifecycle, lastActiveLabel, whatsappProductLink, type ProductLifecycle } from '@/lib/format';
 import { prisma } from '@/lib/prisma';
-import { getFarmer } from '@/server/queries';
+import { getFarmer, getFollowerCount, isFollowingFarmer } from '@/server/queries';
 import { currentUser } from '@/server/authz';
 
 const GROUP_ORDER: Extract<ProductLifecycle, 'AVAILABLE_NOW' | 'UPCOMING_HARVEST' | 'ONGOING'>[] = [
@@ -27,9 +28,11 @@ export default async function FarmerPage({ params }: { params: { id: string } })
   const [farmer, user] = await Promise.all([getFarmer(params.id), currentUser()]);
   if (!farmer) notFound();
 
-  const [savedByBuyers, upcomingHarvests] = await Promise.all([
+  const [savedByBuyers, upcomingHarvests, followerCount, isFollowing] = await Promise.all([
     prisma.favorite.count({ where: { product: { farmerId: farmer.id } } }),
     prisma.product.count({ where: { farmerId: farmer.id, status: 'ACTIVE', expectedHarvestDate: { gt: new Date() } } }),
+    getFollowerCount(farmer.user.id),
+    user?.role === 'BUYER' ? isFollowingFarmer(user.id, farmer.user.id) : false,
   ]);
 
   const memberSince = farmer.createdAt.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
@@ -56,22 +59,33 @@ export default async function FarmerPage({ params }: { params: { id: string } })
         memberSince={memberSince}
         lastActive={lastActiveLabel(farmer.user.lastActiveAt)}
         actions={
-          farmer.products[0] ? (
-            user ? (
-              <WhatsAppButton
-                href={whatsappProductLink(farmer.whatsapp, farmer.products[0].name)}
-                label="Message on WhatsApp"
-                className="sm:flex-1"
-              />
-            ) : (
-              <ContactPrompt message="Sign in to contact this farmer." />
-            )
-          ) : undefined
+          !user ? (
+            <ContactPrompt message="Sign in to follow or contact this farmer." />
+          ) : (
+            <>
+              {user.role === 'BUYER' && (
+                <FollowButton
+                  farmerUserId={farmer.user.id}
+                  storefrontPath={`/farmers/${farmer.id}`}
+                  initialFollowing={isFollowing}
+                  className="sm:flex-1"
+                />
+              )}
+              {farmer.products[0] && (
+                <WhatsAppButton
+                  href={whatsappProductLink(farmer.whatsapp, farmer.products[0].name)}
+                  label="Message on WhatsApp"
+                  className="sm:flex-1"
+                />
+              )}
+            </>
+          )
         }
       />
 
-      <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard icon={<StoreIcon />} label="Active listings" value={farmer.products.length} />
+        <StatCard icon={<UserIcon />} label="Followers" value={followerCount} />
         <StatCard icon={<HeartIcon className="h-[18px] w-[18px]" />} label="Saved by buyers" value={savedByBuyers} />
         <StatCard icon={<CalendarIcon />} label="Upcoming harvests" value={upcomingHarvests} />
         <StatCard icon={<CalendarIcon />} label="Member since" value={memberSince} />

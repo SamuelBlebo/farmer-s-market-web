@@ -81,7 +81,8 @@ export async function getProduct(id: string) {
       variants: { orderBy: { priceMinor: 'asc' } },
       farmer: {
         include: {
-          user: { select: { name: true, lastActiveAt: true } },
+          // id is needed for the trust score's follower count (FarmFollow keys off User.id).
+          user: { select: { id: true, name: true, lastActiveAt: true } },
           _count: { select: { products: { where: { status: 'ACTIVE', moderation: 'APPROVED' } } } },
         },
       },

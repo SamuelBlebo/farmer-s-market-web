@@ -1,14 +1,17 @@
 import { notFound } from 'next/navigation';
+import { Breadcrumbs } from '@/components/breadcrumbs';
 import { ContactPrompt } from '@/components/contact-prompt';
 import { LifecycleBadge } from '@/components/badges';
 import { FollowButton } from '@/components/follow-button';
-import { CalendarIcon, DocumentIcon, HeartIcon, PinIcon, StoreIcon, UserIcon } from '@/components/icons';
+import { CalendarIcon, ClockIcon, HeartIcon, StoreIcon, UserIcon } from '@/components/icons';
 import { ProductCard } from '@/components/product-card';
 import { ProfileHero } from '@/components/profile-hero';
 import { SectionCard, SectionRow } from '@/components/section-card';
 import { StatCard } from '@/components/stat-card';
+import { TrustScoreBadge } from '@/components/trust-score-badge';
 import { WhatsAppButton } from '@/components/whatsapp-button';
 import { getProductLifecycle, lastActiveLabel, whatsappProductLink, type ProductLifecycle } from '@/lib/format';
+import { computeTrustScore } from '@/lib/trust';
 import { prisma } from '@/lib/prisma';
 import { getFarmer, getFollowerCount, isFollowingFarmer } from '@/server/queries';
 import { currentUser } from '@/server/authz';
@@ -28,14 +31,20 @@ export default async function FarmerPage({ params }: { params: { id: string } })
   const [farmer, user] = await Promise.all([getFarmer(params.id), currentUser()]);
   if (!farmer) notFound();
 
-  const [savedByBuyers, upcomingHarvests, followerCount, isFollowing] = await Promise.all([
+  const [savedByBuyers, followerCount, isFollowing] = await Promise.all([
     prisma.favorite.count({ where: { product: { farmerId: farmer.id } } }),
-    prisma.product.count({ where: { farmerId: farmer.id, status: 'ACTIVE', expectedHarvestDate: { gt: new Date() } } }),
     getFollowerCount(farmer.user.id),
     user?.role === 'BUYER' ? isFollowingFarmer(user.id, farmer.user.id) : false,
   ]);
 
   const memberSince = farmer.createdAt.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+  const trustScore = computeTrustScore({
+    verification: farmer.verification,
+    lastActiveAt: farmer.user.lastActiveAt,
+    activeListings: farmer.products.length,
+    followers: followerCount,
+    memberSince: farmer.createdAt,
+  });
 
   // farmer.products is already ACTIVE + APPROVED only (see getFarmer), so this
   // never needs a SOLD_OUT/PAUSED bucket — reuses the same lifecycle logic as
@@ -48,6 +57,8 @@ export default async function FarmerPage({ params }: { params: { id: string } })
 
   return (
     <>
+      <Breadcrumbs items={[{ label: 'Marketplace', href: '/' }, { label: 'Farmers' }, { label: farmer.farmName }]} />
+
       <ProfileHero
         coverImage={farmer.coverImage}
         avatarUrl={farmer.user.image}
@@ -58,6 +69,7 @@ export default async function FarmerPage({ params }: { params: { id: string } })
         region={farmer.region}
         memberSince={memberSince}
         lastActive={lastActiveLabel(farmer.user.lastActiveAt)}
+        summary={<TrustScoreBadge score={trustScore} />}
         actions={
           !user ? (
             <ContactPrompt message="Sign in to follow or contact this farmer." />
@@ -83,12 +95,16 @@ export default async function FarmerPage({ params }: { params: { id: string } })
         }
       />
 
-      <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        <StatCard icon={<StoreIcon />} label="Active listings" value={farmer.products.length} />
-        <StatCard icon={<UserIcon />} label="Followers" value={followerCount} />
-        <StatCard icon={<HeartIcon className="h-[18px] w-[18px]" />} label="Saved by buyers" value={savedByBuyers} />
-        <StatCard icon={<CalendarIcon />} label="Upcoming harvests" value={upcomingHarvests} />
-        <StatCard icon={<CalendarIcon />} label="Member since" value={memberSince} />
+      <div className="mb-5">
+        <SectionCard title="Farm Reputation">
+          <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3 lg:grid-cols-5">
+            <StatCard icon={<UserIcon />} label="Followers" value={followerCount} />
+            <StatCard icon={<HeartIcon className="h-[18px] w-[18px]" />} label="Saved by buyers" value={savedByBuyers} />
+            <StatCard icon={<StoreIcon />} label="Active listings" value={farmer.products.length} />
+            <StatCard icon={<ClockIcon />} label="Last active" value={lastActiveLabel(farmer.user.lastActiveAt)} />
+            <StatCard icon={<CalendarIcon />} label="Member since" value={memberSince} />
+          </div>
+        </SectionCard>
       </div>
 
       <div className="mb-5">

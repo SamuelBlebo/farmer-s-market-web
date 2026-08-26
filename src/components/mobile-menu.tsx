@@ -12,12 +12,14 @@ type MenuItem = { label: string; href: string; icon?: React.ReactNode };
 export function MobileMenu({
   loggedIn,
   navItems,
+  postAction,
   primary,
   secondary,
   accountItems,
 }: {
   loggedIn: boolean;
   navItems: NavItem[];
+  postAction?: MenuItem | null;
   primary?: string;
   secondary?: string;
   accountItems: MenuItem[];
@@ -41,6 +43,12 @@ export function MobileMenu({
         <div className="card absolute inset-x-4 top-[64px] z-20 divide-y divide-line p-3 shadow-lg">
           <div className="pb-3">
             <NavLinks items={navItems} orientation="col" onNavigate={close} />
+            {postAction && (
+              <Link href={postAction.href} onClick={close} className="btn mt-2 w-full justify-center">
+                {postAction.icon}
+                {postAction.label}
+              </Link>
+            )}
           </div>
 
           {loggedIn ? (

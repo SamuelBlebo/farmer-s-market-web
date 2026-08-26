@@ -53,7 +53,7 @@ export async function Nav() {
     { label: 'Requests', href: '/wanted', icon: <DocumentIcon />, badge: requestsCount },
   ];
 
-  const favoritesItem = { label: 'Favorites', href: '/favorites', icon: <HeartIcon className="h-4 w-4" /> };
+  const favoritesItem = { label: 'Saved', href: '/favorites', icon: <HeartIcon className="h-4 w-4" /> };
 
   let name = user?.name ?? '';
   let roleLabel: string = user ? ROLE_LABEL[user.role] : '';
@@ -65,10 +65,11 @@ export async function Nav() {
   let bellHref = '/account';
   let bellCount = 0;
   let bellLabel = '';
+  let postAction: { label: string; href: string; icon: React.ReactNode } | null = null;
 
   if (user?.role === 'FARMER' && farmerProfile) {
     roleLabel = `${VERIFICATION_LABEL[farmerProfile.verification]} Farmer`;
-    items.push({ label: 'Add Product', href: '/dashboard/listings/new', icon: <PlusIcon /> });
+    postAction = { label: 'Add Product', href: '/dashboard/listings/new', icon: <PlusIcon className="h-4 w-4" /> };
     accountItems = [
       { label: 'Dashboard', href: '/dashboard', icon: <GridIcon className="h-4 w-4" /> },
       { label: 'My Listings', href: '/dashboard/listings', icon: <DocumentIcon className="h-4 w-4" /> },
@@ -80,7 +81,7 @@ export async function Nav() {
     bellCount = farmerAttention;
     bellLabel = 'Listings needing attention';
   } else if (user?.role === 'BUYER' && buyerProfile) {
-    items.push({ label: 'Post Request', href: '/wanted/new', icon: <PlusIcon /> });
+    postAction = { label: 'Post Request', href: '/wanted/new', icon: <PlusIcon className="h-4 w-4" /> };
     accountItems = [
       { label: 'My Requests', href: '/wanted', icon: <DocumentIcon className="h-4 w-4" /> },
       favoritesItem,
@@ -143,6 +144,12 @@ export async function Nav() {
         <div className="ml-auto flex items-center gap-1.5">
           {user ? (
             <>
+              {postAction && (
+                <Link href={postAction.href} className="btn hidden !py-2 sm:inline-flex">
+                  {postAction.icon}
+                  {postAction.label}
+                </Link>
+              )}
               <NotificationBell href={bellHref} count={bellCount} label={bellLabel} />
               <ProfileMenu
                 avatarUrl={dbUser?.image}
@@ -163,6 +170,7 @@ export async function Nav() {
           <MobileMenu
             loggedIn={Boolean(user)}
             navItems={items}
+            postAction={postAction}
             primary={user ? name : undefined}
             secondary={roleLabel || undefined}
             accountItems={accountItems}

@@ -10,7 +10,7 @@ export default async function FavoritesPage() {
   return (
     <>
       <p className="eyebrow">Saved</p>
-      <h1 className="mb-4 mt-1 text-2xl font-bold tracking-tight">Your favorites</h1>
+      <h1 className="mb-4 mt-1 text-2xl font-bold tracking-tight">Your saved items</h1>
 
       {products.length === 0 ? (
         <div className="card p-10 text-center">

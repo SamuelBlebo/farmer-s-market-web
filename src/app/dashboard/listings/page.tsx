@@ -104,9 +104,9 @@ export default async function MyListingsPage() {
 
       {products.length === 0 ? (
         <div className="card p-10 text-center">
-          <p className="font-bold">You have not posted any produce yet.</p>
+          <p className="font-bold">Post your first harvest.</p>
           <p className="mt-1 text-sm text-muted">It takes about a minute — name, price, quantity, a photo.</p>
-          <Link href="/dashboard/listings/new" className="btn mt-4">Post your first listing</Link>
+          <Link href="/dashboard/listings/new?mode=full" className="btn mt-4">New Listing</Link>
         </div>
       ) : (
         GROUP_ORDER.filter((lifecycle) => groups.has(lifecycle)).map((lifecycle) => (

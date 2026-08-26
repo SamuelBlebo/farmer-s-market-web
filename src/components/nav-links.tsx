@@ -9,8 +9,6 @@ export type NavItem = {
   href: string;
   icon: ReactNode;
   badge?: number;
-  /** Favorites: icon only, no visible label (still has an aria-label). */
-  iconOnly?: boolean;
 };
 
 function isActive(pathname: string, href: string): boolean {
@@ -38,7 +36,6 @@ export function NavLinks({
             key={item.href}
             href={item.href}
             onClick={onNavigate}
-            aria-label={item.iconOnly ? item.label : undefined}
             className={
               orientation === 'row'
                 ? `flex items-center gap-2 rounded-full px-3 py-1.5 text-[13.5px] transition-colors ${
@@ -50,7 +47,7 @@ export function NavLinks({
             }
           >
             {item.icon}
-            {!item.iconOnly && <span>{item.label}</span>}
+            <span>{item.label}</span>
             {item.badge !== undefined && item.badge > 0 && (
               <span className="grid h-4 min-w-[16px] place-items-center rounded-full bg-clay px-1 text-[10px] font-bold leading-none text-white">
                 {item.badge > 99 ? '99+' : item.badge}

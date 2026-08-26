@@ -52,11 +52,13 @@ export async function Nav() {
     { label: 'Marketplace', href: '/', icon: <StoreIcon /> },
     { label: 'Requests', href: '/wanted', icon: <DocumentIcon />, badge: requestsCount },
   ];
-  if (user) items.push({ label: 'Favorites', href: '/favorites', icon: <HeartIcon className="h-[18px] w-[18px]" />, iconOnly: true });
+
+  const favoritesItem = { label: 'Favorites', href: '/favorites', icon: <HeartIcon className="h-4 w-4" /> };
 
   let name = user?.name ?? '';
   let roleLabel: string = user ? ROLE_LABEL[user.role] : '';
   let accountItems: { label: string; href: string; icon: React.ReactNode }[] = [
+    favoritesItem,
     { label: 'My Account', href: '/account', icon: <UserIcon /> },
   ];
   let useShield = false;
@@ -69,9 +71,10 @@ export async function Nav() {
     items.push({ label: 'Add Product', href: '/dashboard/listings/new', icon: <PlusIcon /> });
     accountItems = [
       { label: 'Dashboard', href: '/dashboard', icon: <GridIcon className="h-4 w-4" /> },
-      { label: 'My Account', href: '/account', icon: <UserIcon /> },
       { label: 'My Listings', href: '/dashboard/listings', icon: <DocumentIcon className="h-4 w-4" /> },
       { label: 'Requests', href: '/wanted', icon: <DocumentIcon className="h-4 w-4" /> },
+      favoritesItem,
+      { label: 'My Account', href: '/account', icon: <UserIcon /> },
     ];
     bellHref = '/dashboard/listings';
     bellCount = farmerAttention;
@@ -79,8 +82,9 @@ export async function Nav() {
   } else if (user?.role === 'BUYER' && buyerProfile) {
     items.push({ label: 'Post Request', href: '/wanted/new', icon: <PlusIcon /> });
     accountItems = [
-      { label: 'My Account', href: '/account', icon: <UserIcon /> },
       { label: 'My Requests', href: '/wanted', icon: <DocumentIcon className="h-4 w-4" /> },
+      favoritesItem,
+      { label: 'My Account', href: '/account', icon: <UserIcon /> },
     ];
     bellHref = '/wanted';
     bellCount = buyerAttention;
@@ -89,7 +93,8 @@ export async function Nav() {
     items.push({ label: 'Admin Panel', href: '/admin', icon: <ShieldIcon className="h-[18px] w-[18px]" /> });
     useShield = true;
     accountItems = [
-      { label: 'Admin Panel', href: '/admin', icon: <ShieldIcon className="h-4 w-4" /> },
+      { label: 'Admin Dashboard', href: '/admin', icon: <ShieldIcon className="h-4 w-4" /> },
+      favoritesItem,
       { label: 'My Account', href: '/account', icon: <UserIcon /> },
     ];
     bellHref = '/admin';

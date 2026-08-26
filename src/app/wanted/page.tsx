@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { ActionBanner } from '@/components/action-banner';
+import { ToastListener } from '@/components/toast-listener';
 import { ModerationBadge } from '@/components/badges';
 import { ContactPrompt } from '@/components/contact-prompt';
 import { BadgeCheckIcon, CalendarIcon, ClockIcon, DocumentIcon, PinIcon, StoreIcon } from '@/components/icons';
@@ -33,7 +33,7 @@ export default async function WantedPage({ searchParams }: { searchParams: { pag
       <p className="mb-4 text-muted">If you grow it, message the buyer directly.</p>
 
       <Suspense>
-        <ActionBanner messages={{ posted: 'Request submitted — an admin will review it shortly.' }} />
+        <ToastListener messages={{ posted: 'Request submitted — an admin will review it shortly.' }} />
       </Suspense>
 
       {user?.role === 'BUYER' && mine.length > 0 && (

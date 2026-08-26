@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { AccountActionRow } from '@/components/account-action-row';
-import { ActionBanner } from '@/components/action-banner';
+import { ToastListener } from '@/components/toast-listener';
 import { StatusBadge } from '@/components/badges';
 import { BadgeCheckIcon, DocumentIcon, HeartIcon, PauseIcon, PlusIcon, StoreIcon, UserIcon } from '@/components/icons';
 import { ProfileHero } from '@/components/profile-hero';
@@ -84,7 +84,7 @@ export default async function DashboardPage() {
       />
 
       <Suspense>
-        <ActionBanner
+        <ToastListener
           messages={{
             posted: 'Listing posted — an admin will review it, usually the same day.',
             saved: 'Changes saved.',

@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ActionBanner } from '@/components/action-banner';
+import { ToastListener } from '@/components/toast-listener';
 import { DeleteListingForm } from '@/components/delete-listing-form';
 import { LifecycleBadge } from '@/components/badges';
 import {
@@ -94,7 +94,7 @@ export default async function MyListingsPage() {
       </div>
 
       <Suspense>
-        <ActionBanner
+        <ToastListener
           messages={{
             posted: 'Listing posted — an admin will review it, usually the same day.',
             saved: 'Changes saved.',

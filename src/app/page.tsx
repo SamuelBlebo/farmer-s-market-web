@@ -4,15 +4,16 @@ import { CategoryChips, Filters } from '@/components/filters';
 import { Pagination } from '@/components/pagination';
 import { ProductCard } from '@/components/product-card';
 import { SearchBar } from '@/components/search-bar';
-import { getCategories, getMarketProducts, getMarketStats, type MarketFilters } from '@/server/queries';
+import { getCategories, getFeaturedProducts, getMarketProducts, getMarketStats, type MarketFilters } from '@/server/queries';
 import { currentUser } from '@/server/authz';
 
 export default async function MarketplacePage({ searchParams }: { searchParams: MarketFilters }) {
-  const [user, { items, total, page, pages }, categories, stats] = await Promise.all([
+  const [user, { items, total, page, pages }, categories, stats, featured] = await Promise.all([
     currentUser(),
     getMarketProducts(searchParams),
     getCategories(),
     getMarketStats(),
+    getFeaturedProducts(),
   ]);
 
   const hasFilters = Boolean(
@@ -38,6 +39,17 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
             🌾 {stats.listings} listings live · ✓ {stats.verifiedFarmers} verified farmers · 📍 {stats.regionCount} regions across Ghana
           </p>
         </section>
+      )}
+
+      {featured.length > 0 && !hasFilters && (
+        <div className="mb-5">
+          <h2 className="eyebrow mb-2">⭐ Featured Today</h2>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {featured.map((p) => (
+              <ProductCard key={p.id} p={p} />
+            ))}
+          </div>
+        </div>
       )}
 
       <h2 className="eyebrow mb-2">Browse by category</h2>

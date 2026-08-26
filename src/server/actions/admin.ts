@@ -42,6 +42,17 @@ export async function removeProduct(formData: FormData) {
   revalidatePath('/');
 }
 
+export async function toggleFeatured(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get('productId') ?? '');
+  const product = await prisma.product.findUnique({ where: { id }, select: { featured: true } });
+  if (!product) throw new Error('Listing not found');
+
+  await prisma.product.update({ where: { id }, data: { featured: !product.featured } });
+  revalidatePath('/admin');
+  revalidatePath('/');
+}
+
 export async function setFarmerVerification(formData: FormData) {
   await requireAdmin();
   const farmerId = String(formData.get('farmerId') ?? '');

@@ -3,8 +3,11 @@ import { notFound } from 'next/navigation';
 import { LifecycleBadge, StatusBadge, VerifiedBadge } from '@/components/badges';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { ContactPrompt } from '@/components/contact-prompt';
+import { ProductCard } from '@/components/product-card';
 import { PriceQuantity } from '@/components/quantity-bar';
 import { ProductGallery } from '@/components/product-gallery';
+import { RecordView } from '@/components/record-view';
+import { SaveButton } from '@/components/save-button';
 import { SectionCard, SectionRow } from '@/components/section-card';
 import { StickyContactBar } from '@/components/sticky-contact-bar';
 import { TrustScoreBadge } from '@/components/trust-score-badge';
@@ -20,15 +23,21 @@ import {
   whatsappProductLink,
 } from '@/lib/format';
 import { computeTrustScore } from '@/lib/trust';
-import { getFollowerCount, getProduct } from '@/server/queries';
+import { getFollowerCount, getProduct, getRelatedProducts, recordProductView } from '@/server/queries';
 import { currentUser } from '@/server/authz';
-import { reportProduct, toggleFavorite } from '@/server/actions/products';
+import { reportProduct } from '@/server/actions/products';
 
 export default async function ProductPage({ params }: { params: { id: string } }) {
   const p = await getProduct(params.id);
   if (!p) notFound();
 
-  const [user, followers] = await Promise.all([currentUser(), getFollowerCount(p.farmer.user.id)]);
+  const [user, followers, related] = await Promise.all([
+    currentUser(),
+    getFollowerCount(p.farmer.user.id),
+    getRelatedProducts({ id: p.id, categoryId: p.categoryId, region: p.region }),
+  ]);
+  if (user) await recordProductView(user.id, p.id);
+
   const lifecycle = getProductLifecycle(p.status, p.expectedHarvestDate);
   const trustScore = computeTrustScore({
     verification: p.farmer.verification,
@@ -40,6 +49,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
   return (
     <>
+      <RecordView productId={p.id} />
       <Breadcrumbs
         items={[
           { label: 'Marketplace', href: '/' },
@@ -142,12 +152,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
               </p>
             )}
 
-            {user && (
-              <form action={toggleFavorite} className="mt-2">
-                <input type="hidden" name="productId" value={p.id} />
-                <button className="btn-ghost w-full">♡ Save listing</button>
-              </form>
-            )}
+            {user && <SaveButton productId={p.id} className="mt-2 w-full" />}
           </div>
 
           <div className="mb-3.5">
@@ -212,6 +217,15 @@ export default async function ProductPage({ params }: { params: { id: string } }
           )}
         </div>
       </div>
+
+      {related.length >= 2 && (
+        <div className="mt-8">
+          <h2 className="eyebrow mb-2">People also viewed</h2>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {related.map((rp) => <ProductCard key={rp.id} p={rp} />)}
+          </div>
+        </div>
+      )}
     </>
   );
 }

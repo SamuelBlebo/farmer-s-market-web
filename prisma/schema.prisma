@@ -67,6 +67,12 @@ model User {
   // currentUser() in server/authz.ts. Not a precise online/offline signal.
   lastActiveAt DateTime?
 
+  // Last 10 viewed product ids, most-recent-first. A plain scalar array on the
+  // existing model rather than a new table — this is browsing history, not a
+  // relation anything else needs to join against. Guests get the same 10-item
+  // recency window client-side, in localStorage.
+  recentlyViewedIds String[] @default([])
+
   farmerProfile FarmerProfile?
   buyerProfile  BuyerProfile?
   favorites     Favorite[]

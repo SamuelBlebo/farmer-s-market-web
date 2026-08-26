@@ -9,6 +9,10 @@ export type MarketFilters = {
   min?: string;
   max?: string;
   verified?: string;
+  featured?: string;
+  delivery?: string;
+  freshToday?: string;
+  nearHarvest?: string;
   sort?: SortKey;
   page?: string;
 };
@@ -34,11 +38,15 @@ const LIVE_PRODUCT_FARMER_CARD = {
 /** The marketplace query. Only APPROVED + ACTIVE listings ever leave this function. */
 export async function getMarketProducts(f: MarketFilters) {
   const page = Math.max(1, Number(f.page ?? 1) || 1);
+  const now = new Date();
+  const weekFromNow = new Date(now.getTime() + 7 * 86_400_000);
 
-  const where: Prisma.ProductWhereInput = {
-    status: 'ACTIVE',
-    moderation: 'APPROVED',
-    ...(f.q && {
+  // Each active filter contributes one AND'd condition — kept as a list
+  // (rather than spreading onto one object) so the marketplace search's own
+  // OR clause and the quick filters' OR clauses (fresh today) never collide.
+  const and: Prisma.ProductWhereInput[] = [];
+  if (f.q) {
+    and.push({
       OR: [
         { name: { contains: f.q, mode: 'insensitive' } },
         { description: { contains: f.q, mode: 'insensitive' } },
@@ -46,16 +54,28 @@ export async function getMarketProducts(f: MarketFilters) {
         { category: { name: { contains: f.q, mode: 'insensitive' } } },
         { farmer: { farmName: { contains: f.q, mode: 'insensitive' } } },
       ],
-    }),
-    ...(f.category && { category: { slug: f.category } }),
-    ...(f.region && { region: f.region }),
-    ...((f.min || f.max) && {
+    });
+  }
+  if (f.category) and.push({ category: { slug: f.category } });
+  if (f.region) and.push({ region: f.region });
+  if (f.min || f.max) {
+    and.push({
       priceMinor: {
         ...(f.min && { gte: Math.round(Number(f.min) * 100) }),
         ...(f.max && { lte: Math.round(Number(f.max) * 100) }),
       },
-    }),
-    ...(f.verified === '1' && { farmer: { verification: 'VERIFIED' } }),
+    });
+  }
+  if (f.verified === '1') and.push({ farmer: { verification: 'VERIFIED' } });
+  if (f.featured === '1') and.push({ featured: true });
+  if (f.delivery === '1') and.push({ deliveryAvailable: true });
+  if (f.freshToday === '1') and.push({ OR: [{ expectedHarvestDate: null }, { expectedHarvestDate: { lte: now } }] });
+  if (f.nearHarvest === '1') and.push({ expectedHarvestDate: { gt: now, lte: weekFromNow } });
+
+  const where: Prisma.ProductWhereInput = {
+    status: 'ACTIVE',
+    moderation: 'APPROVED',
+    ...(and.length > 0 && { AND: and }),
   };
 
   const [items, total] = await Promise.all([
@@ -88,6 +108,71 @@ export async function getProduct(id: string) {
       },
     },
   });
+}
+
+/**
+ * "People also viewed" — same category and/or same region ranked above the
+ * rest, newest first within each tier. Only ever returns public (ACTIVE +
+ * APPROVED) listings, same rule as the marketplace query.
+ */
+export async function getRelatedProducts(current: { id: string; categoryId: string; region: string }, take = 4) {
+  const candidates = await prisma.product.findMany({
+    where: {
+      id: { not: current.id },
+      status: 'ACTIVE',
+      moderation: 'APPROVED',
+      OR: [{ categoryId: current.categoryId }, { region: current.region }],
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 24,
+    include: LIVE_PRODUCT_FARMER_CARD,
+  });
+
+  const ranked = candidates
+    .map((p) => ({
+      p,
+      score: (p.categoryId === current.categoryId ? 2 : 0) + (p.region === current.region ? 1 : 0),
+    }))
+    .sort((a, b) => b.score - a.score)
+    .map((s) => s.p);
+
+  if (ranked.length >= take) return ranked.slice(0, take);
+
+  // Not enough category/region matches — top up with anything else live.
+  const exclude = [current.id, ...ranked.map((p) => p.id)];
+  const fallback = await prisma.product.findMany({
+    where: { id: { notIn: exclude }, status: 'ACTIVE', moderation: 'APPROVED' },
+    orderBy: { createdAt: 'desc' },
+    take: take - ranked.length,
+    include: LIVE_PRODUCT_FARMER_CARD,
+  });
+
+  return [...ranked, ...fallback];
+}
+
+/** Best-effort browsing history for signed-in users — never blocks the page it's called from. */
+export async function recordProductView(userId: string, productId: string) {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { recentlyViewedIds: true } });
+    if (!user) return;
+    const next = [productId, ...user.recentlyViewedIds.filter((id) => id !== productId)].slice(0, 10);
+    await prisma.user.update({ where: { id: userId }, data: { recentlyViewedIds: next } });
+  } catch {
+    // Browsing history is a nice-to-have; never break the page over it.
+  }
+}
+
+/** Recently viewed, newest first — order comes from the stored id list, not the DB, since `id in [...]` doesn't preserve it. */
+export async function getRecentlyViewedProducts(userId: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { recentlyViewedIds: true } });
+  if (!user || user.recentlyViewedIds.length === 0) return [];
+
+  const products = await prisma.product.findMany({
+    where: { id: { in: user.recentlyViewedIds }, status: 'ACTIVE', moderation: 'APPROVED' },
+    include: LIVE_PRODUCT_FARMER_CARD,
+  });
+  const byId = new Map(products.map((p) => [p.id, p]));
+  return user.recentlyViewedIds.map((id) => byId.get(id)).filter((p): p is NonNullable<typeof p> => Boolean(p));
 }
 
 export async function getFarmer(id: string) {

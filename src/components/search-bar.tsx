@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { REGIONS } from '@/lib/constants';
 import { formatPrice } from '@/lib/format';
+import { trackClient } from '@/lib/analytics-client';
 
 type Suggestion = {
   id: string;
@@ -69,6 +70,7 @@ export function SearchBar() {
     region ? next.set('region', region) : next.delete('region');
     next.delete('page');
     setOpen(false);
+    if (query) trackClient('SEARCH_PERFORMED', undefined, query);
     router.push(`/?${next.toString()}`);
   }
 

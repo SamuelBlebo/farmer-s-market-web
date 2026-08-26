@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/server/authz';
+import { track } from '@/server/analytics';
 
 /** farmerUserId is the farmer's User.id (see FarmFollow in schema.prisma), not FarmerProfile.id. */
 export async function followFarmer(farmerUserId: string, storefrontPath: string) {
@@ -15,6 +16,7 @@ export async function followFarmer(farmerUserId: string, storefrontPath: string)
     create: { buyerId: user.id, farmerId: farmerUserId },
     update: {},
   });
+  void track({ type: 'FARMER_FOLLOWED', userId: user.id, entityId: farmerUserId });
 
   revalidatePath(storefrontPath);
   revalidatePath('/account');

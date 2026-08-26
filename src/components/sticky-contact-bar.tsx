@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { SaveButton } from './save-button';
+import { trackClient } from '@/lib/analytics-client';
 
 /**
  * Renders a scroll-position sentinel where it's placed (right after the
@@ -39,11 +40,17 @@ export function StickyContactBar({
       >
         <div className="flex gap-2">
           {telHref && (
-            <a href={telHref} className="btn-ghost flex-1 !py-2.5 text-center">
+            <a href={telHref} onClick={() => trackClient('CALL_CLICKED', productId)} className="btn-ghost flex-1 !py-2.5 text-center">
               📞 Call
             </a>
           )}
-          <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className="btn-wa flex-1 !py-2.5 text-center">
+          <a
+            href={whatsappHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackClient('WHATSAPP_CLICKED', productId)}
+            className="btn-wa flex-1 !py-2.5 text-center"
+          >
             💬 WhatsApp
           </a>
           <SaveButton productId={productId} compact className="flex-1 w-full !py-2.5" />

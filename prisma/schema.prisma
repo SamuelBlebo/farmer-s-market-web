@@ -45,6 +45,16 @@ enum ReportStatus {
   ACTIONED
 }
 
+enum AnalyticsEventType {
+  PRODUCT_VIEWED
+  FARMER_VIEWED
+  FARMER_FOLLOWED
+  LISTING_SAVED
+  WHATSAPP_CLICKED
+  CALL_CLICKED
+  SEARCH_PERFORMED
+}
+
 enum NotificationType {
   NEW_LISTING
   HARVEST_AVAILABLE
@@ -81,9 +91,10 @@ model User {
   sessions      Session[]
 
   // A buyer follows a farmer's User row (not FarmerProfile) — see FarmFollow.
-  followedFarms FarmFollow[]   @relation("BuyerFollow")
-  followers     FarmFollow[]   @relation("FarmerFollow")
-  notifications Notification[]
+  followedFarms   FarmFollow[]     @relation("BuyerFollow")
+  followers       FarmFollow[]     @relation("FarmerFollow")
+  notifications   Notification[]
+  analyticsEvents AnalyticsEvent[]
 
   @@index([role])
 }
@@ -319,6 +330,23 @@ model Notification {
 
   @@index([userId, readAt])
   @@index([productId, type])
+}
+
+// Real, best-effort behavior tracking — never invented. userId is null for
+// guest-originated events (e.g. an anonymous search); entityId is whatever
+// the event is about (a product id, a farmer id), left null when not
+// applicable. metadata is a short free-text field (e.g. a search query).
+model AnalyticsEvent {
+  id        String             @id @default(cuid())
+  type      AnalyticsEventType
+  userId    String?
+  entityId  String?
+  metadata  String?
+  createdAt DateTime           @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([type, createdAt])
 }
 
 model Report {

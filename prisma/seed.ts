@@ -122,6 +122,11 @@ const WANTED = [
 
 async function main() {
   console.log('Clearing existing data…');
+  // AnalyticsEvent.userId is SetNull (not Cascade) on purpose — deleting a
+  // real user shouldn't erase the anonymized history of what happened on the
+  // site — but that also means a reseed won't clear it for free like tables
+  // that cascade, so it needs its own explicit reset here.
+  await prisma.analyticsEvent.deleteMany();
   await prisma.report.deleteMany();
   await prisma.favorite.deleteMany();
   await prisma.productImage.deleteMany();

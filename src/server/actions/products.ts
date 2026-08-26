@@ -7,6 +7,7 @@ import { deleteCloudinaryImages } from '@/lib/cloudinary';
 import { toMinor } from '@/lib/format';
 import { productSchema, productStatusSchema, reportSchema } from '@/lib/validation';
 import { assertOwnsProduct, requireFarmerProfile, requireUser } from '@/server/authz';
+import { track } from '@/server/analytics';
 
 export type ActionState = { error?: string; fieldErrors?: Record<string, string[]> };
 
@@ -193,8 +194,12 @@ export async function toggleFavorite(formData: FormData) {
     where: { userId_productId: { userId: user.id, productId } },
   });
 
-  if (existing) await prisma.favorite.delete({ where: { id: existing.id } });
-  else await prisma.favorite.create({ data: { userId: user.id, productId } });
+  if (existing) {
+    await prisma.favorite.delete({ where: { id: existing.id } });
+  } else {
+    await prisma.favorite.create({ data: { userId: user.id, productId } });
+    void track({ type: 'LISTING_SAVED', userId: user.id, entityId: productId });
+  }
 
   revalidatePath(`/products/${productId}`);
 }

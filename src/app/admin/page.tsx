@@ -65,8 +65,13 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
 
   return (
     <>
-      <p className="eyebrow">Admin</p>
-      <h1 className="mb-4 mt-1 text-2xl font-bold tracking-tight">Platform overview</h1>
+      <div className="mb-4 mt-1 flex flex-wrap items-center gap-3">
+        <div>
+          <p className="eyebrow">Admin</p>
+          <h1 className="text-2xl font-bold tracking-tight">Platform overview</h1>
+        </div>
+        <Link href="/admin/analytics" className="btn-ghost ml-auto">📊 Analytics</Link>
+      </div>
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stat(farmerCount, 'Farmers', '#farmer-verification')}

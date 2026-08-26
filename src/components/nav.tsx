@@ -82,6 +82,7 @@ export async function Nav() {
     useShield = true;
     accountItems = [
       { label: 'Admin Dashboard', href: '/admin', icon: <ShieldIcon className="h-4 w-4" /> },
+      { label: 'Analytics', href: '/admin/analytics', icon: <DocumentIcon className="h-4 w-4" /> },
       favoritesItem,
       { label: 'My Account', href: '/account', icon: <UserIcon /> },
     ];

@@ -339,6 +339,17 @@ export async function getFollowerCount(farmerUserId: string) {
   return prisma.farmFollow.count({ where: { farmerId: farmerUserId } });
 }
 
+/** Batched version of getFollowerCount for lists (e.g. the admin Top Farmers table) — one groupBy instead of one count() per farmer. */
+export async function getFollowerCounts(farmerUserIds: string[]) {
+  if (farmerUserIds.length === 0) return new Map<string, number>();
+  const counts = await prisma.farmFollow.groupBy({
+    by: ['farmerId'],
+    where: { farmerId: { in: farmerUserIds } },
+    _count: true,
+  });
+  return new Map(counts.map((c) => [c.farmerId, c._count]));
+}
+
 /** Account Hub "Saved Farms" — cards reuse the same fields as the storefront hero. */
 export async function getSavedFarms(buyerId: string) {
   const follows = await prisma.farmFollow.findMany({

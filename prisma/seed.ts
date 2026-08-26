@@ -1,4 +1,4 @@
-import { PrismaClient, type FarmerProfile, type Prisma } from '@prisma/client';
+import { PrismaClient, type BuyerProfile, type FarmerProfile, type Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { CATEGORIES } from '../src/lib/constants';
 import { normalizeGhanaPhone } from '../src/lib/format';
@@ -177,7 +177,7 @@ async function main() {
   }
 
   console.log('Buyers…');
-  const buyerProfiles = [];
+  const buyerProfiles: BuyerProfile[] = [];
   for (const b of BUYERS) {
     const user = await prisma.user.create({
       data: {
@@ -201,6 +201,22 @@ async function main() {
     });
     buyerProfiles.push(user.buyerProfile!);
   }
+
+  console.log('Farm follows…');
+  // FarmFollow keys off User.id on both sides, not FarmerProfile.id — see schema.
+  const FOLLOWS: [buyerIdx: number, farmerIdx: number][] = [
+    [0, 0], // Mensah Foods -> Kofi Mensah Farms
+    [0, 2], // Mensah Foods -> Nkrumah Poultry
+    [2, 0], // Coastal Fresh -> Kofi Mensah Farms
+    [2, 9], // Coastal Fresh -> Nsawam Fruit Growers
+    [4, 4], // Makola Traders -> Salifu Abdulai Farms
+  ];
+  await prisma.farmFollow.createMany({
+    data: FOLLOWS.map(([buyerIdx, farmerIdx]) => ({
+      buyerId: buyerProfiles[buyerIdx].userId,
+      farmerId: farmerProfiles[farmerIdx].userId,
+    })),
+  });
 
   console.log('Products…');
   const products: Prisma.ProductCreateManyInput[] = PRODUCTS.map(
@@ -326,6 +342,7 @@ async function main() {
     buyers: buyerProfiles.length,
     products: products.length,
     wanted: WANTED.length,
+    follows: FOLLOWS.length,
   };
   console.log('Seeded:', counts);
   console.log(`Every seeded account uses the password: ${PASSWORD}`);

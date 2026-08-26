@@ -45,6 +45,11 @@ enum ReportStatus {
   ACTIONED
 }
 
+enum NotificationType {
+  NEW_LISTING
+  HARVEST_AVAILABLE
+}
+
 // ---------- auth ----------
 model User {
   id            String    @id @default(cuid())
@@ -68,6 +73,11 @@ model User {
   reports       Report[]       @relation("ReportAuthor")
   accounts      Account[]
   sessions      Session[]
+
+  // A buyer follows a farmer's User row (not FarmerProfile) — see FarmFollow.
+  followedFarms FarmFollow[]   @relation("BuyerFollow")
+  followers     FarmFollow[]   @relation("FarmerFollow")
+  notifications Notification[]
 
   @@index([role])
 }
@@ -190,10 +200,11 @@ model Product {
 
   farmer    FarmerProfile    @relation(fields: [farmerId], references: [id], onDelete: Cascade)
   category  Category         @relation(fields: [categoryId], references: [id])
-  images    ProductImage[]
-  variants  ProductVariant[]
-  favorites Favorite[]
-  reports   Report[]
+  images        ProductImage[]
+  variants      ProductVariant[]
+  favorites     Favorite[]
+  reports       Report[]
+  notifications Notification[]
 
   @@index([status, moderation, createdAt])
   @@index([featured, status, moderation])
@@ -266,6 +277,42 @@ model Favorite {
 
   @@unique([userId, productId])
   @@index([userId])
+}
+
+// A buyer following a farmer. Keyed off User rather than FarmerProfile on
+// both sides — buyerId is always a BUYER's User.id, farmerId is always a
+// FARMER's User.id (never a FarmerProfile.id); callers join to FarmerProfile
+// separately where they need storefront fields.
+model FarmFollow {
+  id        String   @id @default(cuid())
+  buyerId   String
+  farmerId  String
+  createdAt DateTime @default(now())
+
+  buyer  User @relation("BuyerFollow", fields: [buyerId], references: [id], onDelete: Cascade)
+  farmer User @relation("FarmerFollow", fields: [farmerId], references: [id], onDelete: Cascade)
+
+  @@unique([buyerId, farmerId])
+  @@index([farmerId])
+}
+
+// Fanned out one row per follower when a followed farmer's listing is
+// approved or a scheduled harvest becomes available. No push/websocket
+// layer — the bell badge and /notifications page just read this table.
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  productId String?
+  message   String
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([productId, type])
 }
 
 model Report {

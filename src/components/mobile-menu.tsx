@@ -64,14 +64,14 @@ export function MobileMenu({
                   key={item.href}
                   href={item.href}
                   onClick={close}
-                  className="flex items-center gap-2.5 rounded-[8px] px-2 py-2 text-sm font-semibold text-ink hover:bg-paper"
+                  className="flex items-center gap-2.5 rounded-[8px] px-2 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-paper"
                 >
                   {item.icon}
                   {item.label}
                 </Link>
               ))}
-              <form action={logout}>
-                <button className="mt-1 flex w-full items-center gap-2.5 rounded-[8px] px-2 py-2 text-left text-sm font-semibold text-clay hover:bg-clay-light">
+              <form action={logout} className="mt-1 border-t border-line pt-1">
+                <button className="flex w-full items-center gap-2.5 rounded-[8px] px-2 py-2.5 text-left text-sm font-semibold text-clay transition-colors hover:bg-clay-light">
                   <SignOutIcon />
                   Sign out
                 </button>

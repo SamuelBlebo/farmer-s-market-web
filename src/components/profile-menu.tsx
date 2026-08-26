@@ -74,7 +74,7 @@ export function ProfileMenu({
                 href={item.href}
                 role="menuitem"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-2.5 rounded-[8px] px-3 py-2 text-sm font-semibold text-ink hover:bg-paper"
+                className="flex items-center gap-2.5 rounded-[8px] px-3 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-paper"
               >
                 {item.icon}
                 {item.label}
@@ -82,7 +82,7 @@ export function ProfileMenu({
             ))}
           </div>
           <form action={logout} className="p-1">
-            <button role="menuitem" className="flex w-full items-center gap-2.5 rounded-[8px] px-3 py-2 text-left text-sm font-semibold text-clay hover:bg-clay-light">
+            <button role="menuitem" className="flex w-full items-center gap-2.5 rounded-[8px] px-3 py-2.5 text-left text-sm font-semibold text-clay transition-colors hover:bg-clay-light">
               <SignOutIcon />
               Sign out
             </button>

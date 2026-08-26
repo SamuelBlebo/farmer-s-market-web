@@ -54,11 +54,11 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
   ]);
 
   const [farmerCount, buyerCount, productCount, reportCount] = counts;
-  const stat = (n: number, l: string, tone = '') => (
-    <div className="card p-4">
+  const stat = (n: number, l: string, href: string, tone = '') => (
+    <Link href={href} className="card block p-4 transition-colors hover:border-[#B9CCBD]">
       <div className={`font-num text-2xl font-bold ${tone}`}>{n}</div>
       <p className="text-[13px] text-muted">{l}</p>
-    </div>
+    </Link>
   );
 
   return (
@@ -67,10 +67,10 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
       <h1 className="mb-4 mt-1 text-2xl font-bold tracking-tight">Platform overview</h1>
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {stat(farmerCount, 'Farmers')}
-        {stat(buyerCount, 'Buyers')}
-        {stat(productCount, 'Listings')}
-        {stat(reportCount, 'Reports open', 'text-clay')}
+        {stat(farmerCount, 'Farmers', '#farmer-verification')}
+        {stat(buyerCount, 'Buyers', '#buyer-requests')}
+        {stat(productCount, 'Listings', '#all-listings')}
+        {stat(reportCount, 'Reports open', '#reported-listings', 'text-clay')}
       </div>
 
       <h2 className="mb-2 text-lg font-semibold tracking-tight">Listings awaiting approval</h2>
@@ -95,7 +95,7 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
         ))}
       </div>
 
-      <h2 className="mb-2 text-lg font-semibold tracking-tight">Buyer requests awaiting approval</h2>
+      <h2 id="buyer-requests" className="mb-2 scroll-mt-4 text-lg font-semibold tracking-tight">Buyer requests awaiting approval</h2>
       <div className="card mb-6 divide-y divide-line">
         {pendingWanted.length === 0 && <p className="p-5 text-sm text-muted">Nothing in the queue. All caught up.</p>}
         {pendingWanted.map((w) => (
@@ -115,7 +115,7 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
         ))}
       </div>
 
-      <h2 className="mb-2 text-lg font-semibold tracking-tight">All listings</h2>
+      <h2 id="all-listings" className="mb-2 scroll-mt-4 text-lg font-semibold tracking-tight">All listings</h2>
       <div className="card mb-1 divide-y divide-line">
         {allListings.items.map((p) => {
           const thumb = p.images[0]?.url;
@@ -141,7 +141,7 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
       </div>
       <Pagination page={allListings.page} pages={allListings.pages} basePath="/admin" searchParams={searchParams} pageParam="listingsPage" />
 
-      <h2 className="mb-2 mt-8 text-lg font-semibold tracking-tight">Farmer verification</h2>
+      <h2 id="farmer-verification" className="mb-2 mt-8 scroll-mt-4 text-lg font-semibold tracking-tight">Farmer verification</h2>
       <div className="card mb-1 divide-y divide-line">
         {farmers.items.map((f) => (
           <div key={f.id} className="flex flex-wrap items-center gap-3 p-3.5">
@@ -165,7 +165,7 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
       </div>
       <Pagination page={farmers.page} pages={farmers.pages} basePath="/admin" searchParams={searchParams} pageParam="farmersPage" />
 
-      <h2 className="mb-2 mt-8 text-lg font-semibold tracking-tight">Reported listings</h2>
+      <h2 id="reported-listings" className="mb-2 mt-8 scroll-mt-4 text-lg font-semibold tracking-tight">Reported listings</h2>
       <div className="card mb-6 divide-y divide-line">
         {reports.length === 0 && <p className="p-5 text-sm text-muted">No open reports.</p>}
         {reports.map((r) => (

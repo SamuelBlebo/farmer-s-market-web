@@ -1,10 +1,13 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { LifecycleBadge, StatusBadge, VerifiedBadge } from '@/components/badges';
+import { Breadcrumbs } from '@/components/breadcrumbs';
 import { ContactPrompt } from '@/components/contact-prompt';
 import { PriceQuantity } from '@/components/quantity-bar';
 import { ProductGallery } from '@/components/product-gallery';
 import { SectionCard, SectionRow } from '@/components/section-card';
+import { StickyContactBar } from '@/components/sticky-contact-bar';
+import { TrustScoreBadge } from '@/components/trust-score-badge';
 import { WhatsAppButton } from '@/components/whatsapp-button';
 import {
   formatPrice,
@@ -16,7 +19,8 @@ import {
   timeAgo,
   whatsappProductLink,
 } from '@/lib/format';
-import { getProduct } from '@/server/queries';
+import { computeTrustScore } from '@/lib/trust';
+import { getFollowerCount, getProduct } from '@/server/queries';
 import { currentUser } from '@/server/authz';
 import { reportProduct, toggleFavorite } from '@/server/actions/products';
 
@@ -24,18 +28,54 @@ export default async function ProductPage({ params }: { params: { id: string } }
   const p = await getProduct(params.id);
   if (!p) notFound();
 
-  const user = await currentUser();
+  const [user, followers] = await Promise.all([currentUser(), getFollowerCount(p.farmer.user.id)]);
   const lifecycle = getProductLifecycle(p.status, p.expectedHarvestDate);
+  const trustScore = computeTrustScore({
+    verification: p.farmer.verification,
+    lastActiveAt: p.farmer.user.lastActiveAt,
+    activeListings: p.farmer._count.products,
+    followers,
+    memberSince: p.farmer.createdAt,
+  });
 
   return (
     <>
-      <Link href="/" className="btn-ghost mb-4">← Back to marketplace</Link>
+      <Breadcrumbs
+        items={[
+          { label: 'Marketplace', href: '/' },
+          { label: p.category.name, href: `/?category=${p.category.slug}` },
+          { label: p.name },
+        ]}
+      />
 
       <div className="grid gap-6 lg:grid-cols-[1.25fr_1fr]">
         <div>
           <ProductGallery images={p.images} name={p.name} emoji={p.category.emoji} />
 
+          {user && p.status === 'ACTIVE' && (
+            <StickyContactBar
+              whatsappHref={whatsappProductLink(p.farmer.whatsapp, p.name)}
+              telHref={p.farmer.phone ? telLink(p.farmer.phone) : null}
+              productId={p.id}
+            />
+          )}
+
           <h1 className="mt-5 text-2xl font-bold tracking-tight">{p.name}</h1>
+
+          {/* Product Trust Bar — buying-decision signals, reusing the lifecycle/delivery/verification data computed above rather than recalculating anything. */}
+          <div className="mt-2 flex flex-wrap gap-2">
+            {lifecycle === 'AVAILABLE_NOW' && <span className="badge bg-leaf-light text-leaf-dark">🟢 Available Now</span>}
+            {lifecycle === 'UPCOMING_HARVEST' && (
+              <span className="badge bg-gold-light text-[#8A6100]">🌾 {harvestLabel(p.expectedHarvestDate)}</span>
+            )}
+            {p.deliveryAvailable ? (
+              <span className="badge bg-leaf-light text-leaf-dark">🚚 Delivery Available</span>
+            ) : (
+              <span className="badge bg-paper text-muted">📍 Pickup Only</span>
+            )}
+            {p.farmer.verification === 'VERIFIED' && <span className="badge bg-leaf-light text-leaf-dark">✓ Verified Farmer</span>}
+          </div>
+
           <div className="mt-2 flex flex-wrap gap-2">
             <StatusBadge status={p.status} />
             {lifecycle !== 'ONGOING' && <LifecycleBadge lifecycle={lifecycle} />}
@@ -140,7 +180,10 @@ export default async function ProductPage({ params }: { params: { id: string } }
                 <div className="text-[13px] text-muted">{p.farmer.town}, {p.farmer.region}</div>
               </div>
             </div>
-            <div className="my-3"><VerifiedBadge status={p.farmer.verification} large /></div>
+            <div className="my-3 flex flex-wrap gap-1.5">
+              <VerifiedBadge status={p.farmer.verification} large />
+              <TrustScoreBadge score={trustScore} />
+            </div>
             <p className="text-sm text-muted">{p.farmer.description}</p>
             <dl className="mt-3 border-t border-line pt-3 text-[12.5px] text-muted">
               <div className="flex justify-between py-1">

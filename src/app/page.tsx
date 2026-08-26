@@ -4,6 +4,7 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import { CategoryChips, Filters } from '@/components/filters';
 import { Pagination } from '@/components/pagination';
 import { ProductCard } from '@/components/product-card';
+import { QuickFilterChips } from '@/components/quick-filter-chips';
 import { SearchBar } from '@/components/search-bar';
 import {
   getCategories,
@@ -11,6 +12,7 @@ import {
   getFollowedFarmsProducts,
   getMarketProducts,
   getMarketStats,
+  getRecentlyViewedProducts,
   type MarketFilters,
 } from '@/server/queries';
 import { notifyNewlyAvailableHarvests } from '@/server/notifications';
@@ -30,17 +32,27 @@ function withoutParams(searchParams: MarketFilters, keys: (keyof MarketFilters)[
 export default async function MarketplacePage({ searchParams }: { searchParams: MarketFilters }) {
   const user = await currentUser();
 
-  const [{ items, total, page, pages }, categories, stats, featured, followedProducts] = await Promise.all([
+  const [{ items, total, page, pages }, categories, stats, featured, followedProducts, recentlyViewed] = await Promise.all([
     getMarketProducts(searchParams),
     getCategories(),
     getMarketStats(),
     getFeaturedProducts(),
     user?.role === 'BUYER' ? getFollowedFarmsProducts(user.id) : Promise.resolve([]),
+    user ? getRecentlyViewedProducts(user.id) : Promise.resolve([]),
     notifyNewlyAvailableHarvests(),
   ]);
 
   const hasFilters = Boolean(
-    searchParams.q || searchParams.category || searchParams.region || searchParams.min || searchParams.max || searchParams.verified,
+    searchParams.q ||
+      searchParams.category ||
+      searchParams.region ||
+      searchParams.min ||
+      searchParams.max ||
+      searchParams.verified ||
+      searchParams.featured ||
+      searchParams.delivery ||
+      searchParams.freshToday ||
+      searchParams.nearHarvest,
   );
 
   const activeCategory = categories.find((c) => c.slug === searchParams.category);
@@ -50,6 +62,10 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
   if (activeCategory) chips.push({ label: activeCategory.name, href: withoutParams(searchParams, ['category']) });
   if (searchParams.region) chips.push({ label: searchParams.region, href: withoutParams(searchParams, ['region']) });
   if (searchParams.verified === '1') chips.push({ label: 'Verified', href: withoutParams(searchParams, ['verified']) });
+  if (searchParams.featured === '1') chips.push({ label: 'Featured', href: withoutParams(searchParams, ['featured']) });
+  if (searchParams.delivery === '1') chips.push({ label: 'Delivery Available', href: withoutParams(searchParams, ['delivery']) });
+  if (searchParams.freshToday === '1') chips.push({ label: 'Fresh Today', href: withoutParams(searchParams, ['freshToday']) });
+  if (searchParams.nearHarvest === '1') chips.push({ label: 'Near Harvest', href: withoutParams(searchParams, ['nearHarvest']) });
   if (searchParams.min || searchParams.max) {
     chips.push({
       label: `GH¢${searchParams.min ?? '0'}–${searchParams.max ?? '∞'}`,
@@ -82,15 +98,8 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
         </section>
       )}
 
-      {featured.length > 0 && !hasFilters && (
-        <div className="mb-5">
-          <h2 className="eyebrow mb-2">⭐ Featured Today</h2>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            {featured.map((p) => (
-              <ProductCard key={p.id} p={p} />
-            ))}
-          </div>
-        </div>
+      {user && !hasFilters && (
+        <p className="mb-4 text-[15px] font-bold">Welcome back, {user.name.split(' ')[0]} 👋</p>
       )}
 
       {followedProducts.length > 0 && !hasFilters && (
@@ -104,9 +113,35 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
         </div>
       )}
 
+      {featured.length > 0 && !hasFilters && (
+        <div className="mb-5">
+          <h2 className="eyebrow mb-2">⭐ Featured Today</h2>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {featured.map((p) => (
+              <ProductCard key={p.id} p={p} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {recentlyViewed.length > 0 && !hasFilters && (
+        <div className="mb-5">
+          <h2 className="eyebrow mb-2">🕒 Recently Viewed</h2>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {recentlyViewed.map((p) => (
+              <ProductCard key={p.id} p={p} />
+            ))}
+          </div>
+        </div>
+      )}
+
       <h2 className="eyebrow mb-2">Browse by category</h2>
       <Suspense>
         <CategoryChips categories={categories} />
+      </Suspense>
+
+      <Suspense>
+        <QuickFilterChips />
       </Suspense>
 
       <div id="listings" className="scroll-mt-4">

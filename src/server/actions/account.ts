@@ -36,6 +36,8 @@ export async function updateFarmerProfile(_prev: AccountState, formData: FormDat
     region: formData.get('region'),
     town: String(formData.get('town') ?? ''),
     image: String(formData.get('image') ?? ''),
+    coverImage: String(formData.get('coverImage') ?? ''),
+    description: String(formData.get('description') ?? '') || undefined,
   });
   if (!parsed.success) return { fieldErrors: parsed.error.flatten().fieldErrors };
 
@@ -51,11 +53,20 @@ export async function updateFarmerProfile(_prev: AccountState, formData: FormDat
     }),
     prisma.farmerProfile.update({
       where: { id: profile.id },
-      data: { farmName: d.businessName, region: d.region, town: d.town, phone: d.phone, whatsapp: d.phone },
+      data: {
+        farmName: d.businessName,
+        region: d.region,
+        town: d.town,
+        phone: d.phone,
+        whatsapp: d.phone,
+        coverImage: d.coverImage ?? null,
+        description: d.description ?? null,
+      },
     }),
   ]);
 
   revalidatePath('/account');
+  revalidatePath(`/farmers/${profile.id}`);
   redirect('/account?saved=1');
 }
 

@@ -13,7 +13,8 @@ export function StatCard({
 }: {
   icon: React.ReactNode;
   label: string;
-  value: number;
+  /** Usually a count; a non-number (e.g. "Aug 2026" for a "Member since" tile) is fine too — emptiness logic below only applies to numbers. */
+  value: React.ReactNode;
   href?: string;
   linkLabel?: string;
   /** When value is 0, show this instead of a bare "0" — a nudge, not a dead end. */
@@ -22,7 +23,7 @@ export function StatCard({
   emptyHref?: string;
   emptyLinkLabel?: string;
 }) {
-  if (emptyMessage && value === 0) {
+  if (emptyMessage && typeof value === 'number' && value === 0) {
     return (
       <div className="card flex h-full flex-col rounded-2xl p-4 shadow-sm transition-shadow hover:shadow-md">
         {emptyIcon && <div className="mb-2 text-xl" aria-hidden>{emptyIcon}</div>}

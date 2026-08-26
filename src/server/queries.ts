@@ -93,12 +93,50 @@ export async function getFarmer(id: string) {
   return prisma.farmerProfile.findUnique({
     where: { id },
     include: {
-      user: { select: { lastActiveAt: true } },
+      user: { select: { image: true, lastActiveAt: true } },
       products: {
         where: { status: 'ACTIVE', moderation: 'APPROVED' },
         orderBy: { createdAt: 'desc' },
         include: LIVE_PRODUCT_FARMER_CARD,
       },
+    },
+  });
+}
+
+/** Admin's editorial picks — same card, just a curated subset above the main grid. */
+export async function getFeaturedProducts() {
+  return prisma.product.findMany({
+    where: { status: 'ACTIVE', moderation: 'APPROVED', featured: true },
+    orderBy: { updatedAt: 'desc' },
+    take: 8,
+    include: LIVE_PRODUCT_FARMER_CARD,
+  });
+}
+
+/** Lean suggestions for the search autocomplete — same match fields as the marketplace query, capped small. */
+export async function getSearchSuggestions(q: string) {
+  const query = q.trim();
+  if (!query) return [];
+
+  return prisma.product.findMany({
+    where: {
+      status: 'ACTIVE',
+      moderation: 'APPROVED',
+      OR: [
+        { name: { contains: query, mode: 'insensitive' } },
+        { category: { name: { contains: query, mode: 'insensitive' } } },
+        { farmer: { farmName: { contains: query, mode: 'insensitive' } } },
+      ],
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 6,
+    select: {
+      id: true,
+      name: true,
+      unit: true,
+      priceMinor: true,
+      images: { orderBy: { sortOrder: 'asc' }, take: 1, select: { url: true } },
+      category: { select: { name: true, emoji: true } },
     },
   });
 }

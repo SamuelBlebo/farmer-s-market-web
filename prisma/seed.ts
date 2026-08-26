@@ -9,17 +9,17 @@ const PASSWORD = 'password123';
 
 type FarmerSeed = {
   farm: string; person: string; email: string; region: string; town: string;
-  phone: string; verification: 'UNVERIFIED' | 'PENDING' | 'VERIFIED'; desc: string;
+  phone: string; verification: 'UNVERIFIED' | 'PENDING' | 'VERIFIED'; desc: string; cover?: string;
 };
 
 const FARMERS: FarmerSeed[] = [
-  { farm: 'Kofi Mensah Farms', person: 'Kofi Mensah', email: 'kofi@farmersmarket.gh', region: 'Bono East', town: 'Techiman', phone: '0244101234', verification: 'VERIFIED', desc: 'Family farm on 12 acres. Tomatoes, pepper and garden eggs, harvested twice weekly.' },
-  { farm: 'Adwoa Agyeman Farms', person: 'Adwoa Agyeman', email: 'adwoa@farmersmarket.gh', region: 'Ashanti', town: 'Ejura', phone: '0201445566', verification: 'VERIFIED', desc: 'Maize and cowpea in bulk. We bag on site and load directly onto trucks.' },
-  { farm: 'Nkrumah Poultry', person: 'Yaw Nkrumah', email: 'yaw@farmersmarket.gh', region: 'Bono', town: 'Dormaa Ahenkro', phone: '0559887744', verification: 'VERIFIED', desc: 'Layer and broiler farm. Crates of eggs available daily.' },
+  { farm: 'Kofi Mensah Farms', person: 'Kofi Mensah', email: 'kofi@farmersmarket.gh', region: 'Bono East', town: 'Techiman', phone: '0244101234', verification: 'VERIFIED', desc: 'Family farm on 12 acres. Tomatoes, pepper and garden eggs, harvested twice weekly.', cover: '/seed/category-vegetables.svg' },
+  { farm: 'Adwoa Agyeman Farms', person: 'Adwoa Agyeman', email: 'adwoa@farmersmarket.gh', region: 'Ashanti', town: 'Ejura', phone: '0201445566', verification: 'VERIFIED', desc: 'Maize and cowpea in bulk. We bag on site and load directly onto trucks.', cover: '/seed/category-grains.svg' },
+  { farm: 'Nkrumah Poultry', person: 'Yaw Nkrumah', email: 'yaw@farmersmarket.gh', region: 'Bono', town: 'Dormaa Ahenkro', phone: '0559887744', verification: 'VERIFIED', desc: 'Layer and broiler farm. Crates of eggs available daily.', cover: '/seed/category-poultry.svg' },
   { farm: 'Yaa Boateng Farms', person: 'Yaa Boateng', email: 'yaa@farmersmarket.gh', region: 'Bono', town: 'Wenchi', phone: '0246778899', verification: 'PENDING', desc: 'Yam and cassava grower supplying Techiman market.' },
   { farm: 'Salifu Abdulai Farms', person: 'Salifu Abdulai', email: 'salifu@farmersmarket.gh', region: 'Northern', town: 'Tamale', phone: '0208112233', verification: 'VERIFIED', desc: 'Groundnuts, onions and dry-season vegetables.' },
   { farm: 'Ama Serwaa Gardens', person: 'Ama Serwaa', email: 'ama@farmersmarket.gh', region: 'Eastern', town: 'Aburi', phone: '0277334455', verification: 'UNVERIFIED', desc: 'Small garden farm — okro, garden eggs, pepper.' },
-  { farm: 'Tetteh Family Farm', person: 'Nii Tetteh', email: 'nii@farmersmarket.gh', region: 'Eastern', town: 'Somanya', phone: '0244556677', verification: 'VERIFIED', desc: 'Mango and pineapple orchard, 20 acres.' },
+  { farm: 'Tetteh Family Farm', person: 'Nii Tetteh', email: 'nii@farmersmarket.gh', region: 'Eastern', town: 'Somanya', phone: '0244556677', verification: 'VERIFIED', desc: 'Mango and pineapple orchard, 20 acres.', cover: '/seed/category-fruits.svg' },
   { farm: 'Bawku Grain Store', person: 'Musah Awuni', email: 'musah@farmersmarket.gh', region: 'Upper East', town: 'Bawku', phone: '0209001122', verification: 'VERIFIED', desc: 'Maize, beans and soya in bags and tonnes.' },
   { farm: 'Osei Farms', person: 'Kwabena Osei', email: 'kwabena@farmersmarket.gh', region: 'Bono East', town: 'Kintampo', phone: '0553221100', verification: 'UNVERIFIED', desc: 'Plantain and cassava, harvested to order.' },
   { farm: 'Nsawam Fruit Growers', person: 'Esi Larbi', email: 'esi@farmersmarket.gh', region: 'Eastern', town: 'Nsawam', phone: '0242998877', verification: 'VERIFIED', desc: 'Sugarloaf pineapple, cut fresh for wholesale buyers.' },
@@ -161,6 +161,7 @@ async function main() {
           create: {
             farmName: f.farm,
             description: f.desc,
+            coverImage: f.cover ?? null,
             region: f.region,
             town: f.town,
             phone: f.phone,
@@ -253,6 +254,29 @@ async function main() {
       where: { id },
       data: { expectedHarvestDate: new Date(Date.now() + days * 86_400_000) },
     });
+  }
+
+  console.log('Delivery & featured…');
+  const DELIVERY: Record<string, { radiusKm: number; feeMinor: number | null }> = {
+    'Fresh Tomatoes': { radiusKm: 15, feeMinor: 1500 },
+    'Crate of Eggs (medium)': { radiusKm: 25, feeMinor: 0 },
+    'Keitt Mango': { radiusKm: 40, feeMinor: 3000 },
+    'Sugarloaf Pineapple': { radiusKm: 30, feeMinor: null },
+  };
+  for (const [name, delivery] of Object.entries(DELIVERY)) {
+    const id = productByName.get(name);
+    if (!id) continue;
+    await prisma.product.update({
+      where: { id },
+      data: { deliveryAvailable: true, deliveryRadiusKm: delivery.radiusKm, deliveryFeeMinor: delivery.feeMinor },
+    });
+  }
+
+  const FEATURED = ['Fresh Tomatoes', 'Crate of Eggs (medium)', 'Puna Yam (large tubers)', 'Sugarloaf Pineapple'];
+  for (const name of FEATURED) {
+    const id = productByName.get(name);
+    if (!id) continue;
+    await prisma.product.update({ where: { id }, data: { featured: true } });
   }
 
   const tomatoId = productByName.get('Fresh Tomatoes');

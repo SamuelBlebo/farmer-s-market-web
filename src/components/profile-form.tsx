@@ -2,6 +2,7 @@
 
 import { useFormState } from 'react-dom';
 import { AvatarUploader } from './avatar-uploader';
+import { CoverImageUploader } from './cover-image-uploader';
 import { SubmitButton } from './submit-button';
 import { REGIONS } from '@/lib/constants';
 import type { AccountState } from '@/server/actions/account';
@@ -14,6 +15,8 @@ type Initial = {
   region?: string;
   town?: string;
   businessName?: string;
+  coverImage?: string | null;
+  description?: string | null;
 };
 
 export function ProfileForm({
@@ -66,18 +69,36 @@ export function ProfileForm({
       </label>
 
       {role === 'FARMER' && (
-        <div className="mb-3.5 grid grid-cols-2 gap-3">
-          <label className="block">
-            <span className="label">Region</span>
-            <select name="region" className="input" defaultValue={initial.region}>
-              {REGIONS.map((r) => <option key={r}>{r}</option>)}
-            </select>
+        <>
+          <div className="mb-3.5 grid grid-cols-2 gap-3">
+            <label className="block">
+              <span className="label">Region</span>
+              <select name="region" className="input" defaultValue={initial.region}>
+                {REGIONS.map((r) => <option key={r}>{r}</option>)}
+              </select>
+            </label>
+            <label className="block">
+              <span className="label">Town</span>
+              <input name="town" className="input" defaultValue={initial.town} required />
+            </label>
+          </div>
+
+          <div className="mb-3.5">
+            <span className="label">Storefront cover photo <span className="font-normal text-muted">(optional)</span></span>
+            <CoverImageUploader name="coverImage" initialUrl={initial.coverImage} />
+          </div>
+
+          <label className="mb-3.5 block">
+            <span className="label">Farm description <span className="font-normal text-muted">(optional — shown on your public storefront)</span></span>
+            <textarea
+              name="description"
+              rows={3}
+              className="input"
+              defaultValue={initial.description ?? ''}
+              placeholder="What you grow, how you farm, what makes your produce worth buying…"
+            />
           </label>
-          <label className="block">
-            <span className="label">Town</span>
-            <input name="town" className="input" defaultValue={initial.town} required />
-          </label>
-        </div>
+        </>
       )}
 
       {state.error && <p className="mb-3 text-sm text-clay">{state.error}</p>}

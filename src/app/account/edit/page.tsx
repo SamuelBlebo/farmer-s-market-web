@@ -33,6 +33,8 @@ export default async function AccountEditPage() {
             region: profile.region,
             town: profile.town,
             businessName: profile.farmName,
+            coverImage: profile.coverImage,
+            description: profile.description,
           }}
         />
       </Wrapper>

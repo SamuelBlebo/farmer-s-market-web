@@ -21,16 +21,16 @@ type Card = {
   variants: { priceMinor: number }[];
 };
 
-export function ProductCard({ p }: { p: Card }) {
+export function ProductCard({ p, priority = false }: { p: Card; /** Set for the first few above-the-fold cards only — never for a whole grid. */ priority?: boolean }) {
   const img = p.images[0]?.url;
   const lifecycle = getProductLifecycle(p.status, p.expectedHarvestDate);
 
   return (
-    <div className="card overflow-hidden transition-all duration-150 hover:-translate-y-0.5 hover:border-[#B9CCBD] hover:shadow-md">
+    <div className="card flex h-full flex-col overflow-hidden transition-all duration-150 hover:-translate-y-0.5 hover:border-[#B9CCBD] hover:shadow-md">
       <Link href={`/products/${p.id}`}>
         <div className="relative grid h-32 place-items-center bg-gradient-to-br from-[#E9F1E9] to-[#D6E5D8] text-5xl">
           {img ? (
-            <Image src={img} alt={p.name} fill sizes="(max-width:768px) 50vw, 240px" className="object-cover" />
+            <Image src={img} alt={p.name} fill sizes="(max-width:768px) 50vw, 240px" className="object-cover" priority={priority} />
           ) : (
             <span aria-hidden>{p.category.emoji ?? '🌿'}</span>
           )}
@@ -54,7 +54,7 @@ export function ProductCard({ p }: { p: Card }) {
           />
         </div>
       </Link>
-      <div className="flex justify-between gap-2 border-t border-line p-3 pt-2.5 text-[12.5px] text-muted">
+      <div className="mt-auto flex justify-between gap-2 border-t border-line p-3 pt-2.5 text-[12.5px] text-muted">
         <span className="truncate">📍 {p.town}</span>
         <FarmerPreviewTrigger farmerId={p.farmer.id} farmerName={p.farmer.farmName} />
       </div>

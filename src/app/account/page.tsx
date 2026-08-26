@@ -111,7 +111,8 @@ export default async function AccountPage() {
   const memberSince = dbUser.createdAt.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
   const activeLabel = lastActiveLabel(dbUser.lastActiveAt);
   const savedFarms = buyerProfile ? await getSavedFarms(user.id) : [];
-  const recentlyViewed = await getRecentlyViewedProducts(user.id);
+  // Buyer/admin feature only — farmers don't browse the marketplace the same way.
+  const recentlyViewed = user.role !== 'FARMER' ? await getRecentlyViewedProducts(user.id) : [];
 
   return (
     <div className="mx-auto max-w-[760px]">

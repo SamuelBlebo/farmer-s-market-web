@@ -134,6 +134,7 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
                 <div className="font-bold">{p.name}</div>
                 <div className="text-[12.5px] text-muted">{p.farmer.farmName} · {formatPrice(p.priceMinor)} / {p.unit}</div>
               </div>
+              {p.featured && <span aria-label="Featured" title="Featured">⭐</span>}
               <StatusBadge status={p.status} />
               <ModerationBadge status={p.moderation} />
               <Link href={`/admin/products/${p.id}/edit`} className="btn-ghost !px-3 !py-1.5 !text-[13px]">Edit</Link>

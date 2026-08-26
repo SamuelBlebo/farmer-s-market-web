@@ -1,6 +1,6 @@
 export default function FavoritesLoading() {
   return (
-    <>
+    <div className="animate-skeleton-fade">
       <div className="mb-4 h-8 w-48 animate-pulse rounded bg-line" />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {Array.from({ length: 8 }).map((_, i) => (
@@ -13,6 +13,6 @@ export default function FavoritesLoading() {
           </div>
         ))}
       </div>
-    </>
+    </div>
   );
 }

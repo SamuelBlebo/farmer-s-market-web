@@ -15,7 +15,10 @@ export function NotificationBell({ href, count, label }: { href: string; count: 
     >
       <BellIcon />
       {count > 0 && (
-        <span className="absolute right-0.5 top-0.5 grid h-4 min-w-[16px] place-items-center rounded-full bg-clay px-1 text-[10px] font-bold leading-none text-white">
+        <span
+          key={count}
+          className="animate-badge-bounce absolute right-0.5 top-0.5 grid h-4 min-w-[16px] place-items-center rounded-full bg-clay px-1 text-[10px] font-bold leading-none text-white"
+        >
           {count > 99 ? '99+' : count}
         </span>
       )}

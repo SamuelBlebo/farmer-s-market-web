@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { toggleFavorite } from '@/server/actions/products';
+import { SaveButton } from './save-button';
 
 /**
  * Renders a scroll-position sentinel where it's placed (right after the
@@ -46,10 +46,7 @@ export function StickyContactBar({
           <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className="btn-wa flex-1 !py-2.5 text-center">
             💬 WhatsApp
           </a>
-          <form action={toggleFavorite} className="flex-1">
-            <input type="hidden" name="productId" value={productId} />
-            <button className="btn-ghost w-full !py-2.5">♡ Save</button>
-          </form>
+          <SaveButton productId={productId} compact className="flex-1 w-full !py-2.5" />
         </div>
       </div>
     </>

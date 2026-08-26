@@ -1,6 +1,6 @@
 export default function FarmerLoading() {
   return (
-    <>
+    <div className="animate-skeleton-fade">
       <div className="card mb-5 h-40 animate-pulse p-5" />
       <div className="mb-3 h-6 w-40 animate-pulse rounded bg-line" />
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -14,6 +14,6 @@ export default function FarmerLoading() {
           </div>
         ))}
       </div>
-    </>
+    </div>
   );
 }

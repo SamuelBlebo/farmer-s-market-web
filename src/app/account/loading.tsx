@@ -1,6 +1,6 @@
 export default function AccountLoading() {
   return (
-    <div className="mx-auto max-w-[480px]">
+    <div className="animate-skeleton-fade mx-auto max-w-[480px]">
       <div className="mb-5 text-center">
         <div className="mx-auto h-20 w-20 animate-pulse rounded-full bg-line" />
         <div className="mx-auto mt-3 h-6 w-40 animate-pulse rounded bg-line" />

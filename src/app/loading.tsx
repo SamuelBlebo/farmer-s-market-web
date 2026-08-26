@@ -1,6 +1,6 @@
 export default function MarketplaceLoading() {
   return (
-    <div className="grid items-start gap-5 md:grid-cols-[230px_1fr]">
+    <div className="animate-skeleton-fade grid items-start gap-5 md:grid-cols-[230px_1fr]">
       <div className="card hidden h-[420px] animate-pulse md:block" />
       <div>
         <div className="mb-3 h-6 w-40 animate-pulse rounded bg-line" />

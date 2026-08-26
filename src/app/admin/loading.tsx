@@ -1,6 +1,6 @@
 export default function AdminLoading() {
   return (
-    <>
+    <div className="animate-skeleton-fade">
       <div className="mb-4 h-8 w-56 animate-pulse rounded bg-line" />
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
@@ -23,6 +23,6 @@ export default function AdminLoading() {
           </div>
         </div>
       ))}
-    </>
+    </div>
   );
 }

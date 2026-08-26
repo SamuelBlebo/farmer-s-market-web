@@ -1,6 +1,6 @@
 export default function MyListingsLoading() {
   return (
-    <>
+    <div className="animate-skeleton-fade">
       <div className="mb-4 h-8 w-48 animate-pulse rounded bg-line" />
       <div className="card divide-y divide-line">
         {Array.from({ length: 4 }).map((_, i) => (
@@ -13,6 +13,6 @@ export default function MyListingsLoading() {
           </div>
         ))}
       </div>
-    </>
+    </div>
   );
 }

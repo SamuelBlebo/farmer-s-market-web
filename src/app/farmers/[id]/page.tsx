@@ -8,13 +8,14 @@ import { CalendarIcon, ClockIcon, HeartIcon, StoreIcon, UserIcon } from '@/compo
 import { ProductCard } from '@/components/product-card';
 import { ProfileHero } from '@/components/profile-hero';
 import { SectionCard, SectionRow } from '@/components/section-card';
+import { ShareFarmButton } from '@/components/share-farm-button';
 import { StatCard } from '@/components/stat-card';
 import { TrustScoreBadge } from '@/components/trust-score-badge';
 import { WhatsAppButton } from '@/components/whatsapp-button';
-import { getProductLifecycle, lastActiveLabel, whatsappProductLink, type ProductLifecycle } from '@/lib/format';
+import { getProductLifecycle, lastActiveLabel, timeAgo, whatsappProductLink, type ProductLifecycle } from '@/lib/format';
 import { computeTrustScore } from '@/lib/trust';
 import { prisma } from '@/lib/prisma';
-import { getFarmer, getFollowerCount, isFollowingFarmer } from '@/server/queries';
+import { getFarmActivity, getFarmer, getFollowerCount, isFollowingFarmer } from '@/server/queries';
 import { currentUser } from '@/server/authz';
 import { track } from '@/server/analytics';
 
@@ -53,10 +54,11 @@ export default async function FarmerPage({ params }: { params: { id: string } })
   if (!farmer) notFound();
   void track({ type: 'FARMER_VIEWED', userId: user?.id, entityId: farmer.id });
 
-  const [savedByBuyers, followerCount, isFollowing] = await Promise.all([
+  const [savedByBuyers, followerCount, isFollowing, activity] = await Promise.all([
     prisma.favorite.count({ where: { product: { farmerId: farmer.id } } }),
     getFollowerCount(farmer.user.id),
     user?.role === 'BUYER' ? isFollowingFarmer(user.id, farmer.user.id) : false,
+    getFarmActivity(farmer, farmer.user.id),
   ]);
 
   const memberSince = farmer.createdAt.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
@@ -93,35 +95,53 @@ export default async function FarmerPage({ params }: { params: { id: string } })
         lastActive={lastActiveLabel(farmer.user.lastActiveAt)}
         summary={<TrustScoreBadge score={trustScore} />}
         actions={
-          !user ? (
-            <ContactPrompt message="Sign in to follow or contact this farmer." />
-          ) : (
-            <>
-              {user.role === 'BUYER' && (
-                <FollowButton
-                  farmerUserId={farmer.user.id}
-                  storefrontPath={`/farmers/${farmer.id}`}
-                  initialFollowing={isFollowing}
-                  className="sm:flex-1"
-                />
-              )}
-              {farmer.products[0] && (
-                <WhatsAppButton
-                  href={whatsappProductLink(farmer.whatsapp, farmer.products[0].name)}
-                  label="Message on WhatsApp"
-                  className="sm:flex-1"
-                  trackEntityId={farmer.id}
-                />
-              )}
-            </>
-          )
+          <>
+            {!user ? (
+              <ContactPrompt message="Sign in to follow or contact this farmer." />
+            ) : (
+              <>
+                {user.role === 'BUYER' && (
+                  <FollowButton
+                    farmerUserId={farmer.user.id}
+                    storefrontPath={`/farmers/${farmer.id}`}
+                    initialFollowing={isFollowing}
+                    className="sm:flex-1"
+                  />
+                )}
+                {farmer.products[0] && (
+                  <WhatsAppButton
+                    href={whatsappProductLink(farmer.whatsapp, farmer.products[0].name)}
+                    label="Message on WhatsApp"
+                    className="sm:flex-1"
+                    trackEntityId={farmer.id}
+                  />
+                )}
+              </>
+            )}
+            {/* Public action, visible to everyone including guests — sharing a storefront exposes nothing that isn't already public. */}
+            <ShareFarmButton
+              farmName={farmer.farmName}
+              region={farmer.region}
+              trustScore={trustScore}
+              coverImage={farmer.coverImage}
+              className="sm:flex-1"
+            />
+          </>
         }
       />
 
       <div className="mb-5">
         <SectionCard title="Farm Reputation">
           <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3 lg:grid-cols-5">
-            <StatCard icon={<UserIcon />} label="Followers" value={followerCount} />
+            <StatCard
+              icon={<UserIcon />}
+              label="Followers"
+              value={followerCount}
+              emptyIcon="👥"
+              emptyMessage="Share your farm to attract your first follower."
+              emptyHref="#share-farm"
+              emptyLinkLabel="Share Farm"
+            />
             <StatCard icon={<HeartIcon className="h-[18px] w-[18px]" />} label="Saved by buyers" value={savedByBuyers} />
             <StatCard icon={<StoreIcon />} label="Active listings" value={farmer.products.length} />
             <StatCard icon={<ClockIcon />} label="Last active" value={lastActiveLabel(farmer.user.lastActiveAt)} />
@@ -152,6 +172,22 @@ export default async function FarmerPage({ params }: { params: { id: string } })
           </div>
         </SectionCard>
       </div>
+
+      {activity.length > 0 && (
+        <div className="mb-5">
+          <SectionCard title="Recent Farm Activity">
+            <div className="divide-y divide-line">
+              {activity.map((item, i) => (
+                <div key={i} className="flex items-center gap-3 p-3.5">
+                  <span className="text-lg" aria-hidden>{item.icon}</span>
+                  <span className="flex-1 text-sm font-semibold">{item.message}</span>
+                  <span className="shrink-0 text-[12px] text-muted">{timeAgo(item.at)}</span>
+                </div>
+              ))}
+            </div>
+          </SectionCard>
+        </div>
+      )}
 
       {farmer.products.length === 0 ? (
         <div className="card p-10 text-center">

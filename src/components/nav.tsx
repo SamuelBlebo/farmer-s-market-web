@@ -6,6 +6,7 @@ import { NotificationBell } from './notification-bell';
 import { ProfileMenu } from './profile-menu';
 import { prisma } from '@/lib/prisma';
 import { currentUser } from '@/server/authz';
+import { getUnreadNotificationCount } from '@/server/queries';
 
 const VERIFICATION_LABEL = { VERIFIED: 'Verified', PENDING: 'Pending', UNVERIFIED: 'Unverified' } as const;
 const ROLE_LABEL = { FARMER: 'Farmer', BUYER: 'Buyer', ADMIN: 'Admin' } as const;
@@ -13,7 +14,7 @@ const ROLE_LABEL = { FARMER: 'Farmer', BUYER: 'Buyer', ADMIN: 'Admin' } as const
 export async function Nav() {
   const user = await currentUser();
 
-  const [requestsCount, dbUser, farmerProfile, buyerProfile, farmerAttention, buyerAttention, adminAttention] = await Promise.all([
+  const [requestsCount, dbUser, farmerProfile, buyerProfile, farmerAttention, buyerAttention, adminAttention, unreadNotifications] = await Promise.all([
     prisma.wantedListing.count({ where: { status: 'OPEN', moderation: 'APPROVED' } }),
     user ? prisma.user.findUnique({ where: { id: user.id }, select: { image: true } }) : null,
     user?.role === 'FARMER' ? prisma.farmerProfile.findUnique({ where: { userId: user.id } }) : null,
@@ -32,6 +33,7 @@ export async function Nav() {
           prisma.report.count({ where: { status: 'OPEN' } }),
         ]).then(([a, b, c]) => a + b + c)
       : 0,
+    user?.role === 'BUYER' ? getUnreadNotificationCount(user.id) : 0,
   ]);
 
   const items: NavItem[] = [
@@ -73,9 +75,9 @@ export async function Nav() {
       favoritesItem,
       { label: 'My Account', href: '/account', icon: <UserIcon /> },
     ];
-    bellHref = '/wanted';
-    bellCount = buyerAttention;
-    bellLabel = 'Requests needing attention';
+    bellHref = '/notifications';
+    bellCount = buyerAttention + unreadNotifications;
+    bellLabel = 'Notifications';
   } else if (user?.role === 'ADMIN') {
     useShield = true;
     accountItems = [

@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/server/authz';
+import { notifyFollowers } from '@/server/notifications';
 
 export async function moderateProduct(formData: FormData) {
   await requireAdmin();
@@ -10,10 +11,22 @@ export async function moderateProduct(formData: FormData) {
   const decision = String(formData.get('decision') ?? '');
   if (!['APPROVED', 'REJECTED'].includes(decision)) throw new Error('Invalid decision');
 
-  await prisma.product.update({
+  const product = await prisma.product.update({
     where: { id },
     data: { moderation: decision as 'APPROVED' | 'REJECTED' },
+    select: { id: true, name: true, farmer: { select: { userId: true, farmName: true } } },
   });
+
+  // Covers both the full listing form and Quick Post — both create through
+  // the same createProduct action, so approval is the one place a new
+  // listing actually becomes visible and worth notifying followers about.
+  if (decision === 'APPROVED') {
+    await notifyFollowers(product.farmer.userId, {
+      type: 'NEW_LISTING',
+      productId: product.id,
+      message: `${product.farmer.farmName} just listed ${product.name}.`,
+    });
+  }
 
   revalidatePath('/admin');
   revalidatePath('/');

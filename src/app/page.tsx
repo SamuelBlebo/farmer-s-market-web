@@ -14,6 +14,8 @@ import {
   getMarketProducts,
   getMarketStats,
   getRecentlyViewedProducts,
+  getSeasonalPreview,
+  getTrendingProducts,
   type MarketFilters,
 } from '@/server/queries';
 import { notifyNewlyAvailableHarvests } from '@/server/notifications';
@@ -33,15 +35,18 @@ function withoutParams(searchParams: MarketFilters, keys: (keyof MarketFilters)[
 export default async function MarketplacePage({ searchParams }: { searchParams: MarketFilters }) {
   const user = await currentUser();
 
-  const [{ items, total, page, pages }, categories, stats, featured, followedProducts, recentlyViewed] = await Promise.all([
-    getMarketProducts(searchParams),
-    getCategories(),
-    getMarketStats(),
-    getFeaturedProducts(),
-    user?.role === 'BUYER' ? getFollowedFarmsProducts(user.id) : Promise.resolve([]),
-    user && user.role !== 'FARMER' ? getRecentlyViewedProducts(user.id) : Promise.resolve([]),
-    notifyNewlyAvailableHarvests(),
-  ]);
+  const [{ items, total, page, pages }, categories, stats, featured, followedProducts, recentlyViewed, trending, seasonalPreview] =
+    await Promise.all([
+      getMarketProducts(searchParams),
+      getCategories(),
+      getMarketStats(),
+      getFeaturedProducts(),
+      user?.role === 'BUYER' ? getFollowedFarmsProducts(user.id) : Promise.resolve([]),
+      user && user.role !== 'FARMER' ? getRecentlyViewedProducts(user.id) : Promise.resolve([]),
+      getTrendingProducts(),
+      getSeasonalPreview(),
+      notifyNewlyAvailableHarvests(),
+    ]);
 
   const hasFilters = Boolean(
     searchParams.q ||
@@ -132,6 +137,35 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
           <h2 className="eyebrow mb-2">🕒 Recently Viewed</h2>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {recentlyViewed.map((p) => (
+              <ProductCard key={p.id} p={p} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {trending.length > 0 && !hasFilters && (
+        <div className="mb-5">
+          <h2 className="eyebrow mb-2">🔥 Trending Produce</h2>
+          <HorizontalScroller>
+            {trending.map((p) => (
+              <div key={p.id} className="w-40 shrink-0 sm:w-48">
+                <ProductCard p={p} />
+              </div>
+            ))}
+          </HorizontalScroller>
+        </div>
+      )}
+
+      {seasonalPreview.length > 0 && !hasFilters && (
+        <div className="mb-5">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="eyebrow">🌤️ Seasonal Produce Hub</h2>
+            <Link href="/seasonal" className="text-[12.5px] font-bold text-leaf-dark hover:underline">
+              View Seasonal Hub →
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {seasonalPreview.map((p) => (
               <ProductCard key={p.id} p={p} />
             ))}
           </div>

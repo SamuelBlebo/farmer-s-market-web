@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { ActionBanner } from '@/components/action-banner';
+import { ToastListener } from '@/components/toast-listener';
 import { AccountActionButton, AccountActionRow } from '@/components/account-action-row';
 import { VerifiedBadge } from '@/components/badges';
 import {
@@ -17,6 +17,7 @@ import {
   UserIcon,
 } from '@/components/icons';
 import { FarmCard } from '@/components/farm-card';
+import { ProductCard } from '@/components/product-card';
 import { ProfileHero } from '@/components/profile-hero';
 import { SectionCard, SectionRow } from '@/components/section-card';
 import { StatCard } from '@/components/stat-card';
@@ -25,7 +26,7 @@ import { lastActiveLabel } from '@/lib/format';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/server/authz';
 import { logout } from '@/server/actions/auth';
-import { getSavedFarms } from '@/server/queries';
+import { getRecentlyViewedProducts, getSavedFarms } from '@/server/queries';
 
 const ROLE_LABEL = { FARMER: 'Farmer', BUYER: 'Buyer', ADMIN: 'Platform Admin' } as const;
 
@@ -110,11 +111,12 @@ export default async function AccountPage() {
   const memberSince = dbUser.createdAt.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
   const activeLabel = lastActiveLabel(dbUser.lastActiveAt);
   const savedFarms = buyerProfile ? await getSavedFarms(user.id) : [];
+  const recentlyViewed = await getRecentlyViewedProducts(user.id);
 
   return (
     <div className="mx-auto max-w-[760px]">
       <Suspense>
-        <ActionBanner messages={{ saved: 'Profile updated.', passwordChanged: 'Password changed.' }} />
+        <ToastListener messages={{ saved: 'Profile updated.', passwordChanged: 'Password changed.' }} />
       </Suspense>
 
       <ProfileHero
@@ -204,6 +206,16 @@ export default async function AccountPage() {
                 <Link href="/" className="btn mt-3 inline-flex">Browse Farmers</Link>
               </div>
             )}
+          </SectionCard>
+        </div>
+      )}
+
+      {recentlyViewed.length > 0 && (
+        <div className="mt-4">
+          <SectionCard title="Recently Viewed">
+            <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3">
+              {recentlyViewed.map((p) => <ProductCard key={p.id} p={p} />)}
+            </div>
           </SectionCard>
         </div>
       )}

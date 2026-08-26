@@ -23,11 +23,12 @@ type Preview = {
   signedIn: boolean;
 };
 
-/** Hover (desktop) or long-press (mobile) on a card's farmer name reveals this compact preview. */
+/** Hover (desktop), long-press (mobile), or keyboard focus reveals this compact preview. */
 export function FarmerPreviewTrigger({ farmerId, farmerName }: { farmerId: string; farmerName: string }) {
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState<Preview | null>(null);
   const pressTimer = useRef<ReturnType<typeof setTimeout>>();
+  const containerRef = useRef<HTMLSpanElement>(null);
 
   async function load() {
     if (preview) return;
@@ -39,24 +40,43 @@ export function FarmerPreviewTrigger({ farmerId, farmerName }: { farmerId: strin
     }
   }
 
+  function reveal() {
+    load();
+    setOpen(true);
+  }
+
   function onTouchStart() {
-    pressTimer.current = setTimeout(() => {
-      load();
-      setOpen(true);
-    }, LONG_PRESS_MS);
+    pressTimer.current = setTimeout(reveal, LONG_PRESS_MS);
   }
   function cancelPress() {
     if (pressTimer.current) clearTimeout(pressTimer.current);
   }
 
+  // Keyboard focus can land inside the popover (the Follow button, the storefront
+  // link) — only close when focus actually leaves this whole component, not when
+  // it moves from the trigger to something inside its own popover.
+  function onBlur(e: React.FocusEvent) {
+    if (!containerRef.current?.contains(e.relatedTarget as Node)) setOpen(false);
+  }
+
+  function onKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Escape') setOpen(false);
+  }
+
   return (
     <span
-      className="relative inline-block max-w-full"
-      onMouseEnter={() => {
-        load();
-        setOpen(true);
-      }}
+      ref={containerRef}
+      tabIndex={0}
+      role="button"
+      aria-haspopup="true"
+      aria-expanded={open}
+      aria-label={`View farmer preview for ${farmerName}`}
+      className="relative inline-block max-w-full cursor-pointer"
+      onMouseEnter={reveal}
       onMouseLeave={() => setOpen(false)}
+      onFocus={reveal}
+      onBlur={onBlur}
+      onKeyDown={onKeyDown}
       onTouchStart={onTouchStart}
       onTouchEnd={cancelPress}
       onTouchMove={cancelPress}

@@ -38,7 +38,7 @@ export function SaveButton({
   }
 
   return (
-    <button type="button" onClick={toggle} disabled={isPending} className={`btn-ghost ${className}`}>
+    <button type="button" onClick={toggle} disabled={isPending} aria-pressed={saved} className={`btn-ghost ${className}`}>
       <span className={`inline-block transition-transform duration-200 ${pop ? 'scale-125' : 'scale-100'}`} aria-hidden>
         {saved ? '♥' : '♡'}
       </span>{' '}

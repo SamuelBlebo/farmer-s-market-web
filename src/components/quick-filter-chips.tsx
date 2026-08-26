@@ -30,7 +30,9 @@ export function QuickFilterChips() {
         return (
           <button
             key={f.key}
+            type="button"
             onClick={() => toggle(f.key)}
+            aria-pressed={on}
             className={`whitespace-nowrap rounded-full border px-3 py-1.5 text-[13px] font-semibold transition-colors ${
               on ? 'border-leaf bg-leaf-light text-leaf-dark' : 'border-line bg-white text-muted'
             }`}

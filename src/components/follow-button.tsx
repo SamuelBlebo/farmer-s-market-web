@@ -43,6 +43,7 @@ export function FollowButton({
       type="button"
       onClick={toggle}
       disabled={isPending}
+      aria-pressed={following}
       className={`${following ? 'btn-ghost' : 'btn'} transition-colors duration-200 disabled:opacity-70 ${
         pulse ? 'scale-105' : 'scale-100'
       } transition-transform ${className}`}

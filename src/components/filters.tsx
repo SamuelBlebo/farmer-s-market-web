@@ -92,9 +92,17 @@ export function CategoryChips({ categories }: { categories: { slug: string; name
 
   return (
     <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
-      <button onClick={() => pick('')} className={chip(!active)}>All</button>
+      <button type="button" onClick={() => pick('')} aria-current={!active ? 'true' : undefined} className={chip(!active)}>
+        All
+      </button>
       {categories.map((c) => (
-        <button key={c.slug} onClick={() => pick(c.slug)} className={chip(active === c.slug)}>
+        <button
+          key={c.slug}
+          type="button"
+          onClick={() => pick(c.slug)}
+          aria-current={active === c.slug ? 'true' : undefined}
+          className={chip(active === c.slug)}
+        >
           {c.emoji} {c.name}
         </button>
       ))}

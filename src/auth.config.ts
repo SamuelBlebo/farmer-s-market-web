@@ -7,6 +7,13 @@ import type { NextAuthConfig } from 'next-auth';
 export const authConfig = {
   pages: { signIn: '/login' },
   session: { strategy: 'jwt' },
+  // Redirects follow the incoming request's Host header instead of a fixed
+  // AUTH_URL — otherwise signing in from another device on the LAN (e.g. a
+  // phone hitting the dev machine's IP) redirects back to that device's own
+  // "localhost", which isn't the dev server. Safe here: this app is never
+  // deployed behind a reverse proxy where an untrusted Host header could be
+  // spoofed to redirect users off-site.
+  trustHost: true,
   providers: [],
   callbacks: {
     authorized({ auth, request }) {

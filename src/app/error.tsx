@@ -14,9 +14,10 @@ export default function ErrorBoundary({ error, reset }: { error: Error & { diges
       <p aria-hidden className="text-3xl">⚠️</p>
       <h1 className="mt-2 text-xl font-bold tracking-tight">Something went wrong</h1>
       <p className="mt-1 text-sm text-muted">We&apos;ve logged the issue. Try again, or head back to the marketplace.</p>
-      <div className="mt-4 flex justify-center gap-2.5">
+      <div className="mt-4 flex flex-wrap justify-center gap-2.5">
         <button type="button" onClick={() => reset()} className="btn">Try again</button>
         <Link href="/" className="btn-ghost">Marketplace</Link>
+        <Link href="/support" className="btn-ghost">Report this</Link>
       </div>
     </div>
   );

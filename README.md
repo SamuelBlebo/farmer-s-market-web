@@ -32,9 +32,16 @@ npm run dev                   # http://localhost:3000
 | `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` | Unsigned preset for browser uploads |
 | `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | Server-side Cloudinary credentials |
 | `NEXT_PUBLIC_PLATFORM_NAME` | Name used in the pre-filled WhatsApp message |
+| `NEXT_PUBLIC_SITE_URL` | Absolute site URL — `metadataBase`, Open Graph images, and the generated sitemap all depend on this being the real domain in production |
+| `NEXT_PUBLIC_SUPPORT_EMAIL` | Optional — shown on `/support`. Defaults to `support@farmersmarket.gh` |
+| `NEXT_PUBLIC_SUPPORT_WHATSAPP` | Optional — shown on `/support` as a WhatsApp button. Omitted entirely if unset |
 
 Photos upload straight from the browser to Cloudinary with an unsigned preset, so
 images never pass through the server — it matters on mobile data.
+
+`/admin/system` (admin-only) checks the required variables above live, along with
+a real database round-trip and a Cloudinary API ping — check it after every deploy
+rather than guessing from the hosting dashboard.
 
 ## Seed credentials
 
@@ -66,9 +73,14 @@ so the admin dashboard has something to act on.
 | `/dashboard/listings/new` | farmer | Post produce |
 | `/dashboard/listings/[id]/edit` | owner only | Edit a listing |
 | `/admin` | admin | Approvals, verification, reports, categories |
+| `/admin/analytics` | admin | Marketplace insights and CSV exports |
+| `/admin/feedback` | admin | Review submissions from the feedback widget and `/support` |
+| `/admin/system` | admin | Live database/Cloudinary/env status, app version, and platform counts |
 | `/admin/login` | anyone | Dedicated admin sign-in — never shows farmer/buyer copy |
+| `/support` | anyone | Contact info, FAQ, and a "report a problem" form |
 | `/login`, `/register` | anyone | Auth (email or phone) |
 | `/api/products`, `/api/products/[id]`, `/api/categories`, `/api/wanted` | anyone | Read-only JSON for the Expo app |
+| `/sitemap.xml`, `/robots.txt` | anyone | Generated from live data — approved listings, storefronts with active listings, categories |
 
 ## How auth works
 

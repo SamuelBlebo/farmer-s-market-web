@@ -8,7 +8,10 @@ export default function NotFound() {
       <p className="mt-1 text-sm text-muted">
         The listing, farmer, or page you&apos;re looking for doesn&apos;t exist or may have been removed.
       </p>
-      <Link href="/" className="btn mt-4">Back to marketplace</Link>
+      <div className="mt-4 flex justify-center gap-2.5">
+        <Link href="/" className="btn">Back to marketplace</Link>
+        <Link href="/support" className="btn-ghost">Get help</Link>
+      </div>
     </div>
   );
 }

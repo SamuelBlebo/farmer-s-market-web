@@ -13,6 +13,7 @@ export type MarketFilters = {
   delivery?: string;
   freshToday?: string;
   nearHarvest?: string;
+  highlyRated?: string;
   sort?: SortKey;
   page?: string;
 };
@@ -20,6 +21,7 @@ export type MarketFilters = {
 const PAGE_SIZE = 24;
 const WANTED_PAGE_SIZE = 12;
 const ADMIN_PAGE_SIZE = 20;
+const HIGHLY_RATED_MIN = 4;
 
 const ORDER: Record<SortKey, Prisma.ProductOrderByWithRelationInput> = {
   newest: { createdAt: 'desc' },
@@ -71,6 +73,15 @@ export async function getMarketProducts(f: MarketFilters) {
   if (f.delivery === '1') and.push({ deliveryAvailable: true });
   if (f.freshToday === '1') and.push({ OR: [{ expectedHarvestDate: null }, { expectedHarvestDate: { lte: now } }] });
   if (f.nearHarvest === '1') and.push({ expectedHarvestDate: { gt: now, lte: weekFromNow } });
+  if (f.highlyRated === '1') {
+    const qualifying = await prisma.review.groupBy({
+      by: ['farmerId'],
+      where: { moderation: 'APPROVED' },
+      _avg: { rating: true },
+      having: { rating: { _avg: { gte: HIGHLY_RATED_MIN } } },
+    });
+    and.push({ farmerId: { in: qualifying.map((q) => q.farmerId) } });
+  }
 
   const where: Prisma.ProductWhereInput = {
     status: 'ACTIVE',
@@ -352,7 +363,23 @@ export async function getAdminFarmers(page = 1) {
     }),
     prisma.farmerProfile.count(),
   ]);
-  return { items, total, page: p, pages: Math.max(1, Math.ceil(total / ADMIN_PAGE_SIZE)) };
+
+  const ratingStats = items.length
+    ? await prisma.review.groupBy({
+        by: ['farmerId'],
+        where: { farmerId: { in: items.map((f) => f.id) }, moderation: 'APPROVED' },
+        _avg: { rating: true },
+        _count: true,
+      })
+    : [];
+  const ratingByFarmerId = new Map(ratingStats.map((r) => [r.farmerId, { rating: r._avg.rating ?? 0, reviewCount: r._count }]));
+
+  return {
+    items: items.map((f) => ({ ...f, ...(ratingByFarmerId.get(f.id) ?? { rating: 0, reviewCount: 0 }) })),
+    total,
+    page: p,
+    pages: Math.max(1, Math.ceil(total / ADMIN_PAGE_SIZE)),
+  };
 }
 
 /** Admin: buyer list, paginated. */

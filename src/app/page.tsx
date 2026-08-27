@@ -59,7 +59,8 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
       searchParams.featured ||
       searchParams.delivery ||
       searchParams.freshToday ||
-      searchParams.nearHarvest,
+      searchParams.nearHarvest ||
+      searchParams.highlyRated,
   );
 
   const activeCategory = categories.find((c) => c.slug === searchParams.category);
@@ -73,6 +74,7 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
   if (searchParams.delivery === '1') chips.push({ label: 'Delivery Available', href: withoutParams(searchParams, ['delivery']) });
   if (searchParams.freshToday === '1') chips.push({ label: 'Fresh Today', href: withoutParams(searchParams, ['freshToday']) });
   if (searchParams.nearHarvest === '1') chips.push({ label: 'Near Harvest', href: withoutParams(searchParams, ['nearHarvest']) });
+  if (searchParams.highlyRated === '1') chips.push({ label: 'Highly Rated', href: withoutParams(searchParams, ['highlyRated']) });
   if (searchParams.min || searchParams.max) {
     chips.push({
       label: `GH¢${searchParams.min ?? '0'}–${searchParams.max ?? '∞'}`,

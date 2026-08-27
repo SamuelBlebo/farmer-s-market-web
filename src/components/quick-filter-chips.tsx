@@ -3,12 +3,17 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckIcon, LeafIcon, StarIcon, TruckIcon, WheatIcon } from './icons';
 
-const QUICK_FILTERS: { key: 'freshToday' | 'delivery' | 'verified' | 'nearHarvest' | 'featured'; label: string; icon: React.ReactNode }[] = [
+const QUICK_FILTERS: {
+  key: 'freshToday' | 'delivery' | 'verified' | 'nearHarvest' | 'featured' | 'highlyRated';
+  label: string;
+  icon: React.ReactNode;
+}[] = [
   { key: 'freshToday', label: 'Fresh Today', icon: <LeafIcon className="h-3.5 w-3.5" /> },
   { key: 'delivery', label: 'Delivery Available', icon: <TruckIcon className="h-3.5 w-3.5" /> },
   { key: 'verified', label: 'Verified Farmers', icon: <CheckIcon className="h-3.5 w-3.5" /> },
   { key: 'nearHarvest', label: 'Near Harvest', icon: <WheatIcon className="h-3.5 w-3.5" /> },
   { key: 'featured', label: 'Featured', icon: <StarIcon className="h-3.5 w-3.5" filled /> },
+  { key: 'highlyRated', label: 'Highly Rated', icon: <StarIcon className="h-3.5 w-3.5" /> },
 ];
 
 /** Toggle chips over the same MarketFilters params the sidebar Filters/CategoryChips already write to — no separate filtering logic. */

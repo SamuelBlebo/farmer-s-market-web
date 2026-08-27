@@ -12,6 +12,8 @@ export function Footer() {
           <Link href="/" className="font-semibold hover:text-ink hover:underline">Marketplace</Link>
           <Link href="/wanted" className="font-semibold hover:text-ink hover:underline">Requests</Link>
           <Link href="/support" className="font-semibold hover:text-ink hover:underline">Support</Link>
+          <Link href="/terms" className="font-semibold hover:text-ink hover:underline">Terms</Link>
+          <Link href="/privacy" className="font-semibold hover:text-ink hover:underline">Privacy</Link>
         </nav>
       </div>
     </footer>

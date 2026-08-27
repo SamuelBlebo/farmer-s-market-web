@@ -101,7 +101,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
           {user && p.status === 'ACTIVE' && (
             <StickyContactBar
-              whatsappHref={whatsappProductLink(p.farmer.whatsapp, p.name)}
+              farmerUserId={user.role === 'BUYER' ? p.farmer.user.id : null}
               telHref={p.farmer.phone ? telLink(p.farmer.phone) : null}
               productId={p.id}
             />

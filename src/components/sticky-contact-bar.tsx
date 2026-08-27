@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ChatIcon, PhoneIcon } from './icons';
+import { ChatButton } from './chat-button';
+import { PhoneIcon } from './icons';
 import { SaveButton } from './save-button';
 import { trackClient } from '@/lib/analytics-client';
 
@@ -12,11 +13,12 @@ import { trackClient } from '@/lib/analytics-client';
  * users on an ACTIVE listing — same contact-gating rule as the main panel.
  */
 export function StickyContactBar({
-  whatsappHref,
+  farmerUserId,
   telHref,
   productId,
 }: {
-  whatsappHref: string;
+  /** Chat is buyer-only — pass null for a farmer/admin viewer and the button is simply omitted. */
+  farmerUserId: string | null;
   telHref: string | null;
   productId: string;
 }) {
@@ -45,15 +47,9 @@ export function StickyContactBar({
               <PhoneIcon className="h-4 w-4" /> Call
             </a>
           )}
-          <a
-            href={whatsappHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => trackClient('WHATSAPP_CLICKED', productId)}
-            className="btn-wa flex-1 justify-center !py-2.5"
-          >
-            <ChatIcon className="h-4 w-4" /> WhatsApp
-          </a>
+          {farmerUserId && (
+            <ChatButton otherUserId={farmerUserId} productId={productId} label="Chat" className="btn flex-1 justify-center !py-2.5" />
+          )}
           <SaveButton productId={productId} compact className="flex-1 w-full !py-2.5" />
         </div>
       </div>

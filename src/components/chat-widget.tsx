@@ -85,8 +85,8 @@ export function ChatWidget({ conversationId, onClose }: { conversationId: string
       role="dialog"
       aria-label="Chat"
       style={pos ? { left: pos.x, top: pos.y, right: 'auto', bottom: 'auto' } : undefined}
-      className={`card fixed z-40 flex h-[min(70vh,560px)] w-[min(92vw,380px)] flex-col overflow-hidden shadow-lg ${
-        pos ? '' : 'bottom-4 left-4'
+      className={`card fixed z-50 flex h-[min(70vh,560px)] w-[min(92vw,380px)] flex-col overflow-hidden shadow-lg ${
+        pos ? '' : 'bottom-20 left-4 sm:bottom-4'
       }`}
     >
       <div

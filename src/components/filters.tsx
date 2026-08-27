@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
+import { CategoryIcon } from './category-icon';
 import { REGIONS, SORTS } from '@/lib/constants';
 
 /** Filters write to the URL — every marketplace view is shareable and cacheable. */
@@ -86,7 +87,7 @@ export function CategoryChips({ categories }: { categories: { slug: string; name
   }
 
   const chip = (on: boolean) =>
-    `whitespace-nowrap rounded-full border px-3 py-1.5 text-[13px] font-semibold ${
+    `inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-[13px] font-semibold ${
       on ? 'border-ink bg-ink text-white' : 'border-line bg-white text-muted'
     }`;
 
@@ -103,7 +104,7 @@ export function CategoryChips({ categories }: { categories: { slug: string; name
           aria-current={active === c.slug ? 'true' : undefined}
           className={chip(active === c.slug)}
         >
-          {c.emoji} {c.name}
+          <CategoryIcon slug={c.slug} className="h-3.5 w-3.5" /> {c.name}
         </button>
       ))}
     </div>

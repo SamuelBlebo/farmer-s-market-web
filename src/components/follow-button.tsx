@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { followFarmer, unfollowFarmer } from '@/server/actions/follows';
+import { CheckIcon, PlusIcon } from './icons';
 import { useToast } from './toast-provider';
 
 export function FollowButton({
@@ -44,11 +45,19 @@ export function FollowButton({
       onClick={toggle}
       disabled={isPending}
       aria-pressed={following}
-      className={`${following ? 'btn-ghost' : 'btn'} transition-colors duration-200 disabled:opacity-70 ${
+      className={`inline-flex items-center gap-1.5 ${following ? 'btn-ghost' : 'btn'} transition-colors duration-200 disabled:opacity-70 ${
         pulse ? 'scale-105' : 'scale-100'
       } transition-transform ${className}`}
     >
-      {following ? '✓ Following' : '+ Follow Farm'}
+      {following ? (
+        <>
+          <CheckIcon className="h-4 w-4" /> Following
+        </>
+      ) : (
+        <>
+          <PlusIcon className="h-4 w-4" /> Follow Farm
+        </>
+      )}
     </button>
   );
 }

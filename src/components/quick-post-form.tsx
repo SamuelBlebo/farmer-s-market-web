@@ -2,6 +2,7 @@
 
 import { useFormState } from 'react-dom';
 import { ImageUploader } from './image-uploader';
+import { LightningIcon } from './icons';
 import { SubmitButton } from './submit-button';
 import { createProduct, type ActionState } from '@/server/actions/products';
 
@@ -62,7 +63,9 @@ export function QuickPostForm({
       </p>
 
       {state.error && <p className="mb-3 text-sm text-clay">{state.error}</p>}
-      <SubmitButton className="btn w-full" pendingLabel="Posting…">⚡ Post in seconds</SubmitButton>
+      <SubmitButton className="btn w-full" pendingLabel="Posting…">
+        <LightningIcon className="h-4 w-4" /> Post in seconds
+      </SubmitButton>
     </form>
   );
 }

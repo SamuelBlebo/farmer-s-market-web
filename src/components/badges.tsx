@@ -1,10 +1,15 @@
 import type { ModerationStatus, ProductStatus, VerificationStatus } from '@prisma/client';
+import { CheckIcon } from './icons';
 import { LIFECYCLE_LABEL, type ProductLifecycle } from '@/lib/format';
 
 export function VerifiedBadge({ status, large = false }: { status: VerificationStatus; large?: boolean }) {
   const size = large ? 'px-3 py-1 text-[13px]' : '';
   if (status === 'VERIFIED')
-    return <span className={`badge bg-leaf-light text-leaf-dark ${size}`}>✓ Verified</span>;
+    return (
+      <span className={`badge bg-leaf-light text-leaf-dark ${size}`}>
+        <CheckIcon className={large ? 'h-3.5 w-3.5' : 'h-3 w-3'} /> Verified
+      </span>
+    );
   if (status === 'PENDING')
     return <span className={`badge bg-gold-light text-[#8A6100] ${size}`}>Pending</span>;
   return <span className={`badge bg-paper text-muted ${size}`}>Unverified</span>;

@@ -6,7 +6,7 @@ import { PopularProductsTable } from '@/components/popular-products-table';
 import { SectionCard } from '@/components/section-card';
 import { StatCard } from '@/components/stat-card';
 import { TopFarmersTable } from '@/components/top-farmers-table';
-import { HeartIcon, SearchIcon, StoreIcon, UserIcon } from '@/components/icons';
+import { ChatIcon, HeartIcon, PhoneIcon, SearchIcon, StoreIcon, UserIcon } from '@/components/icons';
 import { resolveDateRange } from '@/lib/date-range';
 import { requireAdmin } from '@/server/authz';
 import {
@@ -58,8 +58,8 @@ export default async function AdminAnalyticsPage({ searchParams }: { searchParam
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <StatCard icon={<StoreIcon />} label="Product Views" value={overview.productViews} />
         <StatCard icon={<UserIcon />} label="Farmer Storefront Views" value={overview.farmerViews} />
-        <StatCard icon={<span aria-hidden>💬</span>} label="WhatsApp Clicks" value={overview.whatsappClicks} />
-        <StatCard icon={<span aria-hidden>📞</span>} label="Call Clicks" value={overview.callClicks} />
+        <StatCard icon={<ChatIcon />} label="WhatsApp Clicks" value={overview.whatsappClicks} />
+        <StatCard icon={<PhoneIcon />} label="Call Clicks" value={overview.callClicks} />
         <StatCard icon={<SearchIcon />} label="Searches Performed" value={overview.searches} />
         <StatCard icon={<HeartIcon className="h-[18px] w-[18px]" />} label="New Follows" value={overview.newFollows} />
       </div>

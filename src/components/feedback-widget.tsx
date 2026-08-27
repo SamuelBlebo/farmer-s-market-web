@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react';
 import { useFormState } from 'react-dom';
 import { usePathname } from 'next/navigation';
-import { CloseIcon } from './icons';
+import { ChatIcon, CloseIcon } from './icons';
 import { SubmitButton } from './submit-button';
 import { useToast } from './toast-provider';
 import { submitFeedback, type FeedbackActionState } from '@/server/actions/feedback';
@@ -40,7 +40,7 @@ export function FeedbackWidget() {
         aria-label={open ? 'Close feedback form' : 'Send feedback'}
         className="fixed bottom-20 right-4 z-40 grid h-12 w-12 place-items-center rounded-full bg-leaf text-white shadow-lg transition-colors hover:bg-leaf-dark sm:bottom-6"
       >
-        {open ? <CloseIcon /> : <span aria-hidden className="text-xl">💬</span>}
+        {open ? <CloseIcon /> : <ChatIcon className="h-5 w-5" />}
       </button>
 
       {open && (

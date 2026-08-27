@@ -4,7 +4,20 @@ import Link from 'next/link';
 import { AccountActionRow } from '@/components/account-action-row';
 import { ToastListener } from '@/components/toast-listener';
 import { StatusBadge } from '@/components/badges';
-import { BadgeCheckIcon, DocumentIcon, HeartIcon, PauseIcon, PlusIcon, StoreIcon, UserIcon } from '@/components/icons';
+import { CategoryIcon } from '@/components/category-icon';
+import {
+  BadgeCheckIcon,
+  CalendarIcon,
+  DocumentIcon,
+  HeartIcon,
+  LightningIcon,
+  PauseIcon,
+  PlusIcon,
+  SproutIcon,
+  StarIcon,
+  StoreIcon,
+  UserIcon,
+} from '@/components/icons';
 import { LifecycleBadge } from '@/components/badges';
 import { ProfileHero } from '@/components/profile-hero';
 import { SectionCard } from '@/components/section-card';
@@ -55,7 +68,7 @@ export default async function DashboardPage() {
         avatarUrl={dbUser.image}
         avatarLetter={user.name[0]}
         name={user.name}
-        heading={`Welcome back, ${firstName} 👋`}
+        heading={`Welcome back, ${firstName}`}
         roleLabel="Farmer"
         verification={profile.verification}
         region={profile.region}
@@ -64,13 +77,13 @@ export default async function DashboardPage() {
         summary={
           <>
             <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold">
-              <span aria-hidden>🌱</span> {active} Active Listing{active === 1 ? '' : 's'}
+              <SproutIcon className="h-4 w-4 text-leaf-dark" /> {active} Active Listing{active === 1 ? '' : 's'}
             </span>
             <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold">
-              <span aria-hidden>⭐</span> {savedByBuyers} Saved by Buyers
+              <StarIcon className="h-4 w-4 text-[#8A6100]" filled /> {savedByBuyers} Saved by Buyers
             </span>
             <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold">
-              <span aria-hidden>📅</span> {harvestsThisWeek} Harvest{harvestsThisWeek === 1 ? '' : 's'} This Week
+              <CalendarIcon className="h-4 w-4" /> {harvestsThisWeek} Harvest{harvestsThisWeek === 1 ? '' : 's'} This Week
             </span>
           </>
         }
@@ -81,7 +94,8 @@ export default async function DashboardPage() {
               New Listing
             </Link>
             <Link href="/dashboard/listings/new" className="btn-ghost sm:flex-1">
-              ⚡ Quick Post
+              <LightningIcon className="h-4 w-4" />
+              Quick Post
             </Link>
           </>
         }
@@ -171,7 +185,7 @@ export default async function DashboardPage() {
                       {thumb ? (
                         <Image src={thumb} alt="" fill sizes="44px" className="object-cover" />
                       ) : (
-                        <span aria-hidden>{p.category.emoji ?? '🌿'}</span>
+                        <CategoryIcon slug={p.category.slug} className="h-5 w-5 text-leaf-dark/70" />
                       )}
                     </div>
                     <div className="min-w-0 flex-1">

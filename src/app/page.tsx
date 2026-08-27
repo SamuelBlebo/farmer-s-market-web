@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { CategoryChips, Filters } from '@/components/filters';
 import { HorizontalScroller } from '@/components/horizontal-scroller';
+import { CheckIcon, ClockIcon, FireIcon, PinIcon, StarIcon, SproutIcon, SunIcon, WheatIcon } from '@/components/icons';
 import { Pagination } from '@/components/pagination';
 import { ProductCard } from '@/components/product-card';
 import { QuickFilterChips } from '@/components/quick-filter-chips';
@@ -98,19 +99,21 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
             <a href="#listings" className="btn">Browse produce</a>
             <Link href="/register" className="btn-ghost">Sell on Farmers Market</Link>
           </div>
-          <p className="mt-4 text-[12.5px] font-semibold text-muted">
-            🌾 {stats.listings} listings live · ✓ {stats.verifiedFarmers} verified farmers · 📍 {stats.regionCount} regions across Ghana
+          <p className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12.5px] font-semibold text-muted">
+            <span className="inline-flex items-center gap-1"><WheatIcon className="h-3.5 w-3.5" /> {stats.listings} listings live</span>
+            <span className="inline-flex items-center gap-1"><CheckIcon className="h-3.5 w-3.5" /> {stats.verifiedFarmers} verified farmers</span>
+            <span className="inline-flex items-center gap-1"><PinIcon className="h-3.5 w-3.5" /> {stats.regionCount} regions across Ghana</span>
           </p>
         </section>
       )}
 
       {user && !hasFilters && (
-        <p className="mb-4 text-[15px] font-bold">Welcome back, {user.name.split(' ')[0]} 👋</p>
+        <p className="mb-4 text-[15px] font-bold">Welcome back, {user.name.split(' ')[0]}</p>
       )}
 
       {followedProducts.length > 0 && !hasFilters && (
         <div className="mb-5">
-          <h2 className="eyebrow mb-2">🌱 From Farmers You Follow</h2>
+          <h2 className="eyebrow mb-2 flex items-center gap-1.5"><SproutIcon className="h-3.5 w-3.5" /> From Farmers You Follow</h2>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {followedProducts.map((p) => (
               <ProductCard key={p.id} p={p} />
@@ -121,7 +124,7 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
 
       {featured.length > 0 && !hasFilters && (
         <div className="mb-5">
-          <h2 className="eyebrow mb-2">⭐ Featured Today</h2>
+          <h2 className="eyebrow mb-2 flex items-center gap-1.5"><StarIcon className="h-3.5 w-3.5" filled /> Featured Today</h2>
           <HorizontalScroller>
             {featured.map((p) => (
               <div key={p.id} className="w-40 shrink-0 sm:w-48">
@@ -201,7 +204,7 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
 
       {recentlyViewed.length > 0 && !hasFilters && (
         <div className="mb-5 mt-8">
-          <h2 className="eyebrow mb-2">🕒 Recently Viewed</h2>
+          <h2 className="eyebrow mb-2 flex items-center gap-1.5"><ClockIcon className="h-3.5 w-3.5" /> Recently Viewed</h2>
           <div className="grid grid-cols-3 gap-2.5 lg:grid-cols-6">
             {recentlyViewed.map((p) => (
               <ProductCard key={p.id} p={p} size="sm" />
@@ -212,7 +215,7 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
 
       {trending.length > 0 && !hasFilters && (
         <div className="mb-5">
-          <h2 className="eyebrow mb-2">🔥 Trending Produce</h2>
+          <h2 className="eyebrow mb-2 flex items-center gap-1.5"><FireIcon className="h-3.5 w-3.5" /> Trending Produce</h2>
           <HorizontalScroller>
             {trending.map((p) => (
               <div key={p.id} className="w-28 shrink-0 sm:w-36">
@@ -226,7 +229,7 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
       {seasonalPreview.length > 0 && !hasFilters && (
         <div className="mb-5">
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="eyebrow">🌤️ Seasonal Produce Hub</h2>
+            <h2 className="eyebrow flex items-center gap-1.5"><SunIcon className="h-3.5 w-3.5" /> Seasonal Produce Hub</h2>
             <Link href="/seasonal" className="text-[12.5px] font-bold text-leaf-dark hover:underline">
               View Seasonal Hub →
             </Link>

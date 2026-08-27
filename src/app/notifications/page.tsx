@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { BellIcon } from '@/components/icons';
 import { timeAgo } from '@/lib/format';
 import { requireUser } from '@/server/authz';
 import { getNotifications } from '@/server/queries';
@@ -17,7 +18,7 @@ export default async function NotificationsPage() {
 
       {notifications.length === 0 ? (
         <div className="card p-10 text-center">
-          <p aria-hidden className="text-2xl">🔔</p>
+          <BellIcon className="mx-auto h-7 w-7 text-muted" />
           <p className="mt-1 font-bold">You&apos;re all caught up.</p>
           <p className="mt-1 text-sm text-muted">Follow a farm to hear about new listings and harvests.</p>
         </div>
@@ -33,7 +34,7 @@ export default async function NotificationsPage() {
                 {n.product?.images[0] ? (
                   <Image src={n.product.images[0].url} alt="" fill sizes="40px" className="object-cover" />
                 ) : (
-                  <span aria-hidden>🔔</span>
+                  <BellIcon className="h-4 w-4 text-leaf-dark" />
                 )}
               </div>
               <div className="min-w-0 flex-1">

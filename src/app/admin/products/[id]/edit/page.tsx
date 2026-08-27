@@ -89,8 +89,9 @@ export default async function AdminEditProductPage({ params }: { params: { id: s
           )}
           <form action={toggleFeatured}>
             <input type="hidden" name="productId" value={product.id} />
-            <button className="btn-ghost !px-3 !py-1.5 !text-[13px]">
-              {product.featured ? '★ Unfeature' : '☆ Feature this listing'}
+            <button className="btn-ghost inline-flex items-center gap-1.5 !px-3 !py-1.5 !text-[13px]">
+              <StarIcon className="h-3.5 w-3.5" filled={product.featured} />
+              {product.featured ? 'Unfeature' : 'Feature this listing'}
             </button>
           </form>
         </div>

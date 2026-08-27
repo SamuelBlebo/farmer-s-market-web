@@ -2,18 +2,19 @@
 
 import { useRef, useState } from 'react';
 import Image from 'next/image';
-import { ChevronLeftIcon, ChevronRightIcon, ZoomIcon } from './icons';
+import { CategoryIcon } from './category-icon';
+import { ChevronLeftIcon, ChevronRightIcon, CloseIcon, ZoomIcon } from './icons';
 
 const SWIPE_THRESHOLD = 40;
 
 export function ProductGallery({
   images,
   name,
-  emoji,
+  categorySlug,
 }: {
   images: { url: string }[];
   name: string;
-  emoji: string | null;
+  categorySlug: string;
 }) {
   const [active, setActive] = useState(0);
   const [zoomed, setZoomed] = useState(false);
@@ -38,7 +39,7 @@ export function ProductGallery({
   return (
     <div>
       <div
-        className="relative grid h-72 place-items-center overflow-hidden rounded-card bg-gradient-to-br from-[#E9F1E9] to-[#D6E5D8] text-8xl"
+        className="relative grid h-72 place-items-center overflow-hidden rounded-card bg-gradient-to-br from-[#E9F1E9] to-[#D6E5D8] text-leaf-dark/70"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
@@ -77,7 +78,7 @@ export function ProductGallery({
             )}
           </>
         ) : (
-          <span aria-hidden>{emoji ?? '🌿'}</span>
+          <CategoryIcon slug={categorySlug} className="h-16 w-16" />
         )}
       </div>
 
@@ -110,9 +111,9 @@ export function ProductGallery({
             type="button"
             onClick={() => setZoomed(false)}
             aria-label="Close zoom"
-            className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-white/10 text-2xl text-white"
+            className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-white/10 text-white"
           >
-            ✕
+            <CloseIcon />
           </button>
           <div className="relative h-full max-h-[85vh] w-full max-w-3xl" onClick={(e) => e.stopPropagation()}>
             <Image src={hero} alt={name} fill sizes="100vw" className="object-contain" />

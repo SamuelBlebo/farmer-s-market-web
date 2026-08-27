@@ -1,13 +1,14 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
+import { CheckIcon, LeafIcon, StarIcon, TruckIcon, WheatIcon } from './icons';
 
-const QUICK_FILTERS: { key: 'freshToday' | 'delivery' | 'verified' | 'nearHarvest' | 'featured'; label: string; emoji: string }[] = [
-  { key: 'freshToday', label: 'Fresh Today', emoji: '🌿' },
-  { key: 'delivery', label: 'Delivery Available', emoji: '🚚' },
-  { key: 'verified', label: 'Verified Farmers', emoji: '✓' },
-  { key: 'nearHarvest', label: 'Near Harvest', emoji: '🌾' },
-  { key: 'featured', label: 'Featured', emoji: '⭐' },
+const QUICK_FILTERS: { key: 'freshToday' | 'delivery' | 'verified' | 'nearHarvest' | 'featured'; label: string; icon: React.ReactNode }[] = [
+  { key: 'freshToday', label: 'Fresh Today', icon: <LeafIcon className="h-3.5 w-3.5" /> },
+  { key: 'delivery', label: 'Delivery Available', icon: <TruckIcon className="h-3.5 w-3.5" /> },
+  { key: 'verified', label: 'Verified Farmers', icon: <CheckIcon className="h-3.5 w-3.5" /> },
+  { key: 'nearHarvest', label: 'Near Harvest', icon: <WheatIcon className="h-3.5 w-3.5" /> },
+  { key: 'featured', label: 'Featured', icon: <StarIcon className="h-3.5 w-3.5" filled /> },
 ];
 
 /** Toggle chips over the same MarketFilters params the sidebar Filters/CategoryChips already write to — no separate filtering logic. */
@@ -33,11 +34,11 @@ export function QuickFilterChips() {
             type="button"
             onClick={() => toggle(f.key)}
             aria-pressed={on}
-            className={`whitespace-nowrap rounded-full border px-3 py-1.5 text-[13px] font-semibold transition-colors ${
+            className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-[13px] font-semibold transition-colors ${
               on ? 'border-leaf bg-leaf-light text-leaf-dark' : 'border-line bg-white text-muted'
             }`}
           >
-            {f.emoji} {f.label}
+            {f.icon} {f.label}
           </button>
         );
       })}

@@ -2,8 +2,10 @@ import { Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ToastListener } from '@/components/toast-listener';
+import { CategoryIcon } from '@/components/category-icon';
 import { DeleteListingForm } from '@/components/delete-listing-form';
 import { LifecycleBadge } from '@/components/badges';
+import { WheatIcon } from '@/components/icons';
 import {
   LIFECYCLE_LABEL,
   formatPrice,
@@ -30,7 +32,7 @@ function ProductRow({ p }: { p: Row }) {
         {thumb ? (
           <Image src={thumb} alt="" fill sizes="48px" className="object-cover" />
         ) : (
-          <span aria-hidden>{p.category.emoji ?? '🌿'}</span>
+          <CategoryIcon slug={p.category.slug} className="h-6 w-6 text-leaf-dark/70" />
         )}
       </div>
       <div className="min-w-[160px] flex-1">
@@ -39,7 +41,9 @@ function ProductRow({ p }: { p: Row }) {
           {formatPrice(p.priceMinor)} / {p.unit} · {formatQty(String(p.quantity))} left · {timeAgo(p.createdAt)}
         </div>
         {p.expectedHarvestDate && p.status === 'ACTIVE' && (
-          <div className="text-[12.5px] text-muted">🌾 {harvestLabel(p.expectedHarvestDate)}</div>
+          <div className="inline-flex items-center gap-1 text-[12.5px] text-muted">
+            <WheatIcon className="h-3.5 w-3.5" /> {harvestLabel(p.expectedHarvestDate)}
+          </div>
         )}
       </div>
 

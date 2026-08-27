@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { DocumentIcon, StoreIcon, UserIcon } from '@/components/icons';
+import { CheckIcon, CloseIcon, DocumentIcon, StoreIcon, UserIcon } from '@/components/icons';
 import { SectionCard, SectionRow } from '@/components/section-card';
 import { StatCard } from '@/components/stat-card';
 import { requireAdmin } from '@/server/authz';
@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
 function StatusBadgeInline({ status }: { status: ServiceStatus }) {
   return (
     <span className={`badge ${status.ok ? 'bg-leaf-light text-leaf-dark' : 'bg-clay-light text-clay'}`}>
-      {status.ok ? '● ' : '✕ '}
+      {status.ok ? <CheckIcon className="h-3 w-3" /> : <CloseIcon className="h-3 w-3" />}
       {status.label}
     </span>
   );

@@ -21,7 +21,7 @@ export function ProfileHero({
   avatarUrl?: string | null;
   avatarLetter: string;
   name: string;
-  /** Overrides the h1 (e.g. a "Welcome back, Kofi 👋" greeting) — name is still used for the avatar's fallback letter. */
+  /** Overrides the h1 (e.g. a "Welcome back, Kofi" greeting) — name is still used for the avatar's fallback letter. */
   heading?: string;
   roleLabel: string;
   /** Farmers only — buyers/admins have no verification concept in this app. */
@@ -29,7 +29,7 @@ export function ProfileHero({
   region?: string;
   memberSince: string;
   lastActive: string;
-  /** Optional row of quick-glance chips (e.g. "🌱 4 Active listings") between the meta line and the actions. */
+  /** Optional row of quick-glance chips (e.g. "4 Active listings") between the meta line and the actions. */
   summary?: React.ReactNode;
   /** Overrides the default Edit Profile / Change Password button pair. */
   actions?: React.ReactNode;

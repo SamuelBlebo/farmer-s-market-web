@@ -2,6 +2,7 @@
 
 import { useFormState } from 'react-dom';
 import { usePathname } from 'next/navigation';
+import { BadgeCheckIcon } from './icons';
 import { SubmitButton } from './submit-button';
 import { submitFeedback, type FeedbackActionState } from '@/server/actions/feedback';
 
@@ -13,7 +14,7 @@ export function ReportProblemForm() {
   if (state.success) {
     return (
       <div className="card p-5 text-center">
-        <p className="text-2xl" aria-hidden>✓</p>
+        <BadgeCheckIcon className="mx-auto h-7 w-7 text-leaf-dark" />
         <p className="mt-1 font-bold">Thanks — we got it.</p>
         <p className="mt-1 text-sm text-muted">An admin reviews every submission.</p>
       </div>

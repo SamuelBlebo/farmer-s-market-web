@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { BadgeCheckIcon, DocumentIcon, GridIcon, HeartIcon, PlusIcon, ShieldIcon, StoreIcon, UserIcon } from './icons';
+import { BadgeCheckIcon, ChatIcon, DocumentIcon, GridIcon, HeartIcon, PlusIcon, ShieldIcon, StoreIcon, UserIcon } from './icons';
 import { MobileMenu } from './mobile-menu';
 import { NavLinks, type NavItem } from './nav-links';
 import { NotificationBell } from './notification-bell';
@@ -85,7 +85,7 @@ export async function Nav() {
     accountItems = [
       { label: 'Admin Dashboard', href: '/admin', icon: <ShieldIcon className="h-4 w-4" /> },
       { label: 'Analytics', href: '/admin/analytics', icon: <DocumentIcon className="h-4 w-4" /> },
-      { label: 'Feedback', href: '/admin/feedback', icon: <span aria-hidden className="text-[15px] leading-none">💬</span> },
+      { label: 'Feedback', href: '/admin/feedback', icon: <ChatIcon className="h-4 w-4" /> },
       { label: 'System Health', href: '/admin/system', icon: <BadgeCheckIcon className="h-4 w-4" /> },
       favoritesItem,
       { label: 'My Account', href: '/account', icon: <UserIcon /> },

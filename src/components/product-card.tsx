@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { BadgeCheckIcon, PinIcon } from './icons';
+import { CategoryIcon } from './category-icon';
 import { FarmerPreviewTrigger } from './farmer-preview-trigger';
 import { PriceQuantity } from './quantity-bar';
 import { LifecycleBadge } from './badges';
@@ -16,7 +18,7 @@ type Card = {
   status: 'ACTIVE' | 'PAUSED' | 'SOLD' | 'REMOVED';
   expectedHarvestDate: Date | null;
   images: { url: string }[];
-  category: { emoji: string | null };
+  category: { slug: string };
   farmer: { id: string; farmName: string; verification: string };
   variants: { priceMinor: number }[];
 };
@@ -39,14 +41,16 @@ export function ProductCard({
   return (
     <div className="card flex h-full flex-col transition-all duration-150 hover:-translate-y-0.5 hover:border-[#B9CCBD] hover:shadow-md">
       <Link href={`/products/${p.id}`}>
-        <div className={`relative grid place-items-center overflow-hidden rounded-t-card bg-gradient-to-br from-[#E9F1E9] to-[#D6E5D8] ${sm ? 'h-20 text-3xl' : 'h-32 text-5xl'}`}>
+        <div className={`relative grid place-items-center overflow-hidden rounded-t-card bg-gradient-to-br from-[#E9F1E9] to-[#D6E5D8] text-leaf-dark/70 ${sm ? 'h-20' : 'h-32'}`}>
           {img ? (
             <Image src={img} alt={p.name} fill sizes="(max-width:768px) 50vw, 240px" className="object-cover" priority={priority} />
           ) : (
-            <span aria-hidden>{p.category.emoji ?? '🌿'}</span>
+            <CategoryIcon slug={p.category.slug} className={sm ? 'h-8 w-8' : 'h-12 w-12'} />
           )}
           {p.farmer.verification === 'VERIFIED' && (
-            <span className="badge absolute left-2 top-2 bg-leaf-light text-leaf-dark">✓</span>
+            <span className="badge absolute left-2 top-2 bg-leaf-light text-leaf-dark">
+              <BadgeCheckIcon className="h-3 w-3" />
+            </span>
           )}
           {lifecycle !== 'ONGOING' && (
             <span className="absolute right-2 top-2">
@@ -66,7 +70,10 @@ export function ProductCard({
         </div>
       </Link>
       <div className={`mt-auto flex justify-between gap-2 border-t border-line text-muted ${sm ? 'p-2.5 pt-2 text-[11px]' : 'p-3 pt-2.5 text-[12.5px]'}`}>
-        <span className="truncate">📍 {p.town}</span>
+        <span className="inline-flex min-w-0 items-center gap-1 truncate">
+          <PinIcon className="h-3 w-3 shrink-0" />
+          {p.town}
+        </span>
         {!sm && <FarmerPreviewTrigger farmerId={p.farmer.id} farmerName={p.farmer.farmName} />}
       </div>
     </div>

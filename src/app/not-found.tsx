@@ -1,9 +1,10 @@
 import Link from 'next/link';
+import { WheatIcon } from '@/components/icons';
 
 export default function NotFound() {
   return (
     <div className="card mx-auto max-w-[440px] p-10 text-center">
-      <div className="text-4xl" aria-hidden>🌾</div>
+      <WheatIcon className="mx-auto h-9 w-9 text-muted" />
       <p className="mt-2 font-bold">We couldn&apos;t find that.</p>
       <p className="mt-1 text-sm text-muted">
         The listing, farmer, or page you&apos;re looking for doesn&apos;t exist or may have been removed.

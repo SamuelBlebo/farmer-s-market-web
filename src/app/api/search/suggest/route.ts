@@ -13,9 +13,9 @@ export async function GET(request: Request) {
       unit: p.unit,
       priceMinor: p.priceMinor,
       image: p.images[0]?.url ?? null,
-      category: { name: p.category.name, emoji: p.category.emoji },
+      category: { name: p.category.name, slug: p.category.slug },
     })),
     farmers: farmers.map((f) => ({ id: f.id, farmName: f.farmName, region: f.region, verification: f.verification })),
-    categories: categories.map((c) => ({ slug: c.slug, name: c.name, emoji: c.emoji })),
+    categories: categories.map((c) => ({ slug: c.slug, name: c.name })),
   });
 }

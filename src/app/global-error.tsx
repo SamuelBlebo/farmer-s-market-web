@@ -17,7 +17,11 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
     <html lang="en">
       <body style={{ margin: 0, fontFamily: 'sans-serif', background: '#F2F5F1', color: '#12211A' }}>
         <div style={{ maxWidth: 420, margin: '96px auto', textAlign: 'center', padding: 24 }}>
-          <p style={{ fontSize: 32, margin: 0 }}>⚠️</p>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#B4531F" strokeWidth={1.75} style={{ width: 32, height: 32 }} aria-hidden>
+            <path d="M12 3.5 21 19.5H3L12 3.5Z" strokeLinejoin="round" />
+            <path d="M12 10v4.2" strokeLinecap="round" />
+            <circle cx="12" cy="17" r="0.15" fill="#B4531F" />
+          </svg>
           <h1 style={{ fontSize: 20, fontWeight: 800, margin: '8px 0 0' }}>Something went wrong</h1>
           <p style={{ fontSize: 14, color: '#5F6F63', marginTop: 8 }}>Please refresh the page.</p>
           <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center', gap: 10 }}>

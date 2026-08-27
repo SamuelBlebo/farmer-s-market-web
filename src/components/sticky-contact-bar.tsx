@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { ChatIcon, PhoneIcon } from './icons';
 import { SaveButton } from './save-button';
 import { trackClient } from '@/lib/analytics-client';
 
@@ -40,8 +41,8 @@ export function StickyContactBar({
       >
         <div className="flex gap-2">
           {telHref && (
-            <a href={telHref} onClick={() => trackClient('CALL_CLICKED', productId)} className="btn-ghost flex-1 !py-2.5 text-center">
-              📞 Call
+            <a href={telHref} onClick={() => trackClient('CALL_CLICKED', productId)} className="btn-ghost flex-1 justify-center !py-2.5">
+              <PhoneIcon className="h-4 w-4" /> Call
             </a>
           )}
           <a
@@ -49,9 +50,9 @@ export function StickyContactBar({
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => trackClient('WHATSAPP_CLICKED', productId)}
-            className="btn-wa flex-1 !py-2.5 text-center"
+            className="btn-wa flex-1 justify-center !py-2.5"
           >
-            💬 WhatsApp
+            <ChatIcon className="h-4 w-4" /> WhatsApp
           </a>
           <SaveButton productId={productId} compact className="flex-1 w-full !py-2.5" />
         </div>

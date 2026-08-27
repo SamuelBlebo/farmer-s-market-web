@@ -1,6 +1,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { ModerationBadge, StatusBadge, VerifiedBadge } from '@/components/badges';
+import { CategoryIcon } from '@/components/category-icon';
+import { ChartIcon, ChatIcon, GearIcon, StarIcon } from '@/components/icons';
 import { Pagination } from '@/components/pagination';
 import { formatPrice, lastActiveLabel } from '@/lib/format';
 import { prisma } from '@/lib/prisma';
@@ -71,9 +73,15 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
           <h1 className="text-2xl font-bold tracking-tight">Platform overview</h1>
         </div>
         <div className="ml-auto flex flex-wrap gap-2">
-          <Link href="/admin/analytics" className="btn-ghost">📊 Analytics</Link>
-          <Link href="/admin/feedback" className="btn-ghost">💬 Feedback</Link>
-          <Link href="/admin/system" className="btn-ghost">⚙️ System</Link>
+          <Link href="/admin/analytics" className="btn-ghost inline-flex items-center gap-1.5">
+            <ChartIcon className="h-4 w-4" /> Analytics
+          </Link>
+          <Link href="/admin/feedback" className="btn-ghost inline-flex items-center gap-1.5">
+            <ChatIcon className="h-4 w-4" /> Feedback
+          </Link>
+          <Link href="/admin/system" className="btn-ghost inline-flex items-center gap-1.5">
+            <GearIcon className="h-4 w-4" /> System
+          </Link>
         </div>
       </div>
 
@@ -89,7 +97,7 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
         {pending.length === 0 && <p className="p-5 text-sm text-muted">Nothing in the queue. All caught up.</p>}
         {pending.map((p) => (
           <div key={p.id} className="flex flex-wrap items-center gap-3 p-3.5">
-            <span className="text-xl" aria-hidden>{p.category.emoji}</span>
+            <CategoryIcon slug={p.category.slug} className="h-5 w-5 shrink-0 text-muted" />
             <div className="min-w-[160px] flex-1">
               <div className="font-bold">{p.name}</div>
               <div className="text-[12.5px] text-muted">
@@ -136,14 +144,18 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
                 {thumb ? (
                   <Image src={thumb} alt="" fill sizes="40px" className="object-cover" />
                 ) : (
-                  <span aria-hidden>{p.category.emoji ?? '🌿'}</span>
+                  <CategoryIcon slug={p.category.slug} className="h-5 w-5 text-leaf-dark/70" />
                 )}
               </div>
               <div className="min-w-[160px] flex-1">
                 <div className="font-bold">{p.name}</div>
                 <div className="text-[12.5px] text-muted">{p.farmer.farmName} · {formatPrice(p.priceMinor)} / {p.unit}</div>
               </div>
-              {p.featured && <span aria-label="Featured" title="Featured">⭐</span>}
+              {p.featured && (
+                <span aria-label="Featured" title="Featured">
+                  <StarIcon className="h-4 w-4 text-[#8A6100]" filled />
+                </span>
+              )}
               <StatusBadge status={p.status} />
               <ModerationBadge status={p.moderation} />
               <Link href={`/admin/products/${p.id}/edit`} className="btn-ghost !px-3 !py-1.5 !text-[13px]">Edit</Link>
@@ -219,7 +231,7 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
       <div className="card divide-y divide-line">
         {categories.map((c) => (
           <div key={c.id} className="flex items-center gap-3 p-3.5">
-            <span className="text-xl" aria-hidden>{c.emoji}</span>
+            <CategoryIcon slug={c.slug} className="h-5 w-5 text-muted" />
             <span className="flex-1 font-bold">{c.name}</span>
             <span className="text-[12.5px] text-muted">{c.active ? 'Visible' : 'Hidden'}</span>
             <form action={toggleCategory}>

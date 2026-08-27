@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { toggleFavorite } from '@/server/actions/products';
+import { HeartIcon } from './icons';
 import { useToast } from './toast-provider';
 
 export function SaveButton({
@@ -40,8 +41,8 @@ export function SaveButton({
   return (
     <button type="button" onClick={toggle} disabled={isPending} aria-pressed={saved} className={`btn-ghost ${className}`}>
       <span className={`inline-block transition-transform duration-200 ${pop ? 'scale-125' : 'scale-100'}`} aria-hidden>
-        {saved ? '♥' : '♡'}
-      </span>{' '}
+        <HeartIcon className="h-4 w-4" filled={saved} />
+      </span>
       {compact ? 'Save' : saved ? 'Saved' : 'Save listing'}
     </button>
   );

@@ -13,6 +13,7 @@ import {
   LockIcon,
   ShieldIcon,
   SignOutIcon,
+  SproutIcon,
   StoreIcon,
   UserIcon,
 } from '@/components/icons';
@@ -41,7 +42,7 @@ export default async function AccountPage() {
 
   // Every stat below is a real count from existing data — nothing here tracks
   // page views or contact clicks, so those aren't presented as metrics.
-  type Stat = { icon: React.ReactNode; label: string; value: number; emptyIcon?: string; emptyMessage?: string; emptyHref?: string; emptyLinkLabel?: string };
+  type Stat = { icon: React.ReactNode; label: string; value: number; emptyIcon?: React.ReactNode; emptyMessage?: string; emptyHref?: string; emptyLinkLabel?: string };
   let stats: Stat[] = [];
 
   if (farmerProfile) {
@@ -63,7 +64,7 @@ export default async function AccountPage() {
         icon: <CalendarIcon />,
         label: 'Harvests this week',
         value: harvestsThisWeek,
-        emptyIcon: '🌱',
+        emptyIcon: <SproutIcon className="h-5 w-5" />,
         emptyMessage: 'No upcoming harvests.',
         emptyHref: '/dashboard/listings/new?mode=full',
         emptyLinkLabel: 'Add Harvest',
@@ -81,7 +82,7 @@ export default async function AccountPage() {
         icon: <HeartIcon className="h-[18px] w-[18px]" />,
         label: 'Favorite listings',
         value: saved,
-        emptyIcon: '❤️',
+        emptyIcon: <HeartIcon className="h-5 w-5" />,
         emptyMessage: 'No favorite listings yet.',
         emptyHref: '/',
         emptyLinkLabel: 'Browse produce',
@@ -202,7 +203,7 @@ export default async function AccountPage() {
               </div>
             ) : (
               <div className="p-8 text-center">
-                <p aria-hidden className="text-2xl">❤️</p>
+                <HeartIcon className="mx-auto h-7 w-7 text-muted" />
                 <p className="mt-1 text-sm font-semibold text-muted">No saved farms yet.</p>
                 <Link href="/" className="btn mt-3 inline-flex">Browse Farmers</Link>
               </div>

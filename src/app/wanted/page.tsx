@@ -48,7 +48,7 @@ export default async function WantedPage({ searchParams }: { searchParams: { pag
 
       {user?.role === 'BUYER' && mine.length > 0 && (
         <div className="mb-6">
-          <p className="mb-3 text-[15px] font-bold">Welcome back, {user.name.split(' ')[0]} 👋</p>
+          <p className="mb-3 text-[15px] font-bold">Welcome back, {user.name.split(' ')[0]}</p>
           <div className="mb-4 grid grid-cols-3 gap-3">
             <StatCard
               icon={<DocumentIcon />}

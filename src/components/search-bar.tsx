@@ -6,7 +6,8 @@ import Image from 'next/image';
 import { REGIONS } from '@/lib/constants';
 import { formatPrice } from '@/lib/format';
 import { trackClient } from '@/lib/analytics-client';
-import { SearchIcon } from './icons';
+import { CategoryIcon } from './category-icon';
+import { BadgeCheckIcon, SearchIcon, UserIcon } from './icons';
 
 type ProductSuggestion = {
   kind: 'product';
@@ -15,10 +16,10 @@ type ProductSuggestion = {
   unit: string;
   priceMinor: number;
   image: string | null;
-  category: { name: string; emoji: string | null };
+  category: { name: string; slug: string };
 };
 type FarmerSuggestion = { kind: 'farmer'; id: string; farmName: string; region: string; verification: string };
-type CategorySuggestion = { kind: 'category'; slug: string; name: string; emoji: string | null };
+type CategorySuggestion = { kind: 'category'; slug: string; name: string };
 type Suggestion = ProductSuggestion | FarmerSuggestion | CategorySuggestion;
 
 const DEBOUNCE_MS = 250;
@@ -154,15 +155,15 @@ export function SearchBar({ variant = 'page' }: { variant?: 'page' | 'header' })
                   onMouseEnter={() => setHighlight(i)}
                   className={`flex w-full items-center gap-3 px-3 py-2 text-left ${i === highlight ? 'bg-paper' : ''}`}
                 >
-                  <div className="relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-lg bg-leaf-light text-lg">
+                  <div className="relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-lg bg-leaf-light text-leaf-dark">
                     {s.kind === 'product' && s.image ? (
                       <Image src={s.image} alt="" fill sizes="36px" className="object-cover" />
                     ) : s.kind === 'product' ? (
-                      <span aria-hidden>{s.category.emoji ?? '🌿'}</span>
+                      <CategoryIcon slug={s.category.slug} className="h-4 w-4" />
                     ) : s.kind === 'farmer' ? (
-                      <span aria-hidden>🧑‍🌾</span>
+                      <UserIcon className="h-4 w-4" />
                     ) : (
-                      <span aria-hidden>{s.emoji ?? '🏷️'}</span>
+                      <CategoryIcon slug={s.slug} className="h-4 w-4" />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -191,7 +192,9 @@ export function SearchBar({ variant = 'page' }: { variant?: 'page' | 'header' })
                     </div>
                   )}
                   {s.kind === 'farmer' && s.verification === 'VERIFIED' && (
-                    <span className="badge shrink-0 bg-leaf-light text-leaf-dark">✓</span>
+                    <span className="badge shrink-0 bg-leaf-light text-leaf-dark">
+                      <BadgeCheckIcon className="h-3 w-3" />
+                    </span>
                   )}
                 </button>
               </li>

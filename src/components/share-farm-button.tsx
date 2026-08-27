@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { CheckIcon, LinkIcon } from './icons';
 import { useToast } from './toast-provider';
 
 /**
@@ -64,7 +65,15 @@ export function ShareFarmButton({
 
   return (
     <button id="share-farm" type="button" onClick={share} className={`btn-ghost ${className}`}>
-      {copied ? '✓ Copied' : '🔗 Share Farm'}
+      {copied ? (
+        <>
+          <CheckIcon className="h-4 w-4" /> Copied
+        </>
+      ) : (
+        <>
+          <LinkIcon className="h-4 w-4" /> Share Farm
+        </>
+      )}
     </button>
   );
 }

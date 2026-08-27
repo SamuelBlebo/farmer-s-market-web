@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { CameraIcon } from './icons';
 
 type Uploaded = { url: string; publicId: string };
 
@@ -82,7 +83,7 @@ export function ImageUploader({ max = 5, initial = [] }: { max?: number; initial
       ))}
 
       <div className="rounded-[10px] border-[1.5px] border-dashed border-line bg-[#FAFCFA] p-5 text-center">
-        <div className="text-3xl" aria-hidden>📷</div>
+        <CameraIcon className="mx-auto h-8 w-8 text-muted" />
         <div className="mt-1 font-semibold">Add up to {max} photos</div>
         <p className="text-[12.5px] text-muted">Listings with photos get contacted far more often</p>
         <input

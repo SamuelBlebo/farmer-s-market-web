@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { CalendarIcon, WheatIcon } from '@/components/icons';
 import { ProductCard } from '@/components/product-card';
 import { getSeasonalHub } from '@/server/queries';
 
@@ -9,9 +10,24 @@ export const metadata: Metadata = {
 };
 
 const SECTIONS = [
-  { key: 'readyNow', title: '🟢 Ready Now', empty: 'Nothing marked ready right now — check back soon.' },
-  { key: 'harvestingThisWeek', title: '🌾 Harvesting This Week', empty: 'No harvests scheduled this week yet.' },
-  { key: 'comingSoon', title: '📅 Coming Soon', empty: 'No upcoming harvests scheduled yet.' },
+  {
+    key: 'readyNow',
+    title: 'Ready Now',
+    icon: <span className="h-2 w-2 rounded-full bg-leaf-dark" aria-hidden />,
+    empty: 'Nothing marked ready right now — check back soon.',
+  },
+  {
+    key: 'harvestingThisWeek',
+    title: 'Harvesting This Week',
+    icon: <WheatIcon className="h-4 w-4" />,
+    empty: 'No harvests scheduled this week yet.',
+  },
+  {
+    key: 'comingSoon',
+    title: 'Coming Soon',
+    icon: <CalendarIcon className="h-4 w-4" />,
+    empty: 'No upcoming harvests scheduled yet.',
+  },
 ] as const;
 
 export default async function SeasonalPage() {
@@ -32,7 +48,9 @@ export default async function SeasonalPage() {
         return (
           <div key={section.key} className="mb-8">
             <div className="mb-3 flex items-center gap-2">
-              <h2 className="text-lg font-semibold tracking-tight">{section.title}</h2>
+              <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+                {section.icon} {section.title}
+              </h2>
               <span className="text-[12.5px] text-muted">{items.length}</span>
             </div>
             {items.length === 0 ? (

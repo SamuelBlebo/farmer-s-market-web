@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { EyeIcon, EyeOffIcon } from './icons';
 
 export function PasswordField({
   label = 'Password',
@@ -30,7 +31,7 @@ export function PasswordField({
           aria-label={visible ? 'Hide password' : 'Show password'}
           className="absolute right-1 top-1/2 grid h-8 w-9 -translate-y-1/2 place-items-center text-muted"
         >
-          {visible ? '🙈' : '👁️'}
+          {visible ? <EyeOffIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
         </button>
       </div>
       {error && <p className="mt-1 text-sm text-clay">{error}</p>}

@@ -4,7 +4,19 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import { ContactPrompt } from '@/components/contact-prompt';
 import { LifecycleBadge } from '@/components/badges';
 import { FollowButton } from '@/components/follow-button';
-import { CalendarIcon, ClockIcon, HeartIcon, StoreIcon, UserIcon } from '@/components/icons';
+import {
+  CalendarIcon,
+  ChatIcon,
+  ClockIcon,
+  HeartIcon,
+  PackageIcon,
+  PhoneIcon,
+  SproutIcon,
+  StarIcon,
+  StoreIcon,
+  UserIcon,
+  UsersIcon,
+} from '@/components/icons';
 import { ProductCard } from '@/components/product-card';
 import { ProfileHero } from '@/components/profile-hero';
 import { SectionCard } from '@/components/section-card';
@@ -15,9 +27,16 @@ import { WhatsAppButton } from '@/components/whatsapp-button';
 import { getProductLifecycle, lastActiveLabel, timeAgo, whatsappProductLink, type ProductLifecycle } from '@/lib/format';
 import { computeTrustScore } from '@/lib/trust';
 import { prisma } from '@/lib/prisma';
-import { getFarmActivity, getFarmer, getFollowerCount, isFollowingFarmer } from '@/server/queries';
+import { getFarmActivity, getFarmer, getFollowerCount, isFollowingFarmer, type FarmActivityKind } from '@/server/queries';
 import { currentUser } from '@/server/authz';
 import { track } from '@/server/analytics';
+
+const ACTIVITY_ICON: Record<FarmActivityKind, React.ReactNode> = {
+  harvest: <SproutIcon className="h-4 w-4" />,
+  product: <PackageIcon className="h-4 w-4" />,
+  verified: <StarIcon className="h-4 w-4" filled />,
+  followers: <UsersIcon className="h-4 w-4" />,
+};
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   const farmer = await getFarmer(params.id);
@@ -138,7 +157,7 @@ export default async function FarmerPage({ params }: { params: { id: string } })
               icon={<UserIcon />}
               label="Followers"
               value={followerCount}
-              emptyIcon="👥"
+              emptyIcon={<UsersIcon className="h-5 w-5" />}
               emptyMessage="Share your farm to attract your first follower."
               emptyHref="#share-farm"
               emptyLinkLabel="Share Farm"
@@ -169,8 +188,12 @@ export default async function FarmerPage({ params }: { params: { id: string } })
               <div className="sm:pl-3">
                 <dt className="eyebrow">Contact</dt>
                 <dd className="mt-1 flex items-center gap-1.5">
-                  <span className="badge bg-leaf-light text-leaf-dark">💬 WhatsApp</span>
-                  <span className="badge bg-paper text-muted">📞 Phone</span>
+                  <span className="badge bg-leaf-light text-leaf-dark">
+                    <ChatIcon className="h-3 w-3" /> WhatsApp
+                  </span>
+                  <span className="badge bg-paper text-muted">
+                    <PhoneIcon className="h-3 w-3" /> Phone
+                  </span>
                 </dd>
               </div>
             </dl>
@@ -184,7 +207,7 @@ export default async function FarmerPage({ params }: { params: { id: string } })
             <div className="divide-y divide-line">
               {activity.map((item, i) => (
                 <div key={i} className="flex items-center gap-2.5 px-3.5 py-2.5">
-                  <span className="text-base" aria-hidden>{item.icon}</span>
+                  <span className="text-muted" aria-hidden>{ACTIVITY_ICON[item.icon]}</span>
                   <span className="flex-1 truncate text-[13.5px] font-semibold">{item.message}</span>
                   <span className="shrink-0 text-[12px] text-muted">{timeAgo(item.at)}</span>
                 </div>

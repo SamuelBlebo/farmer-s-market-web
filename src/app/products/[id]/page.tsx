@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { LifecycleBadge, StatusBadge, VerifiedBadge } from '@/components/badges';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { ContactPrompt } from '@/components/contact-prompt';
+import { CheckIcon, EyeIcon, FlagIcon, PencilIcon, PinIcon, TruckIcon, WheatIcon } from '@/components/icons';
 import { ProductCard } from '@/components/product-card';
 import { PriceQuantity } from '@/components/quantity-bar';
 import { ProductGallery } from '@/components/product-gallery';
@@ -83,14 +84,18 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
       {user?.role === 'ADMIN' && (
         <div className="mb-4 flex items-center justify-between rounded-[10px] border border-line bg-paper px-4 py-2.5">
-          <span className="text-[13px] font-semibold text-muted">👁 Viewing as admin</span>
-          <Link href={`/admin/products/${p.id}/edit`} className="btn-ghost !px-3 !py-1.5 !text-[13px]">✎ Edit listing</Link>
+          <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-muted">
+            <EyeIcon className="h-4 w-4" /> Viewing as admin
+          </span>
+          <Link href={`/admin/products/${p.id}/edit`} className="btn-ghost inline-flex items-center gap-1.5 !px-3 !py-1.5 !text-[13px]">
+            <PencilIcon className="h-3.5 w-3.5" /> Edit listing
+          </Link>
         </div>
       )}
 
       <div className="grid gap-6 lg:grid-cols-[1.25fr_1fr]">
         <div>
-          <ProductGallery images={p.images} name={p.name} emoji={p.category.emoji} />
+          <ProductGallery images={p.images} name={p.name} categorySlug={p.category.slug} />
 
           {user && p.status === 'ACTIVE' && (
             <StickyContactBar
@@ -104,16 +109,30 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
           {/* Product Trust Bar — buying-decision signals, reusing the lifecycle/delivery/verification data computed above rather than recalculating anything. */}
           <div className="mt-2 flex flex-wrap gap-2">
-            {lifecycle === 'AVAILABLE_NOW' && <span className="badge bg-leaf-light text-leaf-dark">🟢 Available Now</span>}
+            {lifecycle === 'AVAILABLE_NOW' && (
+              <span className="badge bg-leaf-light text-leaf-dark">
+                <span className="h-1.5 w-1.5 rounded-full bg-leaf-dark" aria-hidden /> Available Now
+              </span>
+            )}
             {lifecycle === 'UPCOMING_HARVEST' && (
-              <span className="badge bg-gold-light text-[#8A6100]">🌾 {harvestLabel(p.expectedHarvestDate)}</span>
+              <span className="badge bg-gold-light text-[#8A6100]">
+                <WheatIcon className="h-3 w-3" /> {harvestLabel(p.expectedHarvestDate)}
+              </span>
             )}
             {p.deliveryAvailable ? (
-              <span className="badge bg-leaf-light text-leaf-dark">🚚 Delivery Available</span>
+              <span className="badge bg-leaf-light text-leaf-dark">
+                <TruckIcon className="h-3 w-3" /> Delivery Available
+              </span>
             ) : (
-              <span className="badge bg-paper text-muted">📍 Pickup Only</span>
+              <span className="badge bg-paper text-muted">
+                <PinIcon className="h-3 w-3" /> Pickup Only
+              </span>
             )}
-            {p.farmer.verification === 'VERIFIED' && <span className="badge bg-leaf-light text-leaf-dark">✓ Verified Farmer</span>}
+            {p.farmer.verification === 'VERIFIED' && (
+              <span className="badge bg-leaf-light text-leaf-dark">
+                <CheckIcon className="h-3 w-3" /> Verified Farmer
+              </span>
+            )}
           </div>
 
           <div className="mt-2 flex flex-wrap gap-2">
@@ -123,7 +142,9 @@ export default async function ProductPage({ params }: { params: { id: string } }
             <span className="badge bg-paper text-muted">Listed {timeAgo(p.createdAt)}</span>
           </div>
           {p.status === 'ACTIVE' && (
-            <p className="mt-2 text-sm font-semibold text-muted">🌾 {harvestLabel(p.expectedHarvestDate)}</p>
+            <p className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-muted">
+              <WheatIcon className="h-4 w-4" /> {harvestLabel(p.expectedHarvestDate)}
+            </p>
           )}
           <p className="mt-3 text-[15px] text-muted">{p.description}</p>
         </div>
@@ -191,7 +212,14 @@ export default async function ProductPage({ params }: { params: { id: string } }
                 <SectionRow label="Pickup location" value={`${p.town}, ${p.region}`} />
                 {p.deliveryAvailable ? (
                   <>
-                    <SectionRow label="Delivery" value={<span className="badge bg-leaf-light text-leaf-dark">🚚 Available</span>} />
+                    <SectionRow
+                      label="Delivery"
+                      value={
+                        <span className="badge bg-leaf-light text-leaf-dark">
+                          <TruckIcon className="h-3 w-3" /> Available
+                        </span>
+                      }
+                    />
                     {p.deliveryRadiusKm && <SectionRow label="Delivery radius" value={`Up to ${p.deliveryRadiusKm} km`} />}
                     <SectionRow
                       label="Delivery cost"
@@ -246,7 +274,9 @@ export default async function ProductPage({ params }: { params: { id: string } }
               <input type="hidden" name="productId" value={p.id} />
               <label className="label" htmlFor="reason">Something wrong with this listing?</label>
               <input id="reason" name="reason" className="input" placeholder="e.g. price is wrong, farmer not responding" required />
-              <button className="btn-ghost mt-2 w-full">⚑ Report listing</button>
+              <button className="btn-ghost mt-2 inline-flex w-full items-center justify-center gap-1.5">
+                <FlagIcon className="h-4 w-4" /> Report listing
+              </button>
             </form>
           )}
         </div>

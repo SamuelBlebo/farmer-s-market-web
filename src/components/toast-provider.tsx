@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import { CheckIcon, WarningIcon } from './icons';
 
 type ToastKind = 'success' | 'error';
 type Toast = { id: number; kind: ToastKind; message: string };
@@ -42,11 +43,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             key={t.id}
             role={t.kind === 'error' ? 'alert' : 'status'}
             aria-live={t.kind === 'error' ? 'assertive' : 'polite'}
-            className={`animate-toast-in pointer-events-auto w-full max-w-sm rounded-[10px] px-4 py-2.5 text-center text-sm font-semibold text-white shadow-md ${
+            className={`animate-toast-in pointer-events-auto flex w-full max-w-sm items-center justify-center gap-1.5 rounded-[10px] px-4 py-2.5 text-center text-sm font-semibold text-white shadow-md ${
               t.kind === 'error' ? 'bg-clay' : 'bg-leaf-dark'
             }`}
           >
-            {t.kind === 'success' ? '✓ ' : '⚠ '}
+            {t.kind === 'success' ? <CheckIcon className="h-4 w-4 shrink-0" /> : <WarningIcon className="h-4 w-4 shrink-0" />}
             {t.message}
           </div>
         ))}

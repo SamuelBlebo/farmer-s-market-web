@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { CameraIcon } from './icons';
 
 /**
  * Single-photo variant of ImageUploader's unsigned Cloudinary upload flow —
@@ -44,7 +45,7 @@ export function AvatarUploader({ initialUrl, name }: { initialUrl?: string | nul
           // eslint-disable-next-line @next/next/no-img-element
           <img src={url} alt="" className="h-full w-full object-cover" />
         ) : (
-          '📷'
+          <CameraIcon className="h-6 w-6" />
         )}
       </div>
       <div>

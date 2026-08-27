@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useFormState } from 'react-dom';
+import { BasketIcon, SproutIcon } from './icons';
 import { PasswordField } from './password-field';
 import { SubmitButton } from './submit-button';
 import { REGIONS } from '@/lib/constants';
@@ -59,14 +60,14 @@ export function RegisterForm() {
   const [state, formAction] = useFormState(register, {} as AuthState);
   const err = (f: string) => state.fieldErrors?.[f]?.[0];
 
-  const roleCard = (value: 'FARMER' | 'BUYER', emoji: string, title: string, sub: string) => (
+  const roleCard = (value: 'FARMER' | 'BUYER', icon: React.ReactNode, title: string, sub: string) => (
     <button
       type="button"
       onClick={() => setRole(value)}
       className={`card p-4 text-center ${role === value ? 'border-leaf bg-leaf-light' : ''}`}
     >
-      <div className="text-2xl" aria-hidden>{emoji}</div>
-      <div className="text-sm font-bold">{title}</div>
+      <div className="flex justify-center text-leaf-dark" aria-hidden>{icon}</div>
+      <div className="mt-1.5 text-sm font-bold">{title}</div>
       <div className="text-xs text-muted">{sub}</div>
     </button>
   );
@@ -76,8 +77,8 @@ export function RegisterForm() {
       <input type="hidden" name="role" value={role} />
       <p className="eyebrow mb-2">I am a…</p>
       <div className="mb-4 grid grid-cols-2 gap-3">
-        {roleCard('FARMER', '🌱', 'Farmer', 'I sell produce')}
-        {roleCard('BUYER', '🧺', 'Buyer', 'I buy produce')}
+        {roleCard('FARMER', <SproutIcon className="h-6 w-6" />, 'Farmer', 'I sell produce')}
+        {roleCard('BUYER', <BasketIcon className="h-6 w-6" />, 'Buyer', 'I buy produce')}
       </div>
 
       <label className="mb-3.5 block">

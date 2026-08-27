@@ -1,5 +1,6 @@
 'use client';
 
+import { ChatIcon } from './icons';
 import { trackClient } from '@/lib/analytics-client';
 
 export function WhatsAppButton({
@@ -22,7 +23,7 @@ export function WhatsAppButton({
       onClick={trackEntityId ? () => trackClient('WHATSAPP_CLICKED', trackEntityId) : undefined}
       className={`btn-wa ${className}`}
     >
-      💬 {label}
+      <ChatIcon className="h-4 w-4" /> {label}
     </a>
   );
 }

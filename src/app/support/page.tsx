@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { ChatIcon, MailIcon } from '@/components/icons';
 import { ReportProblemForm } from '@/components/report-problem-form';
 import { SectionCard } from '@/components/section-card';
 import { WhatsAppButton } from '@/components/whatsapp-button';
@@ -45,7 +46,9 @@ export default function SupportPage() {
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2">
         <a href={`mailto:${SUPPORT_EMAIL}`} className="card flex items-center gap-3 p-4 transition-colors hover:border-[#B9CCBD]">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-leaf-light text-lg" aria-hidden>✉️</span>
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-leaf-light text-leaf-dark" aria-hidden>
+            <MailIcon className="h-5 w-5" />
+          </span>
           <span>
             <span className="block text-sm font-bold">Email us</span>
             <span className="block text-[13px] text-muted">{SUPPORT_EMAIL}</span>
@@ -56,7 +59,9 @@ export default function SupportPage() {
           <WhatsAppButton href={whatsappSupportLink(SUPPORT_WHATSAPP)} label="Chat on WhatsApp" className="!justify-start !py-4" />
         ) : (
           <div className="card flex items-center gap-3 p-4 text-muted">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-paper text-lg" aria-hidden>💬</span>
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-paper" aria-hidden>
+              <ChatIcon className="h-5 w-5" />
+            </span>
             <span className="text-[13px]">WhatsApp support isn&apos;t set up yet — email us instead.</span>
           </div>
         )}

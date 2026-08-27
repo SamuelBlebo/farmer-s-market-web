@@ -225,7 +225,7 @@ export async function getSearchSuggestions(q: string) {
         unit: true,
         priceMinor: true,
         images: { orderBy: { sortOrder: 'asc' }, take: 1, select: { url: true } },
-        category: { select: { name: true, emoji: true } },
+        category: { select: { name: true, slug: true } },
       },
     }),
     prisma.farmerProfile.findMany({
@@ -236,7 +236,7 @@ export async function getSearchSuggestions(q: string) {
     prisma.category.findMany({
       where: { active: true, name: { contains: query, mode: 'insensitive' } },
       take: 3,
-      select: { slug: true, name: true, emoji: true },
+      select: { slug: true, name: true },
     }),
   ]);
 
@@ -434,7 +434,8 @@ export async function getFollowedFarmsProducts(buyerId: string) {
  */
 const FOLLOWER_MILESTONES = [10, 25, 50, 100, 250, 500, 1000];
 
-export type FarmActivityItem = { icon: string; message: string; at: Date };
+export type FarmActivityKind = 'harvest' | 'product' | 'verified' | 'followers';
+export type FarmActivityItem = { icon: FarmActivityKind; message: string; at: Date };
 
 export async function getFarmActivity(
   farmer: {
@@ -449,13 +450,13 @@ export async function getFarmActivity(
   for (const p of farmer.products) {
     items.push(
       p.expectedHarvestDate
-        ? { icon: '🌱', message: `New harvest posted: ${p.name}`, at: p.createdAt }
-        : { icon: '📦', message: `New product added: ${p.name}`, at: p.createdAt },
+        ? { icon: 'harvest', message: `New harvest posted: ${p.name}`, at: p.createdAt }
+        : { icon: 'product', message: `New product added: ${p.name}`, at: p.createdAt },
     );
   }
 
   if (farmer.verifiedAt) {
-    items.push({ icon: '⭐', message: 'Farmer verified', at: farmer.verifiedAt });
+    items.push({ icon: 'verified', message: 'Farmer verified', at: farmer.verifiedAt });
   }
 
   const follows = await prisma.farmFollow.findMany({
@@ -465,7 +466,7 @@ export async function getFarmActivity(
   });
   for (const milestone of FOLLOWER_MILESTONES) {
     if (follows.length >= milestone) {
-      items.push({ icon: '👥', message: `Reached ${milestone} followers`, at: follows[milestone - 1].createdAt });
+      items.push({ icon: 'followers', message: `Reached ${milestone} followers`, at: follows[milestone - 1].createdAt });
     }
   }
 

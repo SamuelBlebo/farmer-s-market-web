@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useFormState } from 'react-dom';
 import Link from 'next/link';
 import { ImageUploader } from './image-uploader';
+import { PinIcon } from './icons';
 import { SubmitButton } from './submit-button';
 import { VariantEditor } from './variant-editor';
 import { UNITS } from '@/lib/constants';
@@ -87,7 +88,9 @@ export function ProductForm({
 
       <div className="mb-3.5 rounded-[10px] border border-line bg-paper px-3 py-2.5">
         <span className="label mb-0.5">Location</span>
-        <p className="text-[15px]">📍 {initial?.town}, {initial?.region}</p>
+        <p className="inline-flex items-center gap-1.5 text-[15px]">
+          <PinIcon className="h-4 w-4 text-muted" /> {initial?.town}, {initial?.region}
+        </p>
         <p className="mt-0.5 text-[12.5px] text-muted">
           Every listing sells from your farm&apos;s location.{' '}
           <Link href="/account/edit" className="font-semibold text-leaf-dark hover:underline">Update it in your profile</Link> if it&apos;s changed.

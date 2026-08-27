@@ -92,11 +92,7 @@ export const productSchema = z
     variants: z.array(variantSchema).max(10).optional(),
     deliveryAvailable: z.boolean().optional(),
     deliveryRadiusKm: optionalPositiveNumber(500, 'Enter a radius'),
-    // 0 is a valid fee ("free delivery"), so this allows blank -> undefined but not negative.
-    deliveryFee: z.preprocess(
-      (v) => (v === '' || v === undefined || v === null ? undefined : v),
-      z.coerce.number().nonnegative('Enter a fee').max(100_000).optional(),
-    ),
+    deliveryPaidBy: z.enum(['FARMER', 'BUYER']).optional(),
   })
   .strict();
 

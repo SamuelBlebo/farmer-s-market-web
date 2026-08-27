@@ -41,7 +41,7 @@ export default async function EditListingPage({ params }: { params: { id: string
           variants: product.variants.map((v) => ({ name: v.name, price: v.priceMinor / 100, quantity: v.quantity ? Number(v.quantity) : null })),
           deliveryAvailable: product.deliveryAvailable,
           deliveryRadiusKm: product.deliveryRadiusKm,
-          deliveryFee: product.deliveryFeeMinor !== null ? product.deliveryFeeMinor / 100 : null,
+          deliveryPaidBy: product.deliveryPaidBy,
         }}
         submitLabel="Save changes"
       />

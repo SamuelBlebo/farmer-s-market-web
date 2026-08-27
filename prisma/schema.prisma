@@ -39,6 +39,12 @@ enum WantedStatus {
   CLOSED
 }
 
+// Who bears the delivery cost — never a fixed amount, since it varies by distance and load.
+enum DeliveryPayer {
+  FARMER
+  BUYER
+}
+
 enum ReportStatus {
   OPEN
   DISMISSED
@@ -212,10 +218,13 @@ model Product {
   // Set = the marketplace/dashboard derive an "upcoming harvest" vs "available
   // now" display from this instead of a separate stored lifecycle field.
   expectedHarvestDate DateTime?
-  // Delivery is opt-in per listing — false/null means pickup only.
+  // Delivery is opt-in per listing — false/null means pickup only. The fee
+  // itself isn't stored as a fixed amount — it varies too much by distance
+  // and load — only who bears it; the actual cost is arranged directly
+  // between buyer and farmer, same as everything else in this app.
   deliveryAvailable   Boolean          @default(false)
   deliveryRadiusKm    Int?
-  deliveryFeeMinor    Int?
+  deliveryPaidBy      DeliveryPayer?
   // Admin editorial pick — shown in the homepage's Featured section.
   featured            Boolean          @default(false)
   createdAt           DateTime         @default(now())

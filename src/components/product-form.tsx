@@ -24,7 +24,7 @@ type Initial = {
   variants?: { name: string; price: number; quantity?: number | null }[];
   deliveryAvailable?: boolean;
   deliveryRadiusKm?: number | null;
-  deliveryFee?: number | null;
+  deliveryPaidBy?: 'FARMER' | 'BUYER' | null;
 };
 
 function toDateInput(d: Date): string {
@@ -125,17 +125,38 @@ export function ProductForm({
           <span className="text-sm font-semibold">Delivery available (leave unchecked for pickup only)</span>
         </label>
         {deliveryAvailable && (
-          <div className="mt-3 grid grid-cols-2 gap-3">
+          <div className="mt-3">
             <label className="block">
               <span className="label">Delivery radius (km) <span className="font-normal text-muted">(optional)</span></span>
               <input name="deliveryRadiusKm" inputMode="decimal" className="input" defaultValue={initial?.deliveryRadiusKm ?? ''} />
               {err('deliveryRadiusKm') && <p className="mt-1 text-sm text-clay">{err('deliveryRadiusKm')}</p>}
             </label>
-            <label className="block">
-              <span className="label">Delivery fee (GH¢) <span className="font-normal text-muted">(optional, blank = free)</span></span>
-              <input name="deliveryFee" inputMode="decimal" className="input" defaultValue={initial?.deliveryFee ?? ''} />
-              {err('deliveryFee') && <p className="mt-1 text-sm text-clay">{err('deliveryFee')}</p>}
-            </label>
+
+            <fieldset className="mt-3">
+              <legend className="label mb-1">
+                Who pays for delivery? <span className="font-normal text-muted">(the cost itself is arranged with the buyer — it varies too much to fix here)</span>
+              </legend>
+              <div className="flex flex-col gap-1.5 sm:flex-row sm:gap-4">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="deliveryPaidBy"
+                    value="BUYER"
+                    defaultChecked={(initial?.deliveryPaidBy ?? 'BUYER') === 'BUYER'}
+                  />
+                  Buyer pays — arranged directly with me
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="deliveryPaidBy"
+                    value="FARMER"
+                    defaultChecked={initial?.deliveryPaidBy === 'FARMER'}
+                  />
+                  I deliver for free
+                </label>
+              </div>
+            </fieldset>
           </div>
         )}
       </div>

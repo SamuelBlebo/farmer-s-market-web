@@ -194,8 +194,12 @@ export default async function ProductPage({ params }: { params: { id: string } }
                     <SectionRow label="Delivery" value={<span className="badge bg-leaf-light text-leaf-dark">🚚 Available</span>} />
                     {p.deliveryRadiusKm && <SectionRow label="Delivery radius" value={`Up to ${p.deliveryRadiusKm} km`} />}
                     <SectionRow
-                      label="Delivery fee"
-                      value={p.deliveryFeeMinor ? formatPrice(p.deliveryFeeMinor) : 'Free'}
+                      label="Delivery cost"
+                      value={
+                        p.deliveryPaidBy === 'FARMER'
+                          ? 'Free — farmer delivers'
+                          : 'Buyer pays — arrange the cost on WhatsApp'
+                      }
                     />
                   </>
                 ) : (

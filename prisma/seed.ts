@@ -278,18 +278,18 @@ async function main() {
   }
 
   console.log('Delivery & featured…');
-  const DELIVERY: Record<string, { radiusKm: number; feeMinor: number | null }> = {
-    'Fresh Tomatoes': { radiusKm: 15, feeMinor: 1500 },
-    'Crate of Eggs (medium)': { radiusKm: 25, feeMinor: 0 },
-    'Keitt Mango': { radiusKm: 40, feeMinor: 3000 },
-    'Sugarloaf Pineapple': { radiusKm: 30, feeMinor: null },
+  const DELIVERY: Record<string, { radiusKm: number; paidBy: 'FARMER' | 'BUYER' }> = {
+    'Fresh Tomatoes': { radiusKm: 15, paidBy: 'BUYER' },
+    'Crate of Eggs (medium)': { radiusKm: 25, paidBy: 'FARMER' },
+    'Keitt Mango': { radiusKm: 40, paidBy: 'BUYER' },
+    'Sugarloaf Pineapple': { radiusKm: 30, paidBy: 'FARMER' },
   };
   for (const [name, delivery] of Object.entries(DELIVERY)) {
     const id = productByName.get(name);
     if (!id) continue;
     await prisma.product.update({
       where: { id },
-      data: { deliveryAvailable: true, deliveryRadiusKm: delivery.radiusKm, deliveryFeeMinor: delivery.feeMinor },
+      data: { deliveryAvailable: true, deliveryRadiusKm: delivery.radiusKm, deliveryPaidBy: delivery.paidBy },
     });
   }
 

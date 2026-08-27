@@ -113,7 +113,7 @@ export default async function AdminEditProductPage({ params }: { params: { id: s
           variants: product.variants.map((v) => ({ name: v.name, price: v.priceMinor / 100, quantity: v.quantity ? Number(v.quantity) : null })),
           deliveryAvailable: product.deliveryAvailable,
           deliveryRadiusKm: product.deliveryRadiusKm,
-          deliveryFee: product.deliveryFeeMinor !== null ? product.deliveryFeeMinor / 100 : null,
+          deliveryPaidBy: product.deliveryPaidBy,
         }}
         submitLabel="Save changes"
       />

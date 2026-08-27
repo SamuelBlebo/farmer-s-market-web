@@ -123,6 +123,16 @@ export const reportSchema = z.object({
   details: z.string().max(500).optional(),
 });
 
+export const startConversationSchema = z.object({
+  farmerUserId: z.string().min(1),
+  productId: z.string().min(1).optional(),
+});
+
+export const sendMessageSchema = z.object({
+  conversationId: z.string().min(1),
+  content: z.string().min(1, 'Type a message').max(2000),
+});
+
 export const feedbackSchema = z.object({
   message: z.string().min(5, 'Tell us a bit more').max(2000),
   page: z.string().max(200).optional(),

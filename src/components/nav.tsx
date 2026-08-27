@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { BadgeCheckIcon, ChatIcon, DocumentIcon, GridIcon, HeartIcon, PlusIcon, ShieldIcon, StoreIcon, UserIcon } from './icons';
+import { BadgeCheckIcon, ChatIcon, DocumentIcon, GridIcon, HeartIcon, MessageIcon, PlusIcon, ShieldIcon, StoreIcon, UserIcon } from './icons';
 import { MobileMenu } from './mobile-menu';
 import { NavLinks, type NavItem } from './nav-links';
 import { NotificationBell } from './notification-bell';
@@ -8,6 +8,7 @@ import { ProfileMenu } from './profile-menu';
 import { SearchBar } from './search-bar';
 import { prisma } from '@/lib/prisma';
 import { currentUser } from '@/server/authz';
+import { getUnreadMessageCount } from '@/server/chat';
 import { getUnreadNotificationCount } from '@/server/queries';
 
 const VERIFICATION_LABEL = { VERIFIED: 'Verified', PENDING: 'Pending', UNVERIFIED: 'Unverified' } as const;
@@ -16,7 +17,7 @@ const ROLE_LABEL = { FARMER: 'Farmer', BUYER: 'Buyer', ADMIN: 'Admin' } as const
 export async function Nav() {
   const user = await currentUser();
 
-  const [requestsCount, dbUser, farmerProfile, buyerProfile, farmerAttention, buyerAttention, adminAttention, unreadNotifications] = await Promise.all([
+  const [requestsCount, dbUser, farmerProfile, buyerProfile, farmerAttention, buyerAttention, adminAttention, unreadNotifications, unreadMessages] = await Promise.all([
     prisma.wantedListing.count({ where: { status: 'OPEN', moderation: 'APPROVED' } }),
     user ? prisma.user.findUnique({ where: { id: user.id }, select: { image: true } }) : null,
     user?.role === 'FARMER' ? prisma.farmerProfile.findUnique({ where: { userId: user.id } }) : null,
@@ -36,12 +37,16 @@ export async function Nav() {
         ]).then(([a, b, c]) => a + b + c)
       : 0,
     user?.role === 'BUYER' ? getUnreadNotificationCount(user.id) : 0,
+    user?.role === 'FARMER' || user?.role === 'BUYER' ? getUnreadMessageCount(user.id) : 0,
   ]);
 
   const items: NavItem[] = [
     { label: 'Marketplace', href: '/', icon: <StoreIcon /> },
     { label: 'Requests', href: '/wanted', icon: <DocumentIcon />, badge: requestsCount },
   ];
+  if (user?.role === 'FARMER' || user?.role === 'BUYER') {
+    items.push({ label: 'Messages', href: '/messages', icon: <MessageIcon className="h-[18px] w-[18px]" />, badge: unreadMessages });
+  }
 
   const favoritesItem = { label: 'Saved', href: '/favorites', icon: <HeartIcon className="h-4 w-4" /> };
 

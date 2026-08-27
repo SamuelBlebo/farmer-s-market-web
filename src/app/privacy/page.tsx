@@ -37,9 +37,17 @@ export default function PrivacyPage() {
           <h2 className="mb-1.5 text-[15px] font-bold text-ink">What&apos;s shown publicly</h2>
           <p>
             A farmer&apos;s listings, farm name, region/town, WhatsApp number, and phone number are public — that&apos;s
-            how buyers reach you, since {PLATFORM_NAME} doesn&apos;t handle contact internally. A buyer&apos;s wanted
-            requests and business name are public the same way. Your personal name and email are never shown
-            publicly.
+            how buyers can reach you directly. A buyer&apos;s wanted requests and business name are public the same
+            way. Your personal name and email are never shown publicly.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="mb-1.5 text-[15px] font-bold text-ink">In-app messages</h2>
+          <p>
+            {PLATFORM_NAME} also offers optional in-app chat between a buyer and a farmer, alongside WhatsApp and
+            phone contact. A conversation is private to the two people in it — we don&apos;t read, moderate, or
+            share message content, except where required by law or to investigate a report.
           </p>
         </section>
 

@@ -487,3 +487,24 @@ export function CategoryEggIcon({ className = 'h-4 w-4' }: IconProps) {
     </svg>
   );
 }
+
+// Two overlapping bubbles — distinct from ChatIcon's single bubble, which is
+// already used everywhere for WhatsApp. Keeps in-app Chat visually separate
+// wherever the two sit side by side (buy-box, farmer action row).
+export function MessageIcon({ className = 'h-4 w-4' }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} className={className} aria-hidden>
+      <path d="M3 5.5A1.5 1.5 0 0 1 4.5 4h9A1.5 1.5 0 0 1 15 5.5v6A1.5 1.5 0 0 1 13.5 13H9l-3.5 3v-3H4.5A1.5 1.5 0 0 1 3 11.5v-6Z" strokeLinejoin="round" />
+      <path d="M17.5 9H19a1.5 1.5 0 0 1 1.5 1.5v6A1.5 1.5 0 0 1 19 18h-.5v3l-3.3-3H10.5A1.5 1.5 0 0 1 9 16.5V15" strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function SendIcon({ className = 'h-4 w-4' }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} className={className} aria-hidden>
+      <path d="M20 4 3.5 10.5 11 13l2.5 7.5L20 4Z" strokeLinejoin="round" strokeLinecap="round" />
+      <path d="M11 13 20 4" strokeLinecap="round" />
+    </svg>
+  );
+}

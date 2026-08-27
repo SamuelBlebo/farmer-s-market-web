@@ -71,6 +71,18 @@ export function lastActiveLabel(date: Date | null): string {
   return `Active ${Math.floor(hours / 24)} days ago`;
 }
 
+/** Chat timestamps — "10:42 AM" today, "Yesterday", or "12 Aug". Finer-grained than timeAgo, which only counts in whole days. */
+export function chatTimeLabel(date: Date): string {
+  const now = new Date();
+  if (date.toDateString() === now.toDateString()) {
+    return date.toLocaleTimeString('en-GH', { hour: 'numeric', minute: '2-digit' });
+  }
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+}
+
 export function harvestDateLabel(date: Date): string {
   return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
 }

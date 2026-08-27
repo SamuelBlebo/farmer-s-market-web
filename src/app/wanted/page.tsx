@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ToastListener } from '@/components/toast-listener';
 import { ModerationBadge } from '@/components/badges';
+import { ChatButton } from '@/components/chat-button';
 import { ContactPrompt } from '@/components/contact-prompt';
 import { BadgeCheckIcon, CalendarIcon, ClockIcon, DocumentIcon, PinIcon, StoreIcon } from '@/components/icons';
 import { Pagination } from '@/components/pagination';
@@ -131,11 +132,14 @@ export default async function WantedPage({ searchParams }: { searchParams: { pag
 
               <p className="line-clamp-2 flex-1 border-t border-line pt-3 text-[13.5px] text-muted">{w.description}</p>
               {user ? (
-                <WhatsAppButton
-                  href={whatsappWantedLink(w.buyer.whatsapp, w.productName)}
-                  label="Contact buyer"
-                  className="mt-3 w-full"
-                />
+                <div className="mt-3 space-y-2">
+                  <WhatsAppButton
+                    href={whatsappWantedLink(w.buyer.whatsapp, w.productName)}
+                    label="Contact buyer"
+                    className="w-full"
+                  />
+                  {user.role === 'FARMER' && <ChatButton otherUserId={w.buyer.userId} label="Chat" className="btn-ghost w-full" />}
+                </div>
               ) : (
                 <ContactPrompt message="Sign in to contact this buyer." className="mt-3" />
               )}

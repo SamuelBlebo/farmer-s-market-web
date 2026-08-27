@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { ChatButton } from '@/components/chat-button';
 import { ContactPrompt } from '@/components/contact-prompt';
 import { LifecycleBadge } from '@/components/badges';
 import { FollowButton } from '@/components/follow-button';
@@ -148,6 +149,9 @@ export default async function FarmerPage({ params }: { params: { id: string } })
                     className="sm:flex-1"
                     trackEntityId={farmer.id}
                   />
+                )}
+                {user.role === 'BUYER' && (
+                  <ChatButton otherUserId={farmer.user.id} label="Chat" className="btn-ghost sm:flex-1" />
                 )}
               </>
             )}

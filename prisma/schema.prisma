@@ -109,6 +109,10 @@ model User {
   feedback        Feedback[]
   reviews         Review[]
 
+  buyerConversations  Conversation[] @relation("BuyerConversations")
+  farmerConversations Conversation[] @relation("FarmerConversations")
+  sentMessages        Message[]
+
   @@index([role])
 }
 
@@ -260,6 +264,7 @@ model Product {
   favorites     Favorite[]
   reports       Report[]
   notifications Notification[]
+  conversations Conversation[]
 
   @@index([status, moderation, createdAt])
   @@index([featured, status, moderation])
@@ -368,6 +373,45 @@ model Notification {
 
   @@index([userId, readAt])
   @@index([productId, type])
+}
+
+// In-app chat — an alternative to WhatsApp/phone contact, not a replacement;
+// both stay available. One continuing thread per buyer/farmer pair rather
+// than one per listing (same consolidation WhatsApp itself does), with
+// productId marking whichever listing the conversation actually started
+// from, for context. Both buyerId and farmerId are User.id, same keying as
+// FarmFollow. No moderation queue — this is private 1:1 messages between two
+// consenting parties, not public content.
+model Conversation {
+  id            String   @id @default(cuid())
+  buyerId       String
+  farmerId      String
+  productId     String?
+  lastMessageAt DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  buyer    User      @relation("BuyerConversations", fields: [buyerId], references: [id], onDelete: Cascade)
+  farmer   User      @relation("FarmerConversations", fields: [farmerId], references: [id], onDelete: Cascade)
+  product  Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  messages Message[]
+
+  @@unique([buyerId, farmerId])
+  @@index([buyerId, lastMessageAt])
+  @@index([farmerId, lastMessageAt])
+}
+
+model Message {
+  id             String    @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String
+  createdAt      DateTime  @default(now())
+  readAt         DateTime?
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
 }
 
 // Real, best-effort behavior tracking — never invented. userId is null for

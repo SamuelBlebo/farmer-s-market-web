@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { LifecycleBadge, StatusBadge, VerifiedBadge } from '@/components/badges';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { ChatButton } from '@/components/chat-button';
 import { ContactPrompt } from '@/components/contact-prompt';
 import { CheckIcon, EyeIcon, FlagIcon, PencilIcon, PinIcon, StarIcon, TruckIcon, WheatIcon } from '@/components/icons';
 import { ProductCard } from '@/components/product-card';
@@ -230,6 +231,9 @@ export default async function ProductPage({ params }: { params: { id: string } }
                   <WhatsAppButton href={whatsappProductLink(p.farmer.whatsapp, p.name)} className="w-full" trackEntityId={p.id} />
                   {p.farmer.phone && (
                     <TrackedCallLink href={telLink(p.farmer.phone)} productId={p.id} className="btn-ghost w-full" />
+                  )}
+                  {user.role === 'BUYER' && (
+                    <ChatButton otherUserId={p.farmer.user.id} productId={p.id} label="Chat with farmer" className="btn-ghost w-full" />
                   )}
                 </div>
               ) : (

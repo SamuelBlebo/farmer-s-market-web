@@ -47,6 +47,7 @@ export default async function ConversationPage({ params }: { params: { id: strin
       <ConversationThread
         conversationId={conversation.id}
         currentUserId={user.id}
+        productName={conversation.product?.name}
         initialMessages={conversation.messages.map((m) => ({
           id: m.id,
           senderId: m.senderId,

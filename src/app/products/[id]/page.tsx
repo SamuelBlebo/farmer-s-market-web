@@ -228,12 +228,12 @@ export default async function ProductPage({ params }: { params: { id: string } }
             {p.status === 'ACTIVE' ? (
               user ? (
                 <div className="mt-4 space-y-2">
+                  {user.role === 'BUYER' && (
+                    <ChatButton otherUserId={p.farmer.user.id} productId={p.id} label="Chat with farmer" className="btn w-full" />
+                  )}
                   <WhatsAppButton href={whatsappProductLink(p.farmer.whatsapp, p.name)} className="w-full" trackEntityId={p.id} />
                   {p.farmer.phone && (
                     <TrackedCallLink href={telLink(p.farmer.phone)} productId={p.id} className="btn-ghost w-full" />
-                  )}
-                  {user.role === 'BUYER' && (
-                    <ChatButton otherUserId={p.farmer.user.id} productId={p.id} label="Chat with farmer" className="btn-ghost w-full" />
                   )}
                 </div>
               ) : (

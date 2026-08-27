@@ -12,14 +12,30 @@ export type ChatMessage = { id: string; senderId: string; content: string; creat
 // poll stands in for real-time push — good enough at this app's scale.
 const POLL_MS = 4000;
 
+/** Canned starters shown only before the first message — same fast-path Jiji-style marketplace chats use. */
+function quickReplies(productName?: string | null): string[] {
+  return [
+    productName ? `Is the ${productName} still available?` : 'Is this still available?',
+    "What's your best price?",
+    'Can you deliver to my location?',
+    'When can I come pick it up?',
+  ];
+}
+
 export function ConversationThread({
   conversationId,
   currentUserId,
   initialMessages,
+  productName,
+  compact = false,
 }: {
   conversationId: string;
   currentUserId: string;
   initialMessages: ChatMessage[];
+  /** Feeds the "Is the X still available?" quick reply — omit for a generic one. */
+  productName?: string | null;
+  /** Shrinks the thread to fill its parent instead of a fixed 70vh — for the floating widget. */
+  compact?: boolean;
 }) {
   const [messages, setMessages] = useState(initialMessages);
   const [isSending, startTransition] = useTransition();
@@ -54,36 +70,49 @@ export function ConversationThread({
     return () => clearInterval(interval);
   }, [conversationId, currentUserId]);
 
+  async function sendContent(content: string): Promise<boolean> {
+    const formData = new FormData();
+    formData.set('content', content);
+    formData.set('conversationId', conversationId);
+    const result = await sendMessage({}, formData);
+    if (result.error) {
+      toast.error(result.error);
+      return false;
+    }
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}/messages?after=${encodeURIComponent(lastAtRef.current)}`);
+      if (res.ok) {
+        const data: { messages: ChatMessage[] } = await res.json();
+        if (data.messages?.length) {
+          setMessages((prev) => [...prev, ...data.messages]);
+          lastAtRef.current = data.messages[data.messages.length - 1].createdAt;
+        }
+      }
+    } catch {
+      // Sent fine either way — the poll interval will pick it up.
+    }
+    return true;
+  }
+
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
-    const formData = new FormData(form);
-    if (!String(formData.get('content') ?? '').trim()) return;
+    const content = String(new FormData(form).get('content') ?? '').trim();
+    if (!content) return;
 
     startTransition(async () => {
-      const result = await sendMessage({}, formData);
-      if (result.error) {
-        toast.error(result.error);
-        return;
-      }
-      form.reset();
-      try {
-        const res = await fetch(`/api/conversations/${conversationId}/messages?after=${encodeURIComponent(lastAtRef.current)}`);
-        if (res.ok) {
-          const data: { messages: ChatMessage[] } = await res.json();
-          if (data.messages?.length) {
-            setMessages((prev) => [...prev, ...data.messages]);
-            lastAtRef.current = data.messages[data.messages.length - 1].createdAt;
-          }
-        }
-      } catch {
-        // Sent fine either way — the poll interval will pick it up.
-      }
+      if (await sendContent(content)) form.reset();
+    });
+  }
+
+  function handleQuickReply(text: string) {
+    startTransition(async () => {
+      await sendContent(text);
     });
   }
 
   return (
-    <div className="flex h-[70vh] flex-col">
+    <div className={compact ? 'flex h-full flex-col' : 'flex h-[70vh] flex-col'}>
       <div className="flex-1 space-y-2 overflow-y-auto rounded-2xl border border-line bg-paper p-3">
         {messages.length === 0 && (
           <p className="mt-8 text-center text-sm text-muted">Say hello — messages are private between you two.</p>
@@ -103,6 +132,22 @@ export function ConversationThread({
         })}
         <div ref={bottomRef} />
       </div>
+
+      {messages.length === 0 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {quickReplies(productName).map((text) => (
+            <button
+              key={text}
+              type="button"
+              disabled={isSending}
+              onClick={() => handleQuickReply(text)}
+              className="rounded-full border border-line bg-white px-2.5 py-1 text-[12px] font-semibold text-leaf-dark transition-colors hover:bg-leaf-light disabled:opacity-60"
+            >
+              {text}
+            </button>
+          ))}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="mt-3 flex items-end gap-2">
         <textarea

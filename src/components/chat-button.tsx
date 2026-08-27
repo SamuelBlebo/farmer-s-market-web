@@ -1,12 +1,12 @@
 'use client';
 
 import { useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import { startConversation } from '@/server/actions/chat';
+import { useChatWidget } from './chat-widget-provider';
 import { MessageIcon } from './icons';
 import { useToast } from './toast-provider';
 
-/** Opens (or starts) the thread with the other party and navigates to it. */
+/** Opens (or starts) the thread with the other party in the floating chat widget — no page navigation. */
 export function ChatButton({
   otherUserId,
   productId,
@@ -19,14 +19,14 @@ export function ChatButton({
   className?: string;
 }) {
   const [isPending, startTransition] = useTransition();
-  const router = useRouter();
+  const { openChat } = useChatWidget();
   const toast = useToast();
 
   function open() {
     startTransition(async () => {
       try {
         const id = await startConversation(otherUserId, productId);
-        router.push(`/messages/${id}`);
+        openChat(id);
       } catch {
         toast.error('Could not open chat — try again.');
       }

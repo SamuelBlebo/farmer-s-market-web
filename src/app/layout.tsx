@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import type { Metadata, Viewport } from 'next';
 import { Manrope } from 'next/font/google';
 import './globals.css';
+import { ChatWidgetProvider } from '@/components/chat-widget-provider';
 import { FeedbackWidget } from '@/components/feedback-widget';
 import { Footer } from '@/components/footer';
 import { Nav } from '@/components/nav';
@@ -49,15 +50,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <ErrorMonitor />
         <ToastProvider>
-          <Suspense fallback={null}>
-            <TopProgressBar />
-          </Suspense>
-          <div className="mx-auto max-w-[1120px] px-4 py-5 pb-16">
-            <Nav />
-            {children}
-            <Footer />
-          </div>
-          <FeedbackWidget />
+          <ChatWidgetProvider>
+            <Suspense fallback={null}>
+              <TopProgressBar />
+            </Suspense>
+            <div className="mx-auto max-w-[1120px] px-4 py-5 pb-16">
+              <Nav />
+              {children}
+              <Footer />
+            </div>
+            <FeedbackWidget />
+          </ChatWidgetProvider>
         </ToastProvider>
       </body>
     </html>

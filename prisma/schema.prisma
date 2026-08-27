@@ -60,6 +60,11 @@ enum NotificationType {
   HARVEST_AVAILABLE
 }
 
+enum FeedbackStatus {
+  OPEN
+  REVIEWED
+}
+
 // ---------- auth ----------
 model User {
   id            String    @id @default(cuid())
@@ -95,6 +100,7 @@ model User {
   followers       FarmFollow[]     @relation("FarmerFollow")
   notifications   Notification[]
   analyticsEvents AnalyticsEvent[]
+  feedback        Feedback[]
 
   @@index([role])
 }
@@ -364,4 +370,20 @@ model Report {
 
   @@index([status, createdAt])
   @@index([productId])
+}
+
+// Free-text feedback from the floating widget or the /support page — deliberately
+// not tied to a product/farmer, unlike Report. userId is null for guest submissions.
+model Feedback {
+  id        String         @id @default(cuid())
+  userId    String?
+  message   String
+  // Path the widget was opened from (e.g. "/products/abc123") — context for admin triage.
+  page      String?
+  status    FeedbackStatus @default(OPEN)
+  createdAt DateTime       @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
 }

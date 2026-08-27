@@ -2,6 +2,8 @@ import { Suspense } from 'react';
 import type { Metadata, Viewport } from 'next';
 import { Manrope } from 'next/font/google';
 import './globals.css';
+import { FeedbackWidget } from '@/components/feedback-widget';
+import { Footer } from '@/components/footer';
 import { Nav } from '@/components/nav';
 import { TopProgressBar } from '@/components/top-progress-bar';
 import { ToastProvider } from '@/components/toast-provider';
@@ -53,7 +55,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="mx-auto max-w-[1120px] px-4 py-5 pb-16">
             <Nav />
             {children}
+            <Footer />
           </div>
+          <FeedbackWidget />
         </ToastProvider>
       </body>
     </html>

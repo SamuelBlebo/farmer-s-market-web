@@ -122,3 +122,10 @@ export async function toggleCategory(formData: FormData) {
   await prisma.category.update({ where: { id }, data: { active: !category.active } });
   revalidatePath('/admin');
 }
+
+export async function markFeedbackReviewed(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get('feedbackId') ?? '');
+  await prisma.feedback.update({ where: { id }, data: { status: 'REVIEWED' } });
+  revalidatePath('/admin/feedback');
+}

@@ -122,6 +122,11 @@ export const reportSchema = z.object({
   details: z.string().max(500).optional(),
 });
 
+export const feedbackSchema = z.object({
+  message: z.string().min(5, 'Tell us a bit more').max(2000),
+  page: z.string().max(200).optional(),
+});
+
 // Blank input means "no photo change" rather than a validation failure.
 const optionalImage = z.preprocess(
   (v) => (v === '' || v === undefined || v === null ? undefined : v),

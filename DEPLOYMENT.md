@@ -45,9 +45,14 @@ local/dev-only script.
 | `CLOUDINARY_API_KEY` | Cloudinary dashboard |
 | `CLOUDINARY_API_SECRET` | Cloudinary dashboard — server-side only, never exposed to the browser |
 | `NEXT_PUBLIC_PLATFORM_NAME` | shown in the pre-filled WhatsApp message |
+| `NEXT_PUBLIC_SITE_URL` | the real production domain, e.g. `https://your-app.vercel.app` — used by `metadataBase`, Open Graph images, and the generated sitemap; left at the `localhost` default, those all point at the wrong place |
 
 Anything without `NEXT_PUBLIC_` stays server-side only, which is why
 `CLOUDINARY_API_SECRET` and `AUTH_SECRET` are safe to set here.
+
+Once deployed, `/admin/system` (admin-only) shows live status for the
+database, Cloudinary, and every variable in the table above — check it
+after the first deploy instead of guessing from the Vercel dashboard.
 
 ## 4. Deploy
 
@@ -61,7 +66,7 @@ Vercel runs `npm install` then `npm run build` (`prisma generate && next build`)
 ## 5. Post-deploy checklist
 
 - [ ] `prisma migrate deploy` has been run against the production database
-- [ ] All 8 environment variables above are set for the Production environment
+- [ ] All 9 environment variables above are set for the Production environment
 - [ ] `AUTH_URL` matches the actual deployed domain (auth callbacks break otherwise)
 - [ ] Register a test farmer account, post a listing, confirm it's `PENDING`
 - [ ] Promote your own account to `ADMIN` directly in the production database

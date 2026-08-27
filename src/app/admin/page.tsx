@@ -70,7 +70,11 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
           <p className="eyebrow">Admin</p>
           <h1 className="text-2xl font-bold tracking-tight">Platform overview</h1>
         </div>
-        <Link href="/admin/analytics" className="btn-ghost ml-auto">📊 Analytics</Link>
+        <div className="ml-auto flex flex-wrap gap-2">
+          <Link href="/admin/analytics" className="btn-ghost">📊 Analytics</Link>
+          <Link href="/admin/feedback" className="btn-ghost">💬 Feedback</Link>
+          <Link href="/admin/system" className="btn-ghost">⚙️ System</Link>
+        </div>
       </div>
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">

@@ -123,6 +123,22 @@ export async function toggleCategory(formData: FormData) {
   revalidatePath('/admin');
 }
 
+export async function moderateReview(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get('reviewId') ?? '');
+  const decision = String(formData.get('decision') ?? '');
+  if (!['APPROVED', 'REJECTED'].includes(decision)) throw new Error('Invalid decision');
+
+  const review = await prisma.review.update({
+    where: { id },
+    data: { moderation: decision as 'APPROVED' | 'REJECTED' },
+    select: { farmerId: true },
+  });
+
+  revalidatePath('/admin');
+  revalidatePath(`/farmers/${review.farmerId}`);
+}
+
 export async function markFeedbackReviewed(formData: FormData) {
   await requireAdmin();
   const id = String(formData.get('feedbackId') ?? '');

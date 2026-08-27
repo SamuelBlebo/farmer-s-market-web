@@ -113,6 +113,12 @@ export const feedbackSchema = z.object({
   page: z.string().max(200).optional(),
 });
 
+export const reviewSchema = z.object({
+  farmerId: z.string().min(1),
+  rating: z.coerce.number().int().min(1, 'Pick a rating').max(5),
+  comment: z.string().max(1000).optional(),
+});
+
 // Blank input means "no photo change" rather than a validation failure.
 const optionalImage = z.preprocess(
   (v) => (v === '' || v === undefined || v === null ? undefined : v),

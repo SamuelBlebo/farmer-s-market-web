@@ -19,6 +19,7 @@ import {
 } from '@/components/icons';
 import { ProductCard } from '@/components/product-card';
 import { ProfileHero } from '@/components/profile-hero';
+import { ReviewForm } from '@/components/review-form';
 import { SectionCard } from '@/components/section-card';
 import { ShareFarmButton } from '@/components/share-farm-button';
 import { StatCard } from '@/components/stat-card';
@@ -27,7 +28,16 @@ import { WhatsAppButton } from '@/components/whatsapp-button';
 import { getProductLifecycle, lastActiveLabel, timeAgo, whatsappProductLink, type ProductLifecycle } from '@/lib/format';
 import { computeTrustScore } from '@/lib/trust';
 import { prisma } from '@/lib/prisma';
-import { getFarmActivity, getFarmer, getFollowerCount, isFollowingFarmer, type FarmActivityKind } from '@/server/queries';
+import {
+  getFarmActivity,
+  getFarmer,
+  getFarmerRatingSummary,
+  getFarmerReviews,
+  getFollowerCount,
+  getMyReview,
+  isFollowingFarmer,
+  type FarmActivityKind,
+} from '@/server/queries';
 import { currentUser } from '@/server/authz';
 import { track } from '@/server/analytics';
 
@@ -73,11 +83,14 @@ export default async function FarmerPage({ params }: { params: { id: string } })
   if (!farmer) notFound();
   void track({ type: 'FARMER_VIEWED', userId: user?.id, entityId: farmer.id });
 
-  const [savedByBuyers, followerCount, isFollowing, activity] = await Promise.all([
+  const [savedByBuyers, followerCount, isFollowing, activity, reviews, ratingSummary, myReview] = await Promise.all([
     prisma.favorite.count({ where: { product: { farmerId: farmer.id } } }),
     getFollowerCount(farmer.user.id),
     user?.role === 'BUYER' ? isFollowingFarmer(user.id, farmer.user.id) : false,
     getFarmActivity(farmer, farmer.user.id),
+    getFarmerReviews(farmer.id),
+    getFarmerRatingSummary(farmer.id),
+    user?.role === 'BUYER' ? getMyReview(farmer.id, user.id) : null,
   ]);
 
   const memberSince = farmer.createdAt.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
@@ -151,7 +164,7 @@ export default async function FarmerPage({ params }: { params: { id: string } })
 
       <div className="mb-5">
         <SectionCard title="Farm Reputation">
-          <div className="grid grid-cols-2 gap-2.5 p-4 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="grid grid-cols-2 gap-2.5 p-4 sm:grid-cols-3 lg:grid-cols-6">
             <StatCard
               compact
               icon={<UserIcon />}
@@ -164,6 +177,12 @@ export default async function FarmerPage({ params }: { params: { id: string } })
             />
             <StatCard compact icon={<HeartIcon className="h-[18px] w-[18px]" />} label="Saved by buyers" value={savedByBuyers} />
             <StatCard compact icon={<StoreIcon />} label="Active listings" value={farmer.products.length} />
+            <StatCard
+              compact
+              icon={<StarIcon filled />}
+              label={`Rating (${ratingSummary.count})`}
+              value={ratingSummary.count > 0 ? ratingSummary.average.toFixed(1) : '—'}
+            />
             <StatCard compact icon={<ClockIcon />} label="Last active" value={lastActiveLabel(farmer.user.lastActiveAt)} />
             <StatCard compact icon={<CalendarIcon />} label="Member since" value={memberSince} />
           </div>
@@ -216,6 +235,56 @@ export default async function FarmerPage({ params }: { params: { id: string } })
           </SectionCard>
         </div>
       )}
+
+      <div className="mb-5">
+        <SectionCard title={`Reviews${ratingSummary.count > 0 ? ` (${ratingSummary.count})` : ''}`}>
+          <div className="p-4">
+            {reviews.length > 0 && (
+              <div className="mb-4 flex items-center gap-2 border-b border-line pb-4">
+                <div className="flex text-gold" aria-hidden>
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <StarIcon key={n} className="h-4 w-4" filled={n <= Math.round(ratingSummary.average)} />
+                  ))}
+                </div>
+                <span className="text-sm font-bold">{ratingSummary.average.toFixed(1)} out of 5</span>
+                <span className="text-[12.5px] text-muted">from {ratingSummary.count} review{ratingSummary.count === 1 ? '' : 's'}</span>
+              </div>
+            )}
+
+            {reviews.length === 0 ? (
+              <p className="text-sm text-muted">No reviews yet — be the first to leave one.</p>
+            ) : (
+              <div className="mb-4 divide-y divide-line">
+                {reviews.map((r) => (
+                  <div key={r.id} className="py-3 first:pt-0 last:pb-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex text-gold" aria-hidden>
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <StarIcon key={n} className="h-3.5 w-3.5" filled={n <= r.rating} />
+                        ))}
+                      </div>
+                      <span className="shrink-0 text-[12px] text-muted">{timeAgo(r.createdAt)}</span>
+                    </div>
+                    <p className="mt-1 text-[13px] font-bold">{r.buyer.buyerProfile?.businessName ?? r.buyer.name}</p>
+                    {r.comment && <p className="mt-0.5 text-[13.5px] text-muted">{r.comment}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {user?.role === 'BUYER' ? (
+              <ReviewForm
+                farmerId={farmer.id}
+                initialRating={myReview?.rating}
+                initialComment={myReview?.comment}
+                pending={myReview?.moderation === 'PENDING'}
+              />
+            ) : !user ? (
+              <ContactPrompt message="Sign in as a buyer to leave a review." />
+            ) : null}
+          </div>
+        </SectionCard>
+      </div>
 
       {farmer.products.length === 0 ? (
         <div className="card p-10 text-center">

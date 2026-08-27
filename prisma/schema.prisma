@@ -107,6 +107,7 @@ model User {
   notifications   Notification[]
   analyticsEvents AnalyticsEvent[]
   feedback        Feedback[]
+  reviews         Review[]
 
   @@index([role])
 }
@@ -163,9 +164,32 @@ model FarmerProfile {
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   products Product[]
+  reviews  Review[]
 
   @@index([region])
   @@index([verification])
+}
+
+// A buyer's rating of a farmer. Goes through the same PENDING/APPROVED/REJECTED
+// moderation as every other piece of public buyer-generated content in this app
+// (Product, WantedListing) — reuses ModerationStatus rather than inventing a new
+// enum. One review per buyer per farmer; editing an existing review re-queues it
+// for moderation rather than leaving a stale approval on edited content.
+model Review {
+  id         String           @id @default(cuid())
+  farmerId   String
+  buyerId    String
+  rating     Int
+  comment    String?
+  moderation ModerationStatus @default(PENDING)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  farmer FarmerProfile @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  buyer  User          @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+
+  @@unique([buyerId, farmerId])
+  @@index([farmerId, moderation])
 }
 
 model BuyerProfile {

@@ -191,6 +191,37 @@ export async function getFarmer(id: string) {
   });
 }
 
+/** Only ever APPROVED reviews — same visibility rule as every other moderated content type here. */
+export async function getFarmerReviews(farmerId: string, take = 20) {
+  return prisma.review.findMany({
+    where: { farmerId, moderation: 'APPROVED' },
+    orderBy: { createdAt: 'desc' },
+    take,
+    select: {
+      id: true,
+      rating: true,
+      comment: true,
+      createdAt: true,
+      // Business name, same identity buyers already show on Wanted requests — falls back to their name if somehow unset.
+      buyer: { select: { name: true, buyerProfile: { select: { businessName: true } } } },
+    },
+  });
+}
+
+export async function getFarmerRatingSummary(farmerId: string) {
+  const agg = await prisma.review.aggregate({
+    where: { farmerId, moderation: 'APPROVED' },
+    _avg: { rating: true },
+    _count: true,
+  });
+  return { average: agg._avg.rating ?? 0, count: agg._count };
+}
+
+/** The signed-in buyer's own review, regardless of moderation status — so they see it even while pending. */
+export async function getMyReview(farmerId: string, buyerUserId: string) {
+  return prisma.review.findUnique({ where: { buyerId_farmerId: { buyerId: buyerUserId, farmerId } } });
+}
+
 /** Admin's editorial picks — same card, just a curated subset above the main grid. */
 export async function getFeaturedProducts() {
   return prisma.product.findMany({

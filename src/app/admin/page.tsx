@@ -10,6 +10,7 @@ import { requireAdmin } from '@/server/authz';
 import { getAdminBuyers, getAdminFarmers, getAdminProducts } from '@/server/queries';
 import {
   moderateProduct,
+  moderateReview,
   moderateWanted,
   removeProduct,
   resolveReport,
@@ -27,7 +28,7 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
   const farmersPage = Number(searchParams.farmersPage ?? 1) || 1;
   const buyersPage = Number(searchParams.buyersPage ?? 1) || 1;
 
-  const [pending, pendingWanted, farmers, buyers, allListings, reports, categories, counts] = await Promise.all([
+  const [pending, pendingWanted, pendingReviews, farmers, buyers, allListings, reports, categories, counts] = await Promise.all([
     prisma.product.findMany({
       where: { moderation: 'PENDING' },
       orderBy: { createdAt: 'asc' },
@@ -38,6 +39,12 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
       where: { moderation: 'PENDING' },
       orderBy: { createdAt: 'asc' },
       include: { buyer: true },
+      take: 50,
+    }),
+    prisma.review.findMany({
+      where: { moderation: 'PENDING' },
+      orderBy: { createdAt: 'asc' },
+      include: { farmer: { select: { farmName: true } }, buyer: { select: { name: true, buyerProfile: { select: { businessName: true } } } } },
       take: 50,
     }),
     getAdminFarmers(farmersPage),
@@ -127,6 +134,26 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
             </div>
             <form action={moderateWanted} className="flex gap-2">
               <input type="hidden" name="wantedId" value={w.id} />
+              <button name="decision" value="APPROVED" className="btn !px-3 !py-1.5 !text-[13px]">Approve</button>
+              <button name="decision" value="REJECTED" className="btn-ghost !px-3 !py-1.5 !text-[13px]">Reject</button>
+            </form>
+          </div>
+        ))}
+      </div>
+
+      <h2 id="pending-reviews" className="mb-2 scroll-mt-4 text-lg font-semibold tracking-tight">Reviews awaiting approval</h2>
+      <div className="card mb-6 divide-y divide-line">
+        {pendingReviews.length === 0 && <p className="p-5 text-sm text-muted">Nothing in the queue. All caught up.</p>}
+        {pendingReviews.map((r) => (
+          <div key={r.id} className="flex flex-wrap items-center gap-3 p-3.5">
+            <div className="min-w-[200px] flex-1">
+              <div className="font-bold">
+                {r.rating}/5 · {r.buyer.buyerProfile?.businessName ?? r.buyer.name} → {r.farmer.farmName}
+              </div>
+              {r.comment && <div className="text-[12.5px] text-muted">{r.comment}</div>}
+            </div>
+            <form action={moderateReview} className="flex gap-2">
+              <input type="hidden" name="reviewId" value={r.id} />
               <button name="decision" value="APPROVED" className="btn !px-3 !py-1.5 !text-[13px]">Approve</button>
               <button name="decision" value="REJECTED" className="btn-ghost !px-3 !py-1.5 !text-[13px]">Reject</button>
             </form>

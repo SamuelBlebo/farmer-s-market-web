@@ -24,7 +24,6 @@ type Initial = {
   expectedHarvestDate?: string;
   variants?: { name: string; price: number; quantity?: number | null }[];
   deliveryAvailable?: boolean;
-  deliveryRadiusKm?: number | null;
   deliveryPaidBy?: 'FARMER' | 'BUYER' | null;
 };
 
@@ -129,13 +128,7 @@ export function ProductForm({
         </label>
         {deliveryAvailable && (
           <div className="mt-3">
-            <label className="block">
-              <span className="label">Delivery radius (km) <span className="font-normal text-muted">(optional)</span></span>
-              <input name="deliveryRadiusKm" inputMode="decimal" className="input" defaultValue={initial?.deliveryRadiusKm ?? ''} />
-              {err('deliveryRadiusKm') && <p className="mt-1 text-sm text-clay">{err('deliveryRadiusKm')}</p>}
-            </label>
-
-            <fieldset className="mt-3">
+            <fieldset>
               <legend className="label mb-1">
                 Who pays for delivery? <span className="font-normal text-muted">(the cost itself is arranged with the buyer — it varies too much to fix here)</span>
               </legend>

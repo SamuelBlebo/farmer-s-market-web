@@ -220,7 +220,6 @@ export default async function ProductPage({ params }: { params: { id: string } }
                         </span>
                       }
                     />
-                    {p.deliveryRadiusKm && <SectionRow label="Delivery radius" value={`Up to ${p.deliveryRadiusKm} km`} />}
                     <SectionRow
                       label="Delivery cost"
                       value={

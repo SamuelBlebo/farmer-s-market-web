@@ -37,7 +37,6 @@ function readForm(formData: FormData) {
     variants: readVariants(formData),
     // Checkboxes only appear in FormData when checked.
     deliveryAvailable: formData.get('deliveryAvailable') === 'on',
-    deliveryRadiusKm: String(formData.get('deliveryRadiusKm') ?? '') || undefined,
     deliveryPaidBy: String(formData.get('deliveryPaidBy') ?? '') || undefined,
   };
 }
@@ -46,12 +45,11 @@ function toHarvestDate(iso: string | undefined): Date | null {
   return iso ? new Date(`${iso}T00:00:00`) : null;
 }
 
-/** Radius/payer only mean anything when delivery is actually offered — clear them otherwise. */
-function deliveryFields(d: { deliveryAvailable?: boolean; deliveryRadiusKm?: number; deliveryPaidBy?: 'FARMER' | 'BUYER' }) {
+/** Payer only means anything when delivery is actually offered — clear it otherwise. */
+function deliveryFields(d: { deliveryAvailable?: boolean; deliveryPaidBy?: 'FARMER' | 'BUYER' }) {
   const available = d.deliveryAvailable ?? false;
   return {
     deliveryAvailable: available,
-    deliveryRadiusKm: available ? (d.deliveryRadiusKm ?? null) : null,
     // Defaults to the buyer paying — matches the radio's own default in ProductForm.
     deliveryPaidBy: available ? (d.deliveryPaidBy ?? 'BUYER') : null,
   };

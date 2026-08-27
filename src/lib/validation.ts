@@ -60,15 +60,6 @@ const optionalHarvestDate = z.preprocess(
     .optional(),
 );
 
-// Blank input means "not set" rather than a validation failure — same
-// pattern as optionalEmail/optionalImage above.
-function optionalPositiveNumber(max: number, message: string) {
-  return z.preprocess(
-    (v) => (v === '' || v === undefined || v === null ? undefined : v),
-    z.coerce.number().positive(message).max(max).optional(),
-  );
-}
-
 export const variantSchema = z.object({
   name: z.string().min(1, 'Name the variant').max(40),
   price: z.coerce.number().positive('Enter a price').max(1_000_000),
@@ -91,7 +82,6 @@ export const productSchema = z
     expectedHarvestDate: optionalHarvestDate,
     variants: z.array(variantSchema).max(10).optional(),
     deliveryAvailable: z.boolean().optional(),
-    deliveryRadiusKm: optionalPositiveNumber(500, 'Enter a radius'),
     deliveryPaidBy: z.enum(['FARMER', 'BUYER']).optional(),
   })
   .strict();

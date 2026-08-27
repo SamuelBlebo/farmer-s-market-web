@@ -223,7 +223,6 @@ model Product {
   // and load — only who bears it; the actual cost is arranged directly
   // between buyer and farmer, same as everything else in this app.
   deliveryAvailable   Boolean          @default(false)
-  deliveryRadiusKm    Int?
   deliveryPaidBy      DeliveryPayer?
   // Admin editorial pick — shown in the homepage's Featured section.
   featured            Boolean          @default(false)

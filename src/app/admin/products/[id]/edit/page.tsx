@@ -113,7 +113,6 @@ export default async function AdminEditProductPage({ params }: { params: { id: s
           expectedHarvestDate: product.expectedHarvestDate ? product.expectedHarvestDate.toISOString().slice(0, 10) : undefined,
           variants: product.variants.map((v) => ({ name: v.name, price: v.priceMinor / 100, quantity: v.quantity ? Number(v.quantity) : null })),
           deliveryAvailable: product.deliveryAvailable,
-          deliveryRadiusKm: product.deliveryRadiusKm,
           deliveryPaidBy: product.deliveryPaidBy,
         }}
         submitLabel="Save changes"

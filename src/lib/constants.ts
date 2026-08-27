@@ -4,6 +4,11 @@ export const PLATFORM_NAME = process.env.NEXT_PUBLIC_PLATFORM_NAME ?? 'Farmers M
 // social platforms (WhatsApp, Twitter) require absolute, not relative, URLs.
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 
+// Support contact points shown on /support. The WhatsApp number is optional —
+// the button on /support only renders when it's actually configured.
+export const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? 'support@farmersmarket.gh';
+export const SUPPORT_WHATSAPP = process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP ?? '';
+
 export const REGIONS = [
   'Greater Accra', 'Ashanti', 'Bono', 'Bono East', 'Ahafo', 'Eastern', 'Central',
   'Western', 'Western North', 'Volta', 'Oti', 'Northern', 'Savannah',

@@ -39,6 +39,11 @@ export function whatsappWantedLink(whatsapp: string, productName: string): strin
   return `https://wa.me/${normalizeGhanaPhone(whatsapp)}?text=${encodeURIComponent(msg)}`;
 }
 
+export function whatsappSupportLink(whatsapp: string): string {
+  const msg = `Hello, I need help with ${PLATFORM_NAME}.`;
+  return `https://wa.me/${normalizeGhanaPhone(whatsapp)}?text=${encodeURIComponent(msg)}`;
+}
+
 /** "024 410 1234" -> "tel:+233244101234" */
 export function telLink(phone: string): string {
   return `tel:+${normalizeGhanaPhone(phone)}`;

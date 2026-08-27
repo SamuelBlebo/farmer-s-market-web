@@ -107,7 +107,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
             />
           )}
 
-          <h1 className="mt-5 text-2xl font-bold tracking-tight">{p.name}</h1>
+          <h1 className="mt-5 text-xl font-bold leading-snug tracking-tight sm:text-2xl">{p.name}</h1>
 
           {/* Product Trust Bar — buying-decision signals, reusing the lifecycle/delivery/verification data computed above rather than recalculating anything. */}
           <div className="mt-2 flex flex-wrap gap-2">
@@ -148,16 +148,46 @@ export default async function ProductPage({ params }: { params: { id: string } }
               <WheatIcon className="h-4 w-4" /> {harvestLabel(p.expectedHarvestDate)}
             </p>
           )}
-          <p className="mt-3 text-[15px] text-muted">{p.description}</p>
+          <p className="mt-3 text-[15px] leading-relaxed text-muted">{p.description}</p>
 
-          <div className="card mt-4 p-4">
+          <div className="mb-3.5 mt-4">
+            <SectionCard title="Delivery">
+              <dl className="divide-y divide-line">
+                <SectionRow label="Pickup location" value={`${p.town}, ${p.region}`} />
+                {p.deliveryAvailable ? (
+                  <>
+                    <SectionRow
+                      label="Delivery"
+                      value={
+                        <span className="badge bg-leaf-light text-leaf-dark">
+                          <TruckIcon className="h-3 w-3" /> Available
+                        </span>
+                      }
+                    />
+                    <SectionRow
+                      label="Delivery cost"
+                      value={
+                        p.deliveryPaidBy === 'FARMER'
+                          ? 'Free — farmer delivers'
+                          : 'Buyer pays — arrange the cost on WhatsApp'
+                      }
+                    />
+                  </>
+                ) : (
+                  <SectionRow label="Delivery" value="Pickup only" />
+                )}
+              </dl>
+            </SectionCard>
+          </div>
+
+          <div className="card p-4">
             <div className="flex items-center gap-3">
-              <div className="grid h-10 w-10 place-items-center rounded-full bg-leaf-light font-extrabold text-leaf-dark">
+              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-leaf-light font-extrabold text-leaf-dark">
                 {p.farmer.farmName[0]}
               </div>
-              <div>
-                <div className="font-bold">{p.farmer.farmName}</div>
-                <div className="text-[13px] text-muted">{p.farmer.town}, {p.farmer.region}</div>
+              <div className="min-w-0">
+                <div className="truncate font-bold">{p.farmer.farmName}</div>
+                <div className="truncate text-[13px] text-muted">{p.farmer.town}, {p.farmer.region}</div>
               </div>
             </div>
             <div className="my-3 flex flex-wrap items-center gap-1.5">
@@ -246,36 +276,6 @@ export default async function ProductPage({ params }: { params: { id: string } }
             )}
 
             {user && <SaveButton productId={p.id} className="mt-2 w-full" />}
-          </div>
-
-          <div className="mb-3.5">
-            <SectionCard title="Delivery">
-              <dl className="divide-y divide-line">
-                <SectionRow label="Pickup location" value={`${p.town}, ${p.region}`} />
-                {p.deliveryAvailable ? (
-                  <>
-                    <SectionRow
-                      label="Delivery"
-                      value={
-                        <span className="badge bg-leaf-light text-leaf-dark">
-                          <TruckIcon className="h-3 w-3" /> Available
-                        </span>
-                      }
-                    />
-                    <SectionRow
-                      label="Delivery cost"
-                      value={
-                        p.deliveryPaidBy === 'FARMER'
-                          ? 'Free — farmer delivers'
-                          : 'Buyer pays — arrange the cost on WhatsApp'
-                      }
-                    />
-                  </>
-                ) : (
-                  <SectionRow label="Delivery" value="Pickup only" />
-                )}
-              </dl>
-            </SectionCard>
           </div>
 
           {user && (

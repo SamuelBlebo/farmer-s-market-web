@@ -38,13 +38,13 @@ export function FeedbackWidget() {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-label={open ? 'Close feedback form' : 'Send feedback'}
-        className="fixed bottom-20 right-4 z-40 grid h-12 w-12 place-items-center rounded-full bg-leaf text-white shadow-lg transition-colors hover:bg-leaf-dark sm:bottom-6"
+        className="feedback-btn-pos fixed right-4 z-40 grid h-12 w-12 place-items-center rounded-full bg-leaf text-white shadow-lg transition-colors hover:bg-leaf-dark"
       >
         {open ? <CloseIcon /> : <ChatIcon className="h-5 w-5" />}
       </button>
 
       {open && (
-        <div className="card fixed bottom-[136px] right-4 z-40 w-[calc(100vw-2rem)] max-w-[320px] p-4 shadow-lg sm:bottom-24">
+        <div className="feedback-panel-pos card fixed right-4 z-40 w-[calc(100vw-2rem)] max-w-[320px] p-4 shadow-lg">
           <p className="mb-1 text-sm font-bold">Send feedback</p>
           <p className="mb-3 text-[12.5px] text-muted">
             Spotted a bug, or have an idea? An admin reads every message.

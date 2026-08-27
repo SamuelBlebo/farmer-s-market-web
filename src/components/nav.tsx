@@ -105,8 +105,8 @@ export async function Nav() {
   }
 
   return (
-    <header className="card relative z-30 mb-5 px-4 py-3">
-      <div className="flex items-center gap-4">
+    <header className="card relative z-30 mb-4 px-3 py-2.5 sm:mb-5 sm:px-4 sm:py-3">
+      <div className="flex items-center gap-3 sm:gap-4">
         <Link href="/" className="flex items-center text-[17px] font-extrabold leading-none tracking-[-0.01em] text-[#111827]">
           Farmers<span className="text-[#15803D]">Market</span>
         </Link>
@@ -153,7 +153,7 @@ export async function Nav() {
         </div>
       </div>
 
-      <div className="mt-3">
+      <div className="mt-2 sm:mt-3">
         <Suspense fallback={<div className="h-9 w-full animate-pulse rounded-full bg-paper" />}>
           <SearchBar variant="header" />
         </Suspense>

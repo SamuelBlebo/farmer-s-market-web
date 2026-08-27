@@ -254,10 +254,11 @@ export function ConversationThread({
             <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-[14px] ${mine ? 'bg-leaf text-white' : 'bg-white text-ink shadow-sm'}`}>
                 {m.type === 'VOICE' && m.audioUrl ? (
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex min-w-0 items-center gap-1.5">
                     <MicIcon className={`h-3.5 w-3.5 shrink-0 ${mine ? 'text-white/80' : 'text-muted'}`} />
+                    {/* min-w-0 so the native audio control's own intrinsic width can shrink to fit — otherwise it forces the bubble (and the page) wider than the viewport on narrow screens. */}
                     {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-                    <audio controls preload="none" src={m.audioUrl} className="h-8 max-w-[190px]" />
+                    <audio controls preload="none" src={m.audioUrl} className="h-8 w-full min-w-0 max-w-[190px]" />
                     {m.audioDurationSec != null && (
                       <span className={`font-num shrink-0 text-[11px] ${mine ? 'text-white/70' : 'text-muted'}`}>
                         {formatClock(m.audioDurationSec)}
@@ -296,7 +297,7 @@ export function ConversationThread({
       {recording ? (
         <div className="mt-3 flex items-center gap-2 rounded-[10px] border border-line bg-white px-3 py-2.5">
           <span className="h-2.5 w-2.5 shrink-0 animate-pulse rounded-full bg-clay" aria-hidden />
-          <span className="font-num flex-1 text-sm font-semibold text-ink">{formatClock(recordSeconds)}</span>
+          <span className="font-num min-w-0 flex-1 text-sm font-semibold text-ink">{formatClock(recordSeconds)}</span>
           <button
             type="button"
             onClick={() => stopRecording(false)}
@@ -317,7 +318,11 @@ export function ConversationThread({
             maxLength={2000}
             placeholder="Type a message…"
             required
-            className="input flex-1 resize-none"
+            // min-w-0 overrides the textarea's own intrinsic content-width
+            // floor (from its default cols=20) — without it, a flex child
+            // with flex-1 still refuses to shrink below that floor and
+            // forces this row (and the whole popup) wider than the viewport.
+            className="input min-w-0 flex-1 resize-none"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();

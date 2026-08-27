@@ -39,7 +39,7 @@ export function ProductGallery({
   return (
     <div>
       <div
-        className="relative grid h-72 place-items-center overflow-hidden rounded-card bg-gradient-to-br from-[#E9F1E9] to-[#D6E5D8] text-leaf-dark/70"
+        className="relative grid h-56 place-items-center overflow-hidden rounded-card bg-gradient-to-br from-[#E9F1E9] to-[#D6E5D8] text-leaf-dark/70 sm:h-72"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >

@@ -4,6 +4,12 @@
 
 :root { color-scheme: light; }
 
+/* Belt-and-braces: the real fix for any horizontal-overflow bug is in the
+   component that causes it (usually a flex/grid child that won't shrink),
+   but this stops a regression from ever producing a page-level scrollbar.
+   Only the x-axis, so it can't interfere with position: sticky elements. */
+html { overflow-x: hidden; }
+
 body { @apply bg-paper text-ink antialiased; }
 
 @layer components {
@@ -44,3 +50,20 @@ body { @apply bg-paper text-ink antialiased; }
 /* Horizontal card rows navigate via chevron buttons, not a visible scrollbar. */
 .scrollbar-hide { scrollbar-width: none; -ms-overflow-style: none; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* Safe-area-aware bottom offsets for elements fixed to the screen edge —
+   base distance clears the mobile sticky contact bar / bottom chrome, plus
+   whatever the device's home-indicator inset actually is (0 on devices
+   without one, so this is a no-op there). */
+.chat-widget-pos { bottom: calc(5rem + env(safe-area-inset-bottom)); }
+@media (min-width: 640px) {
+  .chat-widget-pos { bottom: calc(1rem + env(safe-area-inset-bottom)); }
+}
+.feedback-btn-pos { bottom: calc(5rem + env(safe-area-inset-bottom)); }
+@media (min-width: 640px) {
+  .feedback-btn-pos { bottom: calc(1.5rem + env(safe-area-inset-bottom)); }
+}
+.feedback-panel-pos { bottom: calc(8.5rem + env(safe-area-inset-bottom)); }
+@media (min-width: 640px) {
+  .feedback-panel-pos { bottom: calc(6rem + env(safe-area-inset-bottom)); }
+}

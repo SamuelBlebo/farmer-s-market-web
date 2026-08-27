@@ -42,7 +42,10 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#0D4E37' };
+// viewportFit: 'cover' lets the page draw under the notch/home-indicator on
+// modern iPhones so env(safe-area-inset-*) resolves to a real value instead
+// of 0 — required for the safe-area padding used below and on fixed bars.
+export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#0D4E37', viewportFit: 'cover' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -54,7 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Suspense fallback={null}>
               <TopProgressBar />
             </Suspense>
-            <div className="mx-auto max-w-[1120px] px-4 py-5 pb-16">
+            <div className="mx-auto max-w-[1120px] px-4 pb-[calc(4rem+env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))]">
               <Nav />
               {children}
               <Footer />

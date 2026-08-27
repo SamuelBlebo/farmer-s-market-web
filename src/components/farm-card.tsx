@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { VerificationStatus } from '@prisma/client';
 import { VerifiedBadge } from './badges';
+import { StarIcon } from './icons';
 import { lastActiveLabel } from '@/lib/format';
 
 type Farm = {
@@ -14,6 +15,8 @@ type Farm = {
   town: string;
   lastActiveAt: Date | null;
   activeListings: number;
+  rating: number;
+  reviewCount: number;
 };
 
 /** Saved Farms card — the storefront hero's cover+avatar treatment, condensed. */
@@ -36,6 +39,11 @@ export function FarmCard({ farm }: { farm: Farm }) {
           <VerifiedBadge status={farm.verification} />
         </div>
         <p className="mt-0.5 truncate text-[12.5px] text-muted">{farm.town}, {farm.region}</p>
+        {farm.reviewCount > 0 && (
+          <p className="mt-1 flex items-center gap-1 text-[12px] font-semibold text-muted">
+            <StarIcon className="h-3 w-3 text-gold" filled /> {farm.rating.toFixed(1)} ({farm.reviewCount})
+          </p>
+        )}
         <div className="mt-2 flex items-center justify-between border-t border-line pt-2 text-[12px] text-muted">
           <span className="truncate">{lastActiveLabel(farm.lastActiveAt)}</span>
           <span className="shrink-0">{farm.activeListings} listing{farm.activeListings === 1 ? '' : 's'}</span>

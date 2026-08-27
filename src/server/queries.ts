@@ -427,14 +427,28 @@ export async function getSavedFarms(buyerId: string) {
     .filter((f): f is NonNullable<typeof f> => Boolean(f));
   if (farms.length === 0) return [];
 
-  const listingCounts = await prisma.product.groupBy({
-    by: ['farmerId'],
-    where: { farmerId: { in: farms.map((f) => f.id) }, status: 'ACTIVE', moderation: 'APPROVED' },
-    _count: true,
-  });
+  const [listingCounts, ratingStats] = await Promise.all([
+    prisma.product.groupBy({
+      by: ['farmerId'],
+      where: { farmerId: { in: farms.map((f) => f.id) }, status: 'ACTIVE', moderation: 'APPROVED' },
+      _count: true,
+    }),
+    prisma.review.groupBy({
+      by: ['farmerId'],
+      where: { farmerId: { in: farms.map((f) => f.id) }, moderation: 'APPROVED' },
+      _avg: { rating: true },
+      _count: true,
+    }),
+  ]);
   const countByFarmerId = new Map(listingCounts.map((c) => [c.farmerId, c._count]));
+  const ratingByFarmerId = new Map(ratingStats.map((r) => [r.farmerId, { rating: r._avg.rating ?? 0, reviewCount: r._count }]));
 
-  return farms.map((f) => ({ ...f, activeListings: countByFarmerId.get(f.id) ?? 0 }));
+  return farms.map((f) => ({
+    ...f,
+    activeListings: countByFarmerId.get(f.id) ?? 0,
+    rating: ratingByFarmerId.get(f.id)?.rating ?? 0,
+    reviewCount: ratingByFarmerId.get(f.id)?.reviewCount ?? 0,
+  }));
 }
 
 /** Homepage "From Farmers You Follow" — recent listings from farms this buyer follows. */

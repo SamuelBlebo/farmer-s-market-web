@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { ContactPrompt } from '@/components/contact-prompt';
@@ -150,6 +151,10 @@ export default async function FarmerPage({ params }: { params: { id: string } })
                 )}
               </>
             )}
+            {/* Public action, visible to everyone including guests — the reviews section itself handles signed-out/non-buyer states. */}
+            <Link href="#reviews" className="btn-ghost sm:flex-1">
+              <StarIcon className="h-4 w-4" /> Add a review
+            </Link>
             {/* Public action, visible to everyone including guests — sharing a storefront exposes nothing that isn't already public. */}
             <ShareFarmButton
               farmName={farmer.farmName}
@@ -236,7 +241,7 @@ export default async function FarmerPage({ params }: { params: { id: string } })
         </div>
       )}
 
-      <div className="mb-5">
+      <div id="reviews" className="mb-5 scroll-mt-4">
         <SectionCard title={`Reviews${ratingSummary.count > 0 ? ` (${ratingSummary.count})` : ''}`}>
           <div className="p-4">
             {reviews.length > 0 && (

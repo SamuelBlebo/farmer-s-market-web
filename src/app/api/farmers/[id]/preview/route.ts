@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { computeTrustScore } from '@/lib/trust';
 import { currentUser } from '@/server/authz';
-import { getFollowerCount, isFollowingFarmer } from '@/server/queries';
+import { getFarmerRatingSummary, getFollowerCount, isFollowingFarmer } from '@/server/queries';
 
 /**
  * Backs the product card's hover/long-press farmer preview. Deliberately
@@ -20,7 +20,11 @@ export async function GET(_request: Request, { params }: { params: { id: string 
   });
   if (!farmer) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-  const [user, followers] = await Promise.all([currentUser(), getFollowerCount(farmer.user.id)]);
+  const [user, followers, rating] = await Promise.all([
+    currentUser(),
+    getFollowerCount(farmer.user.id),
+    getFarmerRatingSummary(farmer.id),
+  ]);
   const trustScore = computeTrustScore({
     verification: farmer.verification,
     lastActiveAt: farmer.user.lastActiveAt,
@@ -39,6 +43,8 @@ export async function GET(_request: Request, { params }: { params: { id: string 
     verification: farmer.verification,
     activeListings: farmer._count.products,
     trustScore,
+    rating: rating.average,
+    reviewCount: rating.count,
     isFollowing,
     canFollow: user?.role === 'BUYER',
     signedIn: Boolean(user),

@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FollowButton } from './follow-button';
+import { StarIcon } from './icons';
 import { TrustScoreBadge } from './trust-score-badge';
 import { VerifiedBadge } from './badges';
 
@@ -18,6 +19,8 @@ type Preview = {
   verification: 'VERIFIED' | 'PENDING' | 'UNVERIFIED';
   activeListings: number;
   trustScore: number;
+  rating: number;
+  reviewCount: number;
   isFollowing: boolean;
   canFollow: boolean;
   signedIn: boolean;
@@ -127,6 +130,11 @@ export function FarmerPreviewTrigger({ farmerId, farmerName }: { farmerId: strin
 
               <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] text-muted">
                 <TrustScoreBadge score={preview.trustScore} />
+                {preview.reviewCount > 0 && (
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                    <StarIcon className="h-3 w-3 text-gold" filled /> {preview.rating.toFixed(1)} ({preview.reviewCount})
+                  </span>
+                )}
                 <span className="whitespace-nowrap">{preview.activeListings} listing{preview.activeListings === 1 ? '' : 's'}</span>
               </div>
 

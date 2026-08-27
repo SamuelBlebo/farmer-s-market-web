@@ -1,24 +1,24 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CategoryIcon } from './category-icon';
+import { CloseIcon, FilterIcon } from './icons';
 import { REGIONS, SORTS } from '@/lib/constants';
 
-/** Filters write to the URL — every marketplace view is shareable and cacheable. */
-export function Filters({ categories }: { categories: { slug: string; name: string }[] }) {
-  const router = useRouter();
-  const params = useSearchParams();
+const ACTIVE_FILTER_KEYS = ['min', 'max', 'region', 'category', 'verified'] as const;
 
-  function set(key: string, value: string) {
-    const next = new URLSearchParams(params.toString());
-    if (value) next.set(key, value);
-    else next.delete(key);
-    next.delete('page');
-    router.push(`/?${next.toString()}`);
-  }
-
+function FilterFields({
+  categories,
+  params,
+  set,
+}: {
+  categories: { slug: string; name: string }[];
+  params: URLSearchParams;
+  set: (key: string, value: string) => void;
+}) {
   return (
-    <aside className="card mb-4 p-4 md:sticky md:top-4 md:mb-0">
+    <>
       <h4 className="eyebrow mb-2">Price per unit (GH¢)</h4>
       <div className="grid grid-cols-2 gap-2">
         <input
@@ -69,7 +69,73 @@ export function Filters({ categories }: { categories: { slug: string; name: stri
           <option key={k} value={k}>{v}</option>
         ))}
       </select>
-    </aside>
+    </>
+  );
+}
+
+/** Filters write to the URL — every marketplace view is shareable and cacheable. A sticky sidebar on desktop; a single icon that opens a bottom sheet on mobile, where the full form doesn't fit. */
+export function Filters({ categories }: { categories: { slug: string; name: string }[] }) {
+  const router = useRouter();
+  const params = useSearchParams();
+  const [open, setOpen] = useState(false);
+
+  function set(key: string, value: string) {
+    const next = new URLSearchParams(params.toString());
+    if (value) next.set(key, value);
+    else next.delete(key);
+    next.delete('page');
+    router.push(`/?${next.toString()}`);
+  }
+
+  const activeCount = ACTIVE_FILTER_KEYS.filter((k) => params.get(k)).length;
+
+  return (
+    <>
+      <aside className="card mb-4 hidden p-4 md:sticky md:top-4 md:mb-0 md:block">
+        <FilterFields categories={categories} params={params} set={set} />
+      </aside>
+
+      <div className="mb-3 flex justify-end md:hidden">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label={activeCount > 0 ? `Filters — ${activeCount} active` : 'Filters'}
+          className="relative grid h-9 w-9 place-items-center rounded-full border border-line bg-white text-ink transition-colors hover:bg-paper"
+        >
+          <FilterIcon className="h-4 w-4" />
+          {activeCount > 0 && (
+            <span className="absolute -right-1 -top-1 grid h-4 min-w-[16px] place-items-center rounded-full bg-clay px-1 text-[10px] font-bold leading-none text-white">
+              {activeCount}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-end bg-black/40 md:hidden" onClick={() => setOpen(false)}>
+          <div
+            role="dialog"
+            aria-label="Filters"
+            className="card max-h-[85vh] w-full overflow-y-auto rounded-b-none rounded-t-2xl p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-[15px] font-bold">Filters</h3>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Close filters"
+                className="rounded-full p-1.5 text-muted transition-colors hover:bg-paper"
+              >
+                <CloseIcon className="h-4 w-4" />
+              </button>
+            </div>
+            <FilterFields categories={categories} params={params} set={set} />
+            <button type="button" onClick={() => setOpen(false)} className="btn mt-4 w-full">Show results</button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

@@ -500,6 +500,14 @@ export function MessageIcon({ className = 'h-4 w-4' }: IconProps) {
   );
 }
 
+export function FilterIcon({ className = 'h-4 w-4' }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} className={className} aria-hidden>
+      <path d="M4 6h16M7 12h10M10.5 18h3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function MicIcon({ className = 'h-4 w-4' }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} className={className} aria-hidden>

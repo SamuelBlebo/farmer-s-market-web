@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { AdminResetPasswordButton } from '@/components/admin-reset-password-button';
 import { ModerationBadge, StatusBadge, VerifiedBadge } from '@/components/badges';
 import { CategoryIcon } from '@/components/category-icon';
-import { ChartIcon, ChatIcon, GearIcon, StarIcon } from '@/components/icons';
+import { ChartIcon, ChatIcon, GearIcon, PlusIcon, StarIcon } from '@/components/icons';
 import { Pagination } from '@/components/pagination';
 import { formatPrice, lastActiveLabel } from '@/lib/format';
 import { prisma } from '@/lib/prisma';
@@ -162,7 +162,12 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
         ))}
       </div>
 
-      <h2 id="all-listings" className="mb-2 scroll-mt-4 text-lg font-semibold tracking-tight">All listings</h2>
+      <div className="mb-2 flex items-center gap-2">
+        <h2 id="all-listings" className="scroll-mt-4 text-lg font-semibold tracking-tight">All listings</h2>
+        <Link href="/admin/listings/new" className="ml-auto btn-ghost inline-flex items-center gap-1.5 !px-3 !py-1.5 !text-[13px]">
+          <PlusIcon className="h-3.5 w-3.5" /> Post for a farmer
+        </Link>
+      </div>
       <div className="card mb-1 divide-y divide-line">
         {allListings.items.map((p) => {
           const thumb = p.images[0]?.url;
@@ -193,7 +198,12 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
       </div>
       <Pagination page={allListings.page} pages={allListings.pages} basePath="/admin" searchParams={searchParams} pageParam="listingsPage" />
 
-      <h2 id="farmer-verification" className="mb-2 mt-8 scroll-mt-4 text-lg font-semibold tracking-tight">Farmer verification</h2>
+      <div className="mb-2 mt-8 flex items-center gap-2">
+        <h2 id="farmer-verification" className="scroll-mt-4 text-lg font-semibold tracking-tight">Farmer verification</h2>
+        <Link href="/admin/farmers/new" className="ml-auto btn-ghost inline-flex items-center gap-1.5 !px-3 !py-1.5 !text-[13px]">
+          <PlusIcon className="h-3.5 w-3.5" /> Add farmer
+        </Link>
+      </div>
       <div className="card mb-1 divide-y divide-line">
         {farmers.items.map((f) => (
           <div key={f.id} className="flex flex-wrap items-center gap-3 p-3.5">

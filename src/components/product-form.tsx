@@ -36,11 +36,14 @@ export function ProductForm({
   categories,
   initial,
   submitLabel,
+  locationNote,
 }: {
   action: (prev: ActionState, formData: FormData) => Promise<ActionState>;
   categories: Category[];
   initial?: Initial;
   submitLabel: string;
+  /** Overrides the "update it in your profile" copy — for the admin post-on-behalf-of form, where that link doesn't apply. */
+  locationNote?: React.ReactNode;
 }) {
   const [state, formAction] = useFormState(action, {} as ActionState);
   const err = (f: string) => state.fieldErrors?.[f]?.[0];
@@ -91,8 +94,12 @@ export function ProductForm({
           <PinIcon className="h-4 w-4 text-muted" /> {initial?.town}, {initial?.region}
         </p>
         <p className="mt-0.5 text-[12.5px] text-muted">
-          Every listing sells from your farm&apos;s location.{' '}
-          <Link href="/account/edit" className="font-semibold text-leaf-dark hover:underline">Update it in your profile</Link> if it&apos;s changed.
+          {locationNote ?? (
+            <>
+              Every listing sells from your farm&apos;s location.{' '}
+              <Link href="/account/edit" className="font-semibold text-leaf-dark hover:underline">Update it in your profile</Link> if it&apos;s changed.
+            </>
+          )}
         </p>
       </div>
 

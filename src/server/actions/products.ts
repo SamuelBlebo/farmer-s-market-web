@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 import { deleteCloudinaryImages } from '@/lib/cloudinary';
 import { toMinor } from '@/lib/format';
 import { productSchema, productStatusSchema, reportSchema } from '@/lib/validation';
-import { assertOwnsProduct, requireFarmerProfile, requireUser } from '@/server/authz';
+import { assertOwnsProduct, requireAdmin, requireFarmerProfile, requireUser } from '@/server/authz';
 import { track } from '@/server/analytics';
 
 export type ActionState = { error?: string; fieldErrors?: Record<string, string[]> };
@@ -91,6 +91,52 @@ export async function createProduct(_prev: ActionState, formData: FormData): Pro
   revalidatePath('/dashboard');
   revalidatePath('/dashboard/listings');
   redirect('/dashboard/listings?posted=1');
+}
+
+/**
+ * Admin posting on a farmer's behalf — for farmers who reach the platform by
+ * phone call or USSD rather than the app itself. Location is still always
+ * the farmer's own profile, same rule as createProduct, just looked up by
+ * the farmerId the admin picked instead of the caller's own session. Goes
+ * live immediately rather than queueing for approval — there's no one else
+ * who needs to approve an admin's own submission.
+ */
+export async function adminCreateProduct(farmerId: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+  const farmer = await prisma.farmerProfile.findUnique({ where: { id: farmerId }, select: { region: true, town: true } });
+  if (!farmer) return { error: 'Farmer not found.' };
+
+  const parsed = productSchema.safeParse(readForm(formData));
+  if (!parsed.success) return { fieldErrors: parsed.error.flatten().fieldErrors };
+
+  const d = parsed.data;
+  await prisma.product.create({
+    data: {
+      farmerId,
+      categoryId: d.categoryId,
+      name: d.name,
+      description: d.description,
+      priceMinor: toMinor(d.price),
+      unit: d.unit,
+      quantity: d.quantity,
+      initialQty: d.quantity,
+      region: farmer.region,
+      town: farmer.town,
+      expectedHarvestDate: toHarvestDate(d.expectedHarvestDate),
+      ...deliveryFields(d),
+      moderation: 'APPROVED',
+      images: d.images?.length
+        ? { create: d.images.map((img, i) => ({ url: img.url, publicId: img.publicId, sortOrder: i })) }
+        : undefined,
+      variants: d.variants?.length
+        ? { create: d.variants.map((v, i) => ({ name: v.name, priceMinor: toMinor(v.price), quantity: v.quantity, sortOrder: i })) }
+        : undefined,
+    },
+  });
+
+  revalidatePath('/admin');
+  revalidatePath('/');
+  redirect(`/admin/listings/new?farmerId=${farmerId}&posted=1`);
 }
 
 export async function updateProduct(

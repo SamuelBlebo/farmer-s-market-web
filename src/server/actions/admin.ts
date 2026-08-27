@@ -4,8 +4,73 @@ import { randomBytes } from 'crypto';
 import { revalidatePath } from 'next/cache';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
+import { normalizeGhanaPhone } from '@/lib/format';
+import { adminCreateFarmerSchema } from '@/lib/validation';
 import { requireAdmin } from '@/server/authz';
 import { notifyFollowers } from '@/server/notifications';
+
+export type AdminCreateFarmerState = {
+  error?: string;
+  fieldErrors?: Record<string, string[]>;
+  success?: boolean;
+  tempPassword?: string;
+  farmerId?: string;
+  farmName?: string;
+};
+
+/**
+ * For farmers who reach the platform by phone call or (eventually) USSD
+ * instead of registering themselves — an admin takes their details over
+ * the phone and sets the account up on their behalf, same temp-password
+ * relay pattern as adminResetPassword below.
+ */
+export async function adminCreateFarmer(_prev: AdminCreateFarmerState, formData: FormData): Promise<AdminCreateFarmerState> {
+  await requireAdmin();
+  const parsed = adminCreateFarmerSchema.safeParse({
+    name: String(formData.get('name') ?? ''),
+    farmName: String(formData.get('farmName') ?? ''),
+    phone: String(formData.get('phone') ?? ''),
+    whatsapp: String(formData.get('whatsapp') ?? '') || String(formData.get('phone') ?? ''),
+    region: formData.get('region'),
+    town: String(formData.get('town') ?? ''),
+    description: String(formData.get('description') ?? '') || undefined,
+    verified: formData.get('verified') === 'on',
+  });
+  if (!parsed.success) return { fieldErrors: parsed.error.flatten().fieldErrors };
+
+  const d = parsed.data;
+  const normalizedPhone = normalizeGhanaPhone(d.phone);
+  const existing = await prisma.user.findUnique({ where: { phone: normalizedPhone } });
+  if (existing) return { error: 'A user with that phone number already has an account.' };
+
+  const tempPassword = randomBytes(6).toString('base64url');
+  const passwordHash = await bcrypt.hash(tempPassword, 12);
+
+  const user = await prisma.user.create({
+    data: {
+      name: d.name,
+      phone: normalizedPhone,
+      passwordHash,
+      role: 'FARMER',
+      farmerProfile: {
+        create: {
+          farmName: d.farmName,
+          description: d.description,
+          region: d.region,
+          town: d.town,
+          phone: d.phone,
+          whatsapp: d.whatsapp,
+          verification: d.verified ? 'VERIFIED' : 'UNVERIFIED',
+          verifiedAt: d.verified ? new Date() : null,
+        },
+      },
+    },
+    include: { farmerProfile: true },
+  });
+
+  revalidatePath('/admin');
+  return { success: true, tempPassword, farmerId: user.farmerProfile!.id, farmName: d.farmName };
+}
 
 export async function moderateProduct(formData: FormData) {
   await requireAdmin();

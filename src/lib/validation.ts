@@ -27,6 +27,21 @@ export const registerSchema = z
   })
   .strict();
 
+// Farmers who reach the platform by phone call or USSD rather than the app
+// itself — an admin takes their details and sets the account up for them.
+export const adminCreateFarmerSchema = z
+  .object({
+    name: z.string().min(2, "Enter the farmer's name"),
+    farmName: z.string().min(2, 'Enter the farm name'),
+    phone,
+    whatsapp: phone,
+    region: z.enum(REGIONS),
+    town: z.string().min(2, 'Enter the town'),
+    description: z.string().max(500).optional(),
+    verified: z.boolean().optional(),
+  })
+  .strict();
+
 export const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),

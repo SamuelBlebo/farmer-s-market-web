@@ -37,16 +37,16 @@ export function ProfileHero({
   return (
     <div className="card mb-4 overflow-hidden rounded-2xl shadow-sm transition-shadow hover:shadow-md">
       {coverImage && (
-        <div className="h-32 w-full bg-gradient-to-br from-[#E9F1E9] to-[#D6E5D8] sm:h-44">
+        <div className="h-20 w-full bg-gradient-to-br from-[#E9F1E9] to-[#D6E5D8] sm:h-28">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={coverImage} alt="" className="h-full w-full object-cover" />
         </div>
       )}
-      <div className="p-5 sm:p-6">
-        <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
+      <div className="p-4 sm:p-5">
+        <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:text-left">
           <div
-            className={`grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-full bg-leaf-light text-3xl font-extrabold text-leaf-dark ${
-              coverImage ? '-mt-14 border-4 border-white shadow-sm sm:-mt-16' : ''
+            className={`grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full bg-leaf-light text-2xl font-extrabold text-leaf-dark ${
+              coverImage ? '-mt-8 border-4 border-white shadow-sm sm:-mt-10' : ''
             }`}
           >
             {avatarUrl ? (
@@ -57,25 +57,25 @@ export function ProfileHero({
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-bold tracking-tight">{heading ?? name}</h1>
+            <h1 className="text-xl font-bold tracking-tight">{heading ?? name}</h1>
             <div className="mt-1.5 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
               <span className="badge bg-paper text-muted">{roleLabel}</span>
               {verification && <VerifiedBadge status={verification} />}
               {region && <span className="text-[13px] text-muted">{region}</span>}
             </div>
-            <p className="mt-2 text-[13px] text-muted">
+            <p className="mt-1.5 text-[13px] text-muted">
               Member since {memberSince} · {lastActive}
             </p>
           </div>
         </div>
 
         {summary && (
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-line pt-4 sm:justify-start">
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-line pt-3 sm:justify-start">
             {summary}
           </div>
         )}
 
-        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
           {actions ?? (
             <>
               <Link href="/account/edit" className="btn sm:flex-1">Edit Profile</Link>

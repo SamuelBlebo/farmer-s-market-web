@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { REGIONS } from '@/lib/constants';
 import { formatPrice } from '@/lib/format';
 import { trackClient } from '@/lib/analytics-client';
+import { SearchIcon } from './icons';
 
 type ProductSuggestion = {
   kind: 'product';
@@ -33,7 +34,8 @@ function suggestionHref(s: Suggestion): string {
   return `/?category=${s.slug}`;
 }
 
-export function SearchBar() {
+export function SearchBar({ variant = 'page' }: { variant?: 'page' | 'header' }) {
+  const header = variant === 'header';
   const router = useRouter();
   const params = useSearchParams();
   const [q, setQ] = useState(params.get('q') ?? '');
@@ -115,11 +117,16 @@ export function SearchBar() {
   }
 
   return (
-    <form action={submit} className="mb-3 flex flex-col gap-2 sm:flex-row">
+    <form action={submit} className={header ? 'relative w-full' : 'mb-3 flex flex-col gap-2 sm:flex-row'}>
       <div ref={boxRef} className="relative flex-1">
+        {header && (
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted">
+            <SearchIcon className="h-4 w-4" />
+          </span>
+        )}
         <input
           name="q"
-          className="input w-full"
+          className={`input w-full ${header ? 'pl-9' : ''}`}
           placeholder="Search produce, farms, categories…"
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -136,7 +143,7 @@ export function SearchBar() {
           <ul
             id="search-suggestions"
             role="listbox"
-            className="absolute left-0 right-0 top-full z-30 mt-1 max-h-80 overflow-y-auto rounded-[10px] border border-line bg-white shadow-md"
+            className={`absolute left-0 right-0 top-full mt-1 max-h-80 overflow-y-auto rounded-[10px] border border-line bg-white shadow-md ${header ? 'z-40' : 'z-30'}`}
           >
             {suggestions.map((s, i) => (
               <li key={suggestionKey(s)} role="option" aria-selected={i === highlight}>
@@ -193,11 +200,15 @@ export function SearchBar() {
         )}
       </div>
 
-      <select name="region" className="input sm:w-52" defaultValue={params.get('region') ?? ''}>
-        <option value="">All of Ghana</option>
-        {REGIONS.map((r) => <option key={r}>{r}</option>)}
-      </select>
-      <button className="btn">Search</button>
+      {!header && (
+        <>
+          <select name="region" className="input sm:w-52" defaultValue={params.get('region') ?? ''}>
+            <option value="">All of Ghana</option>
+            {REGIONS.map((r) => <option key={r}>{r}</option>)}
+          </select>
+          <button className="btn">Search</button>
+        </>
+      )}
     </form>
   );
 }

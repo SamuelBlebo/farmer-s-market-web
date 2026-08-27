@@ -21,14 +21,25 @@ type Card = {
   variants: { priceMinor: number }[];
 };
 
-export function ProductCard({ p, priority = false }: { p: Card; /** Set for the first few above-the-fold cards only — never for a whole grid. */ priority?: boolean }) {
+export function ProductCard({
+  p,
+  priority = false,
+  size = 'default',
+}: {
+  p: Card;
+  /** Set for the first few above-the-fold cards only — never for a whole grid. */
+  priority?: boolean;
+  /** 'sm' shrinks the image, text, and padding — for secondary rails like Recently Viewed or Trending. */
+  size?: 'default' | 'sm';
+}) {
   const img = p.images[0]?.url;
   const lifecycle = getProductLifecycle(p.status, p.expectedHarvestDate);
+  const sm = size === 'sm';
 
   return (
-    <div className="card flex h-full flex-col overflow-hidden transition-all duration-150 hover:-translate-y-0.5 hover:border-[#B9CCBD] hover:shadow-md">
+    <div className="card flex h-full flex-col transition-all duration-150 hover:-translate-y-0.5 hover:border-[#B9CCBD] hover:shadow-md">
       <Link href={`/products/${p.id}`}>
-        <div className="relative grid h-32 place-items-center bg-gradient-to-br from-[#E9F1E9] to-[#D6E5D8] text-5xl">
+        <div className={`relative grid place-items-center overflow-hidden rounded-t-card bg-gradient-to-br from-[#E9F1E9] to-[#D6E5D8] ${sm ? 'h-20 text-3xl' : 'h-32 text-5xl'}`}>
           {img ? (
             <Image src={img} alt={p.name} fill sizes="(max-width:768px) 50vw, 240px" className="object-cover" priority={priority} />
           ) : (
@@ -43,8 +54,8 @@ export function ProductCard({ p, priority = false }: { p: Card; /** Set for the 
             </span>
           )}
         </div>
-        <div className="px-3 pt-3">
-          <div className="mb-1.5 font-bold">{p.name}</div>
+        <div className={sm ? 'px-2.5 pt-2' : 'px-3 pt-3'}>
+          <div className={`mb-1.5 truncate font-bold ${sm ? 'text-[13px]' : ''}`}>{p.name}</div>
           <PriceQuantity
             priceMinor={p.priceMinor}
             unit={p.unit}
@@ -54,9 +65,9 @@ export function ProductCard({ p, priority = false }: { p: Card; /** Set for the 
           />
         </div>
       </Link>
-      <div className="mt-auto flex justify-between gap-2 border-t border-line p-3 pt-2.5 text-[12.5px] text-muted">
+      <div className={`mt-auto flex justify-between gap-2 border-t border-line text-muted ${sm ? 'p-2.5 pt-2 text-[11px]' : 'p-3 pt-2.5 text-[12.5px]'}`}>
         <span className="truncate">📍 {p.town}</span>
-        <FarmerPreviewTrigger farmerId={p.farmer.id} farmerName={p.farmer.farmName} />
+        {!sm && <FarmerPreviewTrigger farmerId={p.farmer.id} farmerName={p.farmer.farmName} />}
       </div>
     </div>
   );

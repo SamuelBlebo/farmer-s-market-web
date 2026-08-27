@@ -1,9 +1,11 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { DocumentIcon, GridIcon, HeartIcon, PlusIcon, ShieldIcon, StoreIcon, UserIcon } from './icons';
 import { MobileMenu } from './mobile-menu';
 import { NavLinks, type NavItem } from './nav-links';
 import { NotificationBell } from './notification-bell';
 import { ProfileMenu } from './profile-menu';
+import { SearchBar } from './search-bar';
 import { prisma } from '@/lib/prisma';
 import { currentUser } from '@/server/authz';
 import { getUnreadNotificationCount } from '@/server/queries';
@@ -92,7 +94,8 @@ export async function Nav() {
   }
 
   return (
-    <header className="card relative z-30 mb-5 flex items-center gap-4 px-4 py-3">
+    <header className="card relative z-30 mb-5 px-4 py-3">
+      <div className="flex items-center gap-4">
         <Link href="/" className="flex items-center text-[17px] font-extrabold leading-none tracking-[-0.01em] text-[#111827]">
           Farmers<span className="text-[#15803D]">Market</span>
         </Link>
@@ -134,6 +137,13 @@ export async function Nav() {
             accountItems={accountItems}
           />
         </div>
+      </div>
+
+      <div className="mt-3">
+        <Suspense fallback={<div className="h-9 w-full animate-pulse rounded-full bg-paper" />}>
+          <SearchBar variant="header" />
+        </Suspense>
+      </div>
     </header>
   );
 }

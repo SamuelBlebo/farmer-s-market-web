@@ -30,8 +30,6 @@ function readForm(formData: FormData) {
     price: formData.get('price'),
     unit: formData.get('unit'),
     quantity: formData.get('quantity'),
-    region: formData.get('region'),
-    town: String(formData.get('town') ?? ''),
     // Always present, even empty — the form always renders the current photo
     // set, so an empty array is a real "no photos" state, not "unchanged".
     images,
@@ -74,8 +72,10 @@ export async function createProduct(_prev: ActionState, formData: FormData): Pro
       unit: d.unit,
       quantity: d.quantity,
       initialQty: d.quantity,
-      region: d.region,
-      town: d.town,
+      // Always the farmer's own farm location — never client-submitted, so a
+      // listing can't claim to be somewhere the farm isn't.
+      region: profile.region,
+      town: profile.town,
       expectedHarvestDate: toHarvestDate(d.expectedHarvestDate),
       ...deliveryFields(d),
       // New listings queue for admin approval before they hit the marketplace.
@@ -100,15 +100,23 @@ export async function updateProduct(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await assertOwnsProduct(id);
+  const product = await assertOwnsProduct(id);
   const parsed = productSchema.safeParse(readForm(formData));
   if (!parsed.success) return { fieldErrors: parsed.error.flatten().fieldErrors };
 
   const d = parsed.data;
-  const before = await prisma.product.findUniqueOrThrow({
-    where: { id },
-    select: { images: { select: { publicId: true } } },
-  });
+  const [before, farmer] = await Promise.all([
+    prisma.product.findUniqueOrThrow({
+      where: { id },
+      select: { images: { select: { publicId: true } } },
+    }),
+    // Always the farmer's own farm location — never client-submitted, and
+    // re-read fresh here since the farmer may have moved since this listing was posted.
+    prisma.farmerProfile.findUniqueOrThrow({
+      where: { id: product.farmerId },
+      select: { region: true, town: true },
+    }),
+  ]);
 
   await prisma.product.update({
     where: { id },
@@ -119,8 +127,8 @@ export async function updateProduct(
       priceMinor: toMinor(d.price),
       unit: d.unit,
       quantity: d.quantity,
-      region: d.region,
-      town: d.town,
+      region: farmer.region,
+      town: farmer.town,
       expectedHarvestDate: toHarvestDate(d.expectedHarvestDate),
       ...deliveryFields(d),
       // Full replace: the form always submits the complete desired photo set,

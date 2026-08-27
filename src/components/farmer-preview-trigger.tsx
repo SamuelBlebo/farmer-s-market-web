@@ -23,12 +23,15 @@ type Preview = {
   signedIn: boolean;
 };
 
-/** Hover (desktop), long-press (mobile), or keyboard focus reveals this compact preview. */
+/** Hover (desktop), long-press (mobile), or keyboard focus reveals this compact preview; a click/tap navigates to the farmer's page. */
 export function FarmerPreviewTrigger({ farmerId, farmerName }: { farmerId: string; farmerName: string }) {
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState<Preview | null>(null);
   const pressTimer = useRef<ReturnType<typeof setTimeout>>();
   const containerRef = useRef<HTMLSpanElement>(null);
+  // A completed long-press already opened the preview — the touchend that follows
+  // fires a synthetic click right after, which would otherwise navigate away immediately.
+  const suppressNextClick = useRef(false);
 
   async function load() {
     if (preview) return;
@@ -46,10 +49,20 @@ export function FarmerPreviewTrigger({ farmerId, farmerName }: { farmerId: strin
   }
 
   function onTouchStart() {
-    pressTimer.current = setTimeout(reveal, LONG_PRESS_MS);
+    pressTimer.current = setTimeout(() => {
+      suppressNextClick.current = true;
+      reveal();
+    }, LONG_PRESS_MS);
   }
   function cancelPress() {
     if (pressTimer.current) clearTimeout(pressTimer.current);
+  }
+
+  function onNameClick(e: React.MouseEvent) {
+    if (suppressNextClick.current) {
+      e.preventDefault();
+      suppressNextClick.current = false;
+    }
   }
 
   // Keyboard focus can land inside the popover (the Follow button, the storefront
@@ -66,23 +79,25 @@ export function FarmerPreviewTrigger({ farmerId, farmerName }: { farmerId: strin
   return (
     <span
       ref={containerRef}
-      tabIndex={0}
-      role="button"
-      aria-haspopup="true"
-      aria-expanded={open}
-      aria-label={`View farmer preview for ${farmerName}`}
-      className="relative inline-block max-w-full cursor-pointer"
+      className="relative inline-block max-w-full"
       onMouseEnter={reveal}
       onMouseLeave={() => setOpen(false)}
-      onFocus={reveal}
       onBlur={onBlur}
       onKeyDown={onKeyDown}
       onTouchStart={onTouchStart}
       onTouchEnd={cancelPress}
       onTouchMove={cancelPress}
-      onClick={(e) => e.preventDefault()}
     >
-      <span className="truncate underline decoration-dotted underline-offset-2">{farmerName}</span>
+      <Link
+        href={`/farmers/${farmerId}`}
+        aria-haspopup="true"
+        aria-expanded={open}
+        className="block truncate underline decoration-dotted underline-offset-2"
+        onFocus={reveal}
+        onClick={onNameClick}
+      >
+        {farmerName}
+      </Link>
 
       {open && (
         <div
@@ -104,15 +119,15 @@ export function FarmerPreviewTrigger({ farmerId, farmerName }: { farmerId: strin
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <span className="truncate text-sm font-bold">{preview.farmName}</span>
-                    <VerifiedBadge status={preview.verification} />
+                    <span className="shrink-0"><VerifiedBadge status={preview.verification} /></span>
                   </div>
                   <p className="text-[12px] text-muted">{preview.region}</p>
                 </div>
               </div>
 
-              <div className="mt-2.5 flex items-center justify-between text-[12.5px] text-muted">
+              <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] text-muted">
                 <TrustScoreBadge score={preview.trustScore} />
-                <span>{preview.activeListings} listing{preview.activeListings === 1 ? '' : 's'}</span>
+                <span className="whitespace-nowrap">{preview.activeListings} listing{preview.activeListings === 1 ? '' : 's'}</span>
               </div>
 
               <div className="mt-3">

@@ -7,7 +7,7 @@ import { FollowButton } from '@/components/follow-button';
 import { CalendarIcon, ClockIcon, HeartIcon, StoreIcon, UserIcon } from '@/components/icons';
 import { ProductCard } from '@/components/product-card';
 import { ProfileHero } from '@/components/profile-hero';
-import { SectionCard, SectionRow } from '@/components/section-card';
+import { SectionCard } from '@/components/section-card';
 import { ShareFarmButton } from '@/components/share-farm-button';
 import { StatCard } from '@/components/stat-card';
 import { TrustScoreBadge } from '@/components/trust-score-badge';
@@ -132,8 +132,9 @@ export default async function FarmerPage({ params }: { params: { id: string } })
 
       <div className="mb-5">
         <SectionCard title="Farm Reputation">
-          <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="grid grid-cols-2 gap-2.5 p-4 sm:grid-cols-3 lg:grid-cols-5">
             <StatCard
+              compact
               icon={<UserIcon />}
               label="Followers"
               value={followerCount}
@@ -142,10 +143,10 @@ export default async function FarmerPage({ params }: { params: { id: string } })
               emptyHref="#share-farm"
               emptyLinkLabel="Share Farm"
             />
-            <StatCard icon={<HeartIcon className="h-[18px] w-[18px]" />} label="Saved by buyers" value={savedByBuyers} />
-            <StatCard icon={<StoreIcon />} label="Active listings" value={farmer.products.length} />
-            <StatCard icon={<ClockIcon />} label="Last active" value={lastActiveLabel(farmer.user.lastActiveAt)} />
-            <StatCard icon={<CalendarIcon />} label="Member since" value={memberSince} />
+            <StatCard compact icon={<HeartIcon className="h-[18px] w-[18px]" />} label="Saved by buyers" value={savedByBuyers} />
+            <StatCard compact icon={<StoreIcon />} label="Active listings" value={farmer.products.length} />
+            <StatCard compact icon={<ClockIcon />} label="Last active" value={lastActiveLabel(farmer.user.lastActiveAt)} />
+            <StatCard compact icon={<CalendarIcon />} label="Member since" value={memberSince} />
           </div>
         </SectionCard>
       </div>
@@ -156,18 +157,22 @@ export default async function FarmerPage({ params }: { params: { id: string } })
             <p className="text-[15px] text-muted">
               {farmer.description || 'Tell buyers about your farm.'}
             </p>
-            <dl className="mt-3 divide-y divide-line border-t border-line">
-              <SectionRow label="Farm name" value={farmer.farmName} />
-              <SectionRow label="Region" value={`${farmer.town}, ${farmer.region}`} />
-              <SectionRow
-                label="Contact"
-                value={
-                  <span className="inline-flex items-center gap-2">
-                    <span className="badge bg-leaf-light text-leaf-dark">💬 WhatsApp</span>
-                    <span className="badge bg-paper text-muted">📞 Phone</span>
-                  </span>
-                }
-              />
+            <dl className="mt-3 grid grid-cols-1 gap-3 border-t border-line pt-3 sm:grid-cols-3 sm:divide-x sm:divide-line">
+              <div className="sm:pr-3">
+                <dt className="eyebrow">Farm name</dt>
+                <dd className="mt-1 truncate text-sm font-bold">{farmer.farmName}</dd>
+              </div>
+              <div className="sm:px-3">
+                <dt className="eyebrow">Region</dt>
+                <dd className="mt-1 truncate text-sm font-bold">{farmer.town}, {farmer.region}</dd>
+              </div>
+              <div className="sm:pl-3">
+                <dt className="eyebrow">Contact</dt>
+                <dd className="mt-1 flex items-center gap-1.5">
+                  <span className="badge bg-leaf-light text-leaf-dark">💬 WhatsApp</span>
+                  <span className="badge bg-paper text-muted">📞 Phone</span>
+                </dd>
+              </div>
             </dl>
           </div>
         </SectionCard>
@@ -178,9 +183,9 @@ export default async function FarmerPage({ params }: { params: { id: string } })
           <SectionCard title="Recent Farm Activity">
             <div className="divide-y divide-line">
               {activity.map((item, i) => (
-                <div key={i} className="flex items-center gap-3 p-3.5">
-                  <span className="text-lg" aria-hidden>{item.icon}</span>
-                  <span className="flex-1 text-sm font-semibold">{item.message}</span>
+                <div key={i} className="flex items-center gap-2.5 px-3.5 py-2.5">
+                  <span className="text-base" aria-hidden>{item.icon}</span>
+                  <span className="flex-1 truncate text-[13.5px] font-semibold">{item.message}</span>
                   <span className="shrink-0 text-[12px] text-muted">{timeAgo(item.at)}</span>
                 </div>
               ))}
@@ -202,8 +207,8 @@ export default async function FarmerPage({ params }: { params: { id: string } })
               <LifecycleBadge lifecycle={lifecycle} />
               <span className="text-[12.5px] text-muted">{groups.get(lifecycle)!.length}</span>
             </div>
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-              {groups.get(lifecycle)!.map((p) => <ProductCard key={p.id} p={p} />)}
+            <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 lg:grid-cols-6">
+              {groups.get(lifecycle)!.map((p) => <ProductCard key={p.id} p={p} size="sm" />)}
             </div>
           </div>
         ))

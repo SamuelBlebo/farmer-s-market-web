@@ -84,8 +84,6 @@ export const productSchema = z
     price: z.coerce.number().positive('Enter a price').max(1_000_000),
     unit: z.enum(UNITS),
     quantity: z.coerce.number().positive('Enter how much you have').max(1_000_000),
-    region: z.enum(REGIONS),
-    town: z.string().min(2, 'Enter the town'),
     images: z
       .array(z.object({ url: z.string().url(), publicId: z.string() }))
       .max(5)

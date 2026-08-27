@@ -15,7 +15,7 @@ body { @apply bg-paper text-ink antialiased; }
   .input { @apply w-full rounded-[10px] border border-line bg-white px-3 py-2.5 text-[15px] outline-none focus:border-leaf focus:ring-2 focus:ring-leaf-dark/20; }
   .label { @apply mb-1.5 block text-[13px] font-semibold; }
   .eyebrow { @apply text-[11px] font-bold uppercase tracking-[0.12em] text-muted; }
-  .badge { @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide; }
+  .badge { @apply inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide; }
 }
 
 /* Mobile data is the norm for our users — no decorative animation. */

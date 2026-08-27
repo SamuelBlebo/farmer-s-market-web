@@ -116,11 +116,11 @@ export default async function DashboardPage() {
 
       <div className="mb-6">
         <SectionCard title="Quick Actions">
-          <div className="divide-y divide-line">
-            <AccountActionRow href="/dashboard/listings" icon={<DocumentIcon className="h-4 w-4" />} label="My Listings" />
-            <AccountActionRow href="/wanted" icon={<DocumentIcon className="h-4 w-4" />} label="Requests" />
-            <AccountActionRow href="/favorites" icon={<HeartIcon className="h-4 w-4" />} label="Saved" />
-            <AccountActionRow href="/account" icon={<UserIcon />} label="Account" />
+          <div className="grid grid-cols-2 gap-px bg-line">
+            <AccountActionRow className="bg-white" href="/dashboard/listings" icon={<DocumentIcon className="h-4 w-4" />} label="My Listings" />
+            <AccountActionRow className="bg-white" href="/wanted" icon={<DocumentIcon className="h-4 w-4" />} label="Requests" />
+            <AccountActionRow className="bg-white" href="/favorites" icon={<HeartIcon className="h-4 w-4" />} label="Saved" />
+            <AccountActionRow className="bg-white" href="/account" icon={<UserIcon />} label="Account" />
           </div>
         </SectionCard>
       </div>

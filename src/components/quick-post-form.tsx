@@ -58,7 +58,7 @@ export function QuickPostForm({
       </div>
 
       <p className="mb-3.5 text-[12.5px] text-muted">
-        Selling from {town}, {region} · Category: {categoryName}. Switch to the full form to change these, add photos, harvest date, or variants.
+        Selling from {town}, {region} — your farm&apos;s location · Category: {categoryName}. Switch to the full form to change the category, add photos, harvest date, or variants.
       </p>
 
       {state.error && <p className="mb-3 text-sm text-clay">{state.error}</p>}

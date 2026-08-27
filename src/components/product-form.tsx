@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { useFormState } from 'react-dom';
+import Link from 'next/link';
 import { ImageUploader } from './image-uploader';
 import { SubmitButton } from './submit-button';
 import { VariantEditor } from './variant-editor';
-import { REGIONS, UNITS } from '@/lib/constants';
+import { UNITS } from '@/lib/constants';
 import type { ActionState } from '@/server/actions/products';
 
 type Category = { id: string; name: string };
@@ -78,24 +79,20 @@ export function ProductForm({
         </label>
       </div>
 
-      <div className="mb-3.5 grid grid-cols-2 gap-3">
-        <label className="block">
-          <span className="label">Quantity available</span>
-          <input name="quantity" inputMode="decimal" className="input" defaultValue={initial?.quantity} required />
-          {err('quantity') && <p className="mt-1 text-sm text-clay">{err('quantity')}</p>}
-        </label>
-        <label className="block">
-          <span className="label">Region</span>
-          <select name="region" className="input" defaultValue={initial?.region}>
-            {REGIONS.map((r) => <option key={r}>{r}</option>)}
-          </select>
-        </label>
-      </div>
-
       <label className="mb-3.5 block">
-        <span className="label">Town</span>
-        <input name="town" className="input" defaultValue={initial?.town} placeholder="e.g. Techiman" required />
+        <span className="label">Quantity available</span>
+        <input name="quantity" inputMode="decimal" className="input" defaultValue={initial?.quantity} required />
+        {err('quantity') && <p className="mt-1 text-sm text-clay">{err('quantity')}</p>}
       </label>
+
+      <div className="mb-3.5 rounded-[10px] border border-line bg-paper px-3 py-2.5">
+        <span className="label mb-0.5">Location</span>
+        <p className="text-[15px]">📍 {initial?.town}, {initial?.region}</p>
+        <p className="mt-0.5 text-[12.5px] text-muted">
+          Every listing sells from your farm&apos;s location.{' '}
+          <Link href="/account/edit" className="font-semibold text-leaf-dark hover:underline">Update it in your profile</Link> if it&apos;s changed.
+        </p>
+      </div>
 
       <label className="mb-3.5 block">
         <span className="label">

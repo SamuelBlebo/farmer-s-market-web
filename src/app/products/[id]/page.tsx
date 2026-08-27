@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { LifecycleBadge, StatusBadge, VerifiedBadge } from '@/components/badges';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { ContactPrompt } from '@/components/contact-prompt';
-import { CheckIcon, EyeIcon, FlagIcon, PencilIcon, PinIcon, TruckIcon, WheatIcon } from '@/components/icons';
+import { CheckIcon, EyeIcon, FlagIcon, PencilIcon, PinIcon, StarIcon, TruckIcon, WheatIcon } from '@/components/icons';
 import { ProductCard } from '@/components/product-card';
 import { PriceQuantity } from '@/components/quantity-bar';
 import { ProductGallery } from '@/components/product-gallery';
@@ -26,7 +26,7 @@ import {
   whatsappProductLink,
 } from '@/lib/format';
 import { computeTrustScore } from '@/lib/trust';
-import { getFollowerCount, getProduct, getRelatedProducts, recordProductView } from '@/server/queries';
+import { getFarmerRatingSummary, getFollowerCount, getProduct, getRelatedProducts, recordProductView } from '@/server/queries';
 import { currentUser } from '@/server/authz';
 import { reportProduct } from '@/server/actions/products';
 import { track } from '@/server/analytics';
@@ -52,10 +52,11 @@ export default async function ProductPage({ params }: { params: { id: string } }
   const p = await getProduct(params.id);
   if (!p) notFound();
 
-  const [user, followers, related] = await Promise.all([
+  const [user, followers, related, ratingSummary] = await Promise.all([
     currentUser(),
     getFollowerCount(p.farmer.user.id),
     getRelatedProducts({ id: p.id, categoryId: p.categoryId, region: p.region }),
+    getFarmerRatingSummary(p.farmer.id),
   ]);
   // Recently Viewed is a buyer/admin feature — farmers don't get it, so don't bother recording for them.
   if (user && user.role !== 'FARMER') await recordProductView(user.id, p.id);
@@ -147,6 +148,43 @@ export default async function ProductPage({ params }: { params: { id: string } }
             </p>
           )}
           <p className="mt-3 text-[15px] text-muted">{p.description}</p>
+
+          <div className="card mt-4 p-4">
+            <div className="flex items-center gap-3">
+              <div className="grid h-10 w-10 place-items-center rounded-full bg-leaf-light font-extrabold text-leaf-dark">
+                {p.farmer.farmName[0]}
+              </div>
+              <div>
+                <div className="font-bold">{p.farmer.farmName}</div>
+                <div className="text-[13px] text-muted">{p.farmer.town}, {p.farmer.region}</div>
+              </div>
+            </div>
+            <div className="my-3 flex flex-wrap items-center gap-1.5">
+              <VerifiedBadge status={p.farmer.verification} large />
+              <TrustScoreBadge score={trustScore} />
+              {ratingSummary.count > 0 && (
+                <span className="badge bg-gold-light text-[#8A6100]">
+                  <StarIcon className="h-3.5 w-3.5" filled /> {ratingSummary.average.toFixed(1)} ({ratingSummary.count})
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-muted">{p.farmer.description}</p>
+            <dl className="mt-3 border-t border-line pt-3 text-[12.5px] text-muted">
+              <div className="flex justify-between py-1">
+                <dt>Member since</dt>
+                <dd className="font-semibold">{p.farmer.createdAt.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}</dd>
+              </div>
+              <div className="flex justify-between py-1">
+                <dt>Active listings</dt>
+                <dd className="font-semibold">{p.farmer._count.products}</dd>
+              </div>
+              <div className="flex justify-between py-1">
+                <dt>Activity</dt>
+                <dd className="font-semibold">{lastActiveLabel(p.farmer.user.lastActiveAt)}</dd>
+              </div>
+            </dl>
+            <Link href={`/farmers/${p.farmer.id}`} className="btn-ghost mt-3 w-full">View farmer profile</Link>
+          </div>
         </div>
 
         <div>
@@ -234,38 +272,6 @@ export default async function ProductPage({ params }: { params: { id: string } }
                 )}
               </dl>
             </SectionCard>
-          </div>
-
-          <div className="card p-4">
-            <div className="flex items-center gap-3">
-              <div className="grid h-10 w-10 place-items-center rounded-full bg-leaf-light font-extrabold text-leaf-dark">
-                {p.farmer.farmName[0]}
-              </div>
-              <div>
-                <div className="font-bold">{p.farmer.farmName}</div>
-                <div className="text-[13px] text-muted">{p.farmer.town}, {p.farmer.region}</div>
-              </div>
-            </div>
-            <div className="my-3 flex flex-wrap gap-1.5">
-              <VerifiedBadge status={p.farmer.verification} large />
-              <TrustScoreBadge score={trustScore} />
-            </div>
-            <p className="text-sm text-muted">{p.farmer.description}</p>
-            <dl className="mt-3 border-t border-line pt-3 text-[12.5px] text-muted">
-              <div className="flex justify-between py-1">
-                <dt>Member since</dt>
-                <dd className="font-semibold">{p.farmer.createdAt.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}</dd>
-              </div>
-              <div className="flex justify-between py-1">
-                <dt>Active listings</dt>
-                <dd className="font-semibold">{p.farmer._count.products}</dd>
-              </div>
-              <div className="flex justify-between py-1">
-                <dt>Activity</dt>
-                <dd className="font-semibold">{lastActiveLabel(p.farmer.user.lastActiveAt)}</dd>
-              </div>
-            </dl>
-            <Link href={`/farmers/${p.farmer.id}`} className="btn-ghost mt-3 w-full">View farmer profile</Link>
           </div>
 
           {user && (

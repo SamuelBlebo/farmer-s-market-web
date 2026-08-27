@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ConversationThread, type ChatMessage } from './conversation-thread';
@@ -17,10 +17,14 @@ type ConversationDetail = {
   messages: ChatMessage[];
 };
 
-/** Floating popup chat box — opens over whatever page you're on, on the opposite corner from the feedback widget. */
+/** Floating popup chat box — opens over whatever page you're on, draggable by its header to wherever's convenient. */
 export function ChatWidget({ conversationId, onClose }: { conversationId: string; onClose: () => void }) {
   const [detail, setDetail] = useState<ConversationDetail | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{ startX: number; startY: number; originX: number; originY: number } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -47,13 +51,51 @@ export function ChatWidget({ conversationId, onClose }: { conversationId: string
     };
   }, [conversationId]);
 
+  function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    // Don't hijack clicks on the name link, "Open" link, or close button.
+    if ((e.target as HTMLElement).closest('a,button')) return;
+    const rect = rootRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragRef.current = { startX: e.clientX, startY: e.clientY, originX: rect.left, originY: rect.top };
+    setDragging(true);
+  }
+
+  function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (!dragRef.current || !rootRef.current) return;
+    const { startX, startY, originX, originY } = dragRef.current;
+    const rect = rootRef.current.getBoundingClientRect();
+    const maxX = window.innerWidth - rect.width;
+    const maxY = window.innerHeight - rect.height;
+    const x = Math.min(Math.max(0, originX + (e.clientX - startX)), Math.max(0, maxX));
+    const y = Math.min(Math.max(0, originY + (e.clientY - startY)), Math.max(0, maxY));
+    setPos({ x, y });
+  }
+
+  function handlePointerUp(e: React.PointerEvent<HTMLDivElement>) {
+    if (!dragRef.current) return;
+    dragRef.current = null;
+    setDragging(false);
+    e.currentTarget.releasePointerCapture(e.pointerId);
+  }
+
   return (
     <div
+      ref={rootRef}
       role="dialog"
       aria-label="Chat"
-      className="card fixed inset-x-4 bottom-4 z-40 flex h-[min(560px,calc(100vh-2rem))] flex-col overflow-hidden shadow-lg sm:inset-x-auto sm:left-4 sm:w-[380px]"
+      style={pos ? { left: pos.x, top: pos.y, right: 'auto', bottom: 'auto' } : undefined}
+      className={`card fixed z-40 flex h-[min(70vh,560px)] w-[min(92vw,380px)] flex-col overflow-hidden shadow-lg ${
+        pos ? '' : 'bottom-4 left-4'
+      }`}
     >
-      <div className="flex items-center gap-2.5 border-b border-line px-3.5 py-3">
+      <div
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        className={`flex touch-none items-center gap-2.5 border-b border-line px-3.5 py-3 ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+      >
         <div className="relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-leaf-light text-sm font-extrabold text-leaf-dark">
           {detail?.otherAvatar ? (
             <Image src={detail.otherAvatar} alt="" fill sizes="36px" className="object-cover" />

@@ -40,13 +40,17 @@ export async function Nav() {
     user?.role === 'FARMER' || user?.role === 'BUYER' ? getUnreadMessageCount(user.id) : 0,
   ]);
 
-  const items: NavItem[] = [
+  // Desktop shows Marketplace/Requests as text links in the header bar, plus
+  // Messages as an icon next to the notification bell (added below). Mobile
+  // has no room for that split, so its drawer gets all three as one list.
+  const desktopItems: NavItem[] = [
     { label: 'Marketplace', href: '/', icon: <StoreIcon /> },
     { label: 'Requests', href: '/wanted', icon: <DocumentIcon />, badge: requestsCount },
   ];
-  if (user?.role === 'FARMER' || user?.role === 'BUYER') {
-    items.push({ label: 'Messages', href: '/messages', icon: <MessageIcon className="h-[18px] w-[18px]" />, badge: unreadMessages });
-  }
+  const canChat = user?.role === 'FARMER' || user?.role === 'BUYER';
+  const items: NavItem[] = canChat
+    ? [...desktopItems, { label: 'Messages', href: '/messages', icon: <MessageIcon className="h-[18px] w-[18px]" />, badge: unreadMessages }]
+    : desktopItems;
 
   const favoritesItem = { label: 'Saved', href: '/favorites', icon: <HeartIcon className="h-4 w-4" /> };
 
@@ -107,7 +111,7 @@ export async function Nav() {
           Farmers<span className="text-[#15803D]">Market</span>
         </Link>
 
-        <NavLinks items={items} />
+        <NavLinks items={desktopItems} />
 
         <div className="ml-auto flex items-center gap-1.5">
           {user ? (
@@ -117,6 +121,9 @@ export async function Nav() {
                   {postAction.icon}
                   {postAction.label}
                 </Link>
+              )}
+              {canChat && (
+                <NotificationBell href="/messages" count={unreadMessages} label="Messages" icon={<MessageIcon className="h-5 w-5" />} />
               )}
               <NotificationBell href={bellHref} count={bellCount} label={bellLabel} />
               <ProfileMenu

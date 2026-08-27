@@ -2,10 +2,20 @@
 
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
-import { sendMessageSchema, startConversationSchema } from '@/lib/validation';
+import { sendMessageSchema, sendVoiceMessageSchema, startConversationSchema } from '@/lib/validation';
 import { requireUser } from '@/server/authz';
 
 export type ChatActionState = { error?: string };
+
+/** Shared ownership check for anything that writes into a conversation. */
+async function assertParticipant(conversationId: string, userId: string) {
+  const conversation = await prisma.conversation.findUnique({
+    where: { id: conversationId },
+    select: { buyerId: true, farmerId: true },
+  });
+  if (!conversation || (conversation.buyerId !== userId && conversation.farmerId !== userId)) return false;
+  return true;
+}
 
 /**
  * Finds or creates the one continuing thread between the current user and the
@@ -56,11 +66,7 @@ export async function sendMessage(_prev: ChatActionState, formData: FormData): P
     return { error: parsed.error.flatten().fieldErrors.content?.[0] ?? 'Type a message' };
   }
 
-  const conversation = await prisma.conversation.findUnique({
-    where: { id: parsed.data.conversationId },
-    select: { buyerId: true, farmerId: true },
-  });
-  if (!conversation || (conversation.buyerId !== user.id && conversation.farmerId !== user.id)) {
+  if (!(await assertParticipant(parsed.data.conversationId, user.id))) {
     return { error: 'Conversation not found.' };
   }
 
@@ -79,13 +85,41 @@ export async function sendMessage(_prev: ChatActionState, formData: FormData): P
   return {};
 }
 
+/** Called directly from the recorder, not via a <form> — the audio is already uploaded to Cloudinary by the time this runs. */
+export async function sendVoiceMessage(conversationId: string, audioUrl: string, durationSec: number): Promise<ChatActionState> {
+  const user = await requireUser();
+  const parsed = sendVoiceMessageSchema.safeParse({ conversationId, audioUrl, durationSec });
+  if (!parsed.success) return { error: 'Could not send that voice note.' };
+
+  if (!(await assertParticipant(parsed.data.conversationId, user.id))) {
+    return { error: 'Conversation not found.' };
+  }
+
+  await prisma.$transaction([
+    prisma.message.create({
+      data: {
+        conversationId: parsed.data.conversationId,
+        senderId: user.id,
+        type: 'VOICE',
+        content: 'Voice message',
+        audioUrl: parsed.data.audioUrl,
+        audioDurationSec: parsed.data.durationSec,
+      },
+    }),
+    prisma.conversation.update({
+      where: { id: parsed.data.conversationId },
+      data: { lastMessageAt: new Date() },
+    }),
+  ]);
+
+  revalidatePath(`/messages/${parsed.data.conversationId}`);
+  revalidatePath('/messages');
+  return {};
+}
+
 export async function markConversationRead(conversationId: string): Promise<void> {
   const user = await requireUser();
-  const conversation = await prisma.conversation.findUnique({
-    where: { id: conversationId },
-    select: { buyerId: true, farmerId: true },
-  });
-  if (!conversation || (conversation.buyerId !== user.id && conversation.farmerId !== user.id)) return;
+  if (!(await assertParticipant(conversationId, user.id))) return;
 
   await prisma.message.updateMany({
     where: { conversationId, senderId: { not: user.id }, readAt: null },

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useChatWidget } from './chat-widget-provider';
+import { MicIcon } from './icons';
 import { chatTimeLabel } from '@/lib/format';
 import type { ConversationSummary } from '@/server/chat';
 
@@ -33,8 +34,9 @@ export function InboxConversationRow({ conversation: c }: { conversation: Conver
           <span className="shrink-0 text-[12px] text-muted">{chatTimeLabel(c.lastMessageAt)}</span>
         </div>
         <div className="mt-0.5 flex items-center justify-between gap-2">
-          <p className={`truncate text-[13px] ${c.unreadCount > 0 ? 'font-semibold text-ink' : 'text-muted'}`}>
+          <p className={`flex min-w-0 items-center gap-1 truncate text-[13px] ${c.unreadCount > 0 ? 'font-semibold text-ink' : 'text-muted'}`}>
             {c.productName && <span className="text-muted">Re: {c.productName} — </span>}
+            {c.lastMessageIsVoice && <MicIcon className="h-3 w-3 shrink-0" />}
             {c.lastMessage ?? 'Say hello.'}
           </p>
           {c.unreadCount > 0 && (

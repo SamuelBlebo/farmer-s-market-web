@@ -51,7 +51,10 @@ export default async function ConversationPage({ params }: { params: { id: strin
         initialMessages={conversation.messages.map((m) => ({
           id: m.id,
           senderId: m.senderId,
+          type: m.type,
           content: m.content,
+          audioUrl: m.audioUrl,
+          audioDurationSec: m.audioDurationSec,
           createdAt: m.createdAt.toISOString(),
           readAt: m.readAt ? m.readAt.toISOString() : null,
         }))}

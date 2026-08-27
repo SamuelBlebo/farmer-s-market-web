@@ -4,16 +4,27 @@ import { BellIcon } from './icons';
 /**
  * Links straight to wherever the real attention items live (rejected
  * listings, rejected requests, the admin moderation queue) rather than
- * opening a notification feed we don't have data to back.
+ * opening a notification feed we don't have data to back. Also reused for
+ * the header's Messages icon — same icon-with-count-badge treatment.
  */
-export function NotificationBell({ href, count, label }: { href: string; count: number; label: string }) {
+export function NotificationBell({
+  href,
+  count,
+  label,
+  icon = <BellIcon />,
+}: {
+  href: string;
+  count: number;
+  label: string;
+  icon?: React.ReactNode;
+}) {
   return (
     <Link
       href={href}
       aria-label={count > 0 ? `${label}: ${count}` : label}
       className="relative hidden h-9 w-9 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-paper hover:text-ink sm:grid"
     >
-      <BellIcon />
+      {icon}
       {count > 0 && (
         <span
           key={count}

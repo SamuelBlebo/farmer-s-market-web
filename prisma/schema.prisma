@@ -400,13 +400,23 @@ model Conversation {
   @@index([farmerId, lastMessageAt])
 }
 
+enum MessageType {
+  TEXT
+  VOICE
+}
+
 model Message {
-  id             String    @id @default(cuid())
-  conversationId String
-  senderId       String
-  content        String
-  createdAt      DateTime  @default(now())
-  readAt         DateTime?
+  id               String      @id @default(cuid())
+  conversationId   String
+  senderId         String
+  type             MessageType @default(TEXT)
+  content          String
+  // Set only for VOICE messages — an unsigned Cloudinary upload from the
+  // browser, same pattern as photo uploads elsewhere in the app.
+  audioUrl         String?
+  audioDurationSec Int?
+  createdAt        DateTime    @default(now())
+  readAt           DateTime?
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)

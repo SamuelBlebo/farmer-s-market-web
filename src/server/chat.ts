@@ -5,6 +5,17 @@ const PARTICIPANT_SELECT = {
   farmer: { select: { id: true, name: true, image: true, farmerProfile: { select: { id: true, farmName: true } } } },
 } as const;
 
+const MESSAGE_SELECT = {
+  id: true,
+  senderId: true,
+  type: true,
+  content: true,
+  audioUrl: true,
+  audioDurationSec: true,
+  createdAt: true,
+  readAt: true,
+} as const;
+
 /** Farm name for the farmer side, business name for the buyer side — same identity shown everywhere else in the app, never the personal name. */
 function displayName(user: { name: string; farmerProfile?: { farmName: string } | null; buyerProfile?: { businessName: string } | null }) {
   return user.farmerProfile?.farmName ?? user.buyerProfile?.businessName ?? user.name;
@@ -18,6 +29,7 @@ export type ConversationSummary = {
   otherAvatar: string | null;
   productName: string | null;
   lastMessage: string | null;
+  lastMessageIsVoice: boolean;
   lastMessageAt: Date;
   unreadCount: number;
 };
@@ -30,7 +42,7 @@ export async function getConversations(userId: string): Promise<ConversationSumm
     include: {
       ...PARTICIPANT_SELECT,
       product: { select: { name: true } },
-      messages: { orderBy: { createdAt: 'desc' }, take: 1, select: { content: true } },
+      messages: { orderBy: { createdAt: 'desc' }, take: 1, select: { content: true, type: true } },
       _count: { select: { messages: { where: { readAt: null, NOT: { senderId: userId } } } } },
     },
   });
@@ -46,6 +58,7 @@ export async function getConversations(userId: string): Promise<ConversationSumm
       otherAvatar: other.image,
       productName: c.product?.name ?? null,
       lastMessage: c.messages[0]?.content ?? null,
+      lastMessageIsVoice: c.messages[0]?.type === 'VOICE',
       lastMessageAt: c.lastMessageAt,
       unreadCount: c._count.messages,
     };
@@ -59,10 +72,7 @@ export async function getConversation(id: string, userId: string) {
     include: {
       ...PARTICIPANT_SELECT,
       product: { select: { id: true, name: true, images: { take: 1, orderBy: { sortOrder: 'asc' }, select: { url: true } } } },
-      messages: {
-        orderBy: { createdAt: 'asc' },
-        select: { id: true, senderId: true, content: true, createdAt: true, readAt: true },
-      },
+      messages: { orderBy: { createdAt: 'asc' }, select: MESSAGE_SELECT },
     },
   });
   if (!conversation || (conversation.buyerId !== userId && conversation.farmerId !== userId)) return null;
@@ -90,7 +100,7 @@ export async function getNewMessages(conversationId: string, userId: string, aft
   return prisma.message.findMany({
     where: { conversationId, createdAt: { gt: after } },
     orderBy: { createdAt: 'asc' },
-    select: { id: true, senderId: true, content: true, createdAt: true, readAt: true },
+    select: MESSAGE_SELECT,
   });
 }
 

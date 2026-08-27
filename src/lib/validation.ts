@@ -133,6 +133,13 @@ export const sendMessageSchema = z.object({
   content: z.string().min(1, 'Type a message').max(2000),
 });
 
+export const sendVoiceMessageSchema = z.object({
+  conversationId: z.string().min(1),
+  audioUrl: z.string().url(),
+  // Cloudinary rounds to whole seconds; cap at 5 minutes to keep notes short.
+  durationSec: z.coerce.number().int().min(1).max(300),
+});
+
 export const feedbackSchema = z.object({
   message: z.string().min(5, 'Tell us a bit more').max(2000),
   page: z.string().max(200).optional(),

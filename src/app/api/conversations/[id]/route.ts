@@ -21,7 +21,10 @@ export async function GET(_request: Request, { params }: { params: { id: string 
     messages: conversation.messages.map((m) => ({
       id: m.id,
       senderId: m.senderId,
+      type: m.type,
       content: m.content,
+      audioUrl: m.audioUrl,
+      audioDurationSec: m.audioDurationSec,
       createdAt: m.createdAt.toISOString(),
       readAt: m.readAt ? m.readAt.toISOString() : null,
     })),

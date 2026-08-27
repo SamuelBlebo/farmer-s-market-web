@@ -1,9 +1,14 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { LoginForm } from '@/components/auth-forms';
+import { ToastListener } from '@/components/toast-listener';
 
 export default function LoginPage() {
   return (
     <div className="mx-auto max-w-[420px]">
+      <Suspense>
+        <ToastListener messages={{ reset: 'Password updated — sign in with your new password.' }} />
+      </Suspense>
       <div className="mb-5 text-center">
         <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
         <p className="text-muted">Sign in to post produce or contact farmers.</p>

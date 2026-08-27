@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { AdminResetPasswordButton } from '@/components/admin-reset-password-button';
 import { ModerationBadge, StatusBadge, VerifiedBadge } from '@/components/badges';
 import { CategoryIcon } from '@/components/category-icon';
 import { ChartIcon, ChatIcon, GearIcon, StarIcon } from '@/components/icons';
@@ -200,6 +201,11 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
               <div className="font-bold">{f.farmName}</div>
               <div className="text-[12.5px] text-muted">
                 {f.town}, {f.region} · {f.phone} · {lastActiveLabel(f.user.lastActiveAt)}
+                {f.reviewCount > 0 && (
+                  <span className="inline-flex items-center gap-0.5">
+                    {' · '}<StarIcon className="h-3 w-3 text-gold" filled /> {f.rating.toFixed(1)} ({f.reviewCount})
+                  </span>
+                )}
               </div>
             </div>
             <VerifiedBadge status={f.verification} />
@@ -211,6 +217,7 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
                 <button name="status" value="UNVERIFIED" className="btn-ghost !px-3 !py-1.5 !text-[13px]">Remove badge</button>
               )}
             </form>
+            <AdminResetPasswordButton userId={f.userId} />
           </div>
         ))}
       </div>
@@ -227,6 +234,7 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
                 {b.town}, {b.region} · {b.phone} · {lastActiveLabel(b.user.lastActiveAt)}
               </div>
             </div>
+            <AdminResetPasswordButton userId={b.userId} />
           </div>
         ))}
       </div>

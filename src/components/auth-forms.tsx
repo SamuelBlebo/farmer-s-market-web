@@ -2,11 +2,20 @@
 
 import { useState } from 'react';
 import { useFormState } from 'react-dom';
-import { BasketIcon, SproutIcon } from './icons';
+import Link from 'next/link';
+import { BadgeCheckIcon, BasketIcon, SproutIcon } from './icons';
 import { PasswordField } from './password-field';
 import { SubmitButton } from './submit-button';
 import { REGIONS } from '@/lib/constants';
-import { login, loginAdmin, loginWithPhone, register, type AuthState } from '@/server/actions/auth';
+import {
+  login,
+  loginAdmin,
+  loginWithPhone,
+  register,
+  requestPasswordReset,
+  resetPassword,
+  type AuthState,
+} from '@/server/actions/auth';
 
 const tab = (on: boolean) =>
   `flex-1 rounded-[10px] border px-3 py-2 text-[13px] font-bold ${
@@ -38,6 +47,9 @@ export function LoginForm() {
           <PasswordField autoComplete="current-password" />
           {emailState.error && <p className="mb-3 text-sm text-clay">{emailState.error}</p>}
           <SubmitButton className="btn w-full" pendingLabel="Signing in…">Sign in</SubmitButton>
+          <p className="mt-2.5 text-center text-[13px]">
+            <Link href="/forgot-password" className="font-semibold text-leaf-dark hover:underline">Forgot password?</Link>
+          </p>
         </form>
       ) : (
         <form action={phoneAction}>
@@ -49,6 +61,9 @@ export function LoginForm() {
           <PasswordField autoComplete="current-password" />
           {phoneState.error && <p className="mb-3 text-sm text-clay">{phoneState.error}</p>}
           <SubmitButton className="btn w-full" pendingLabel="Signing in…">Sign in</SubmitButton>
+          <p className="mt-2.5 text-center text-[13px] text-muted">
+            Forgot your password? <Link href="/support" className="font-semibold text-leaf-dark hover:underline">Contact support</Link>
+          </p>
         </form>
       )}
     </div>
@@ -130,6 +145,11 @@ export function RegisterForm() {
       <p className="mt-2 text-center text-[12px] text-muted">
         New farmers start as Unverified. Post a listing and an admin reviews you within a day.
       </p>
+      <p className="mt-2 text-center text-[12px] text-muted">
+        By creating an account you agree to our{' '}
+        <Link href="/terms" className="font-semibold text-leaf-dark hover:underline">Terms</Link> and{' '}
+        <Link href="/privacy" className="font-semibold text-leaf-dark hover:underline">Privacy Policy</Link>.
+      </p>
     </form>
   );
 }
@@ -146,6 +166,50 @@ export function AdminLoginForm() {
       <PasswordField autoComplete="current-password" />
       {state.error && <p className="mb-3 text-sm text-clay">{state.error}</p>}
       <SubmitButton className="btn w-full" pendingLabel="Signing in…">Admin sign in</SubmitButton>
+    </form>
+  );
+}
+
+export function ForgotPasswordForm() {
+  const [state, formAction] = useFormState(requestPasswordReset, {} as AuthState);
+
+  if (state.success) {
+    return (
+      <div className="card p-5 text-center">
+        <BadgeCheckIcon className="mx-auto h-7 w-7 text-leaf-dark" />
+        <p className="mt-2 font-bold">Check your email</p>
+        <p className="mt-1 text-sm text-muted">
+          If that address has an account, we&apos;ve sent a link to reset the password — it expires in an hour.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <form action={formAction} className="card p-5">
+      <label className="mb-3.5 block">
+        <span className="label">Email</span>
+        <input name="email" type="email" className="input" required autoComplete="email" />
+        {state.fieldErrors?.email?.[0] && <p className="mt-1 text-sm text-clay">{state.fieldErrors.email[0]}</p>}
+      </label>
+      <SubmitButton className="btn w-full" pendingLabel="Sending…">Send reset link</SubmitButton>
+      <p className="mt-2.5 text-center text-[13px] text-muted">
+        Signed up with only a phone number? <Link href="/support" className="font-semibold text-leaf-dark hover:underline">Contact support</Link> instead.
+      </p>
+    </form>
+  );
+}
+
+export function ResetPasswordForm({ email, token }: { email: string; token: string }) {
+  const [state, formAction] = useFormState(resetPassword, {} as AuthState);
+
+  return (
+    <form action={formAction} className="card p-5">
+      <input type="hidden" name="email" value={email} />
+      <input type="hidden" name="token" value={token} />
+      <PasswordField label="New password" autoComplete="new-password" error={state.fieldErrors?.newPassword?.[0]} />
+      {state.error && <p className="mb-3 text-sm text-clay">{state.error}</p>}
+      <SubmitButton className="btn w-full" pendingLabel="Saving…">Set new password</SubmitButton>
     </form>
   );
 }

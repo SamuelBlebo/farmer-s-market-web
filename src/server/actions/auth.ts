@@ -1,14 +1,23 @@
 'use server';
 
+import { randomBytes } from 'crypto';
 import { AuthError } from 'next-auth';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import bcrypt from 'bcryptjs';
 import { signIn, signOut } from '@/auth';
 import { prisma } from '@/lib/prisma';
+import { sendEmail } from '@/lib/email';
 import { normalizeGhanaPhone } from '@/lib/format';
-import { registerSchema, phoneLoginSchema } from '@/lib/validation';
+import { PLATFORM_NAME, SITE_URL } from '@/lib/constants';
+import { clientIp, isRateLimited } from '@/lib/rate-limit';
+import { forgotPasswordSchema, registerSchema, resetPasswordSchema, phoneLoginSchema } from '@/lib/validation';
 
-export type AuthState = { error?: string; fieldErrors?: Record<string, string[]> };
+export type AuthState = { error?: string; fieldErrors?: Record<string, string[]>; success?: boolean };
+
+const RESET_TOKEN_TTL_MS = 60 * 60_000;
+const RESET_REQUEST_LIMIT = 3;
+const RESET_REQUEST_WINDOW_MS = 15 * 60_000;
 
 export async function register(_prev: AuthState, formData: FormData): Promise<AuthState> {
   const parsed = registerSchema.safeParse({
@@ -140,4 +149,64 @@ export async function loginAdmin(_prev: AuthState, formData: FormData): Promise<
 export async function logout() {
   await signOut({ redirectTo: '/' });
   redirect('/');
+}
+
+/**
+ * Only works for accounts with an email on file — email is optional at
+ * registration, so phone-only accounts can't self-serve this way (see
+ * /forgot-password, which points them to /support instead). Always returns
+ * the same success response regardless of whether the email matched, so
+ * this can't be used to enumerate registered addresses.
+ */
+export async function requestPasswordReset(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  if (isRateLimited(`reset:${clientIp(headers())}`, RESET_REQUEST_LIMIT, RESET_REQUEST_WINDOW_MS)) {
+    // Same generic response as a successful request — this endpoint never confirms or denies anything either way.
+    return { success: true };
+  }
+
+  const parsed = forgotPasswordSchema.safeParse({ email: String(formData.get('email') ?? '').toLowerCase() });
+  if (!parsed.success) return { fieldErrors: parsed.error.flatten().fieldErrors };
+
+  const user = await prisma.user.findUnique({ where: { email: parsed.data.email } });
+  if (user?.email) {
+    const token = randomBytes(32).toString('hex');
+    await prisma.verificationToken.create({
+      data: { identifier: user.email, token, expires: new Date(Date.now() + RESET_TOKEN_TTL_MS) },
+    });
+    const resetUrl = `${SITE_URL}/reset-password?email=${encodeURIComponent(user.email)}&token=${token}`;
+    await sendEmail({
+      to: user.email,
+      subject: `Reset your ${PLATFORM_NAME} password`,
+      text: `Hi ${user.name},\n\nReset your password: ${resetUrl}\n\nThis link expires in an hour. If you didn't request this, ignore it.`,
+    });
+  }
+
+  return { success: true };
+}
+
+export async function resetPassword(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const parsed = resetPasswordSchema.safeParse({
+    email: String(formData.get('email') ?? '').toLowerCase(),
+    token: String(formData.get('token') ?? ''),
+    newPassword: String(formData.get('newPassword') ?? ''),
+  });
+  if (!parsed.success) return { fieldErrors: parsed.error.flatten().fieldErrors };
+
+  const { email, token, newPassword } = parsed.data;
+  const record = await prisma.verificationToken.findUnique({ where: { token } });
+  if (!record || record.identifier !== email || record.expires < new Date()) {
+    return { error: 'This reset link is invalid or has expired. Request a new one.' };
+  }
+
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) return { error: 'This reset link is invalid or has expired. Request a new one.' };
+
+  const passwordHash = await bcrypt.hash(newPassword, 12);
+  await prisma.$transaction([
+    prisma.user.update({ where: { id: user.id }, data: { passwordHash } }),
+    // Single-use — burn the token now that it's done its job.
+    prisma.verificationToken.delete({ where: { identifier_token: { identifier: email, token } } }),
+  ]);
+
+  redirect('/login?reset=1');
 }

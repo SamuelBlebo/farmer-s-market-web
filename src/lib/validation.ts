@@ -165,5 +165,17 @@ export const changePasswordSchema = z
   })
   .strict();
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('Enter a valid email'),
+});
+
+export const resetPasswordSchema = z
+  .object({
+    email: z.string().email(),
+    token: z.string().min(1),
+    newPassword: z.string().min(8, 'Use at least 8 characters'),
+  })
+  .strict();
+
 export type ProductInput = z.infer<typeof productSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;

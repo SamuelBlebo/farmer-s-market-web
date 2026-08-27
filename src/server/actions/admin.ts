@@ -1,6 +1,8 @@
 'use server';
 
+import { randomBytes } from 'crypto';
 import { revalidatePath } from 'next/cache';
+import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/server/authz';
 import { notifyFollowers } from '@/server/notifications';
@@ -137,6 +139,22 @@ export async function moderateReview(formData: FormData) {
 
   revalidatePath('/admin');
   revalidatePath(`/farmers/${review.farmerId}`);
+}
+
+/**
+ * The universal fallback for accounts with no email on file (email is
+ * optional at registration) — self-service /forgot-password can't reach
+ * them. Admin generates a temporary password here and relays it to the
+ * user directly, same as everything else in this app that goes through a
+ * human rather than automated delivery. Returns the plaintext once —
+ * nothing is stored or logged anywhere beyond the hash.
+ */
+export async function adminResetPassword(userId: string): Promise<string> {
+  await requireAdmin();
+  const newPassword = randomBytes(6).toString('base64url');
+  const passwordHash = await bcrypt.hash(newPassword, 12);
+  await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+  return newPassword;
 }
 
 export async function markFeedbackReviewed(formData: FormData) {

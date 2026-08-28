@@ -124,6 +124,7 @@ export function ChatWidget({ conversationId, onClose }: { conversationId: string
           )}
           {status === 'ready' && detail && (
             <ConversationThread
+              key={detail.id}
               conversationId={detail.id}
               currentUserId={detail.viewerId}
               initialMessages={detail.messages}

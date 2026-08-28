@@ -99,6 +99,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: { i
                 </div>
                 <div className="min-h-0 flex-1">
                   <ConversationThread
+                    key={active.id}
                     conversationId={active.id}
                     currentUserId={user.id}
                     productName={active.product?.name}

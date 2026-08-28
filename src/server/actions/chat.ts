@@ -46,10 +46,26 @@ export async function startConversation(otherUserId: string, productId?: string)
     throw new Error('Chat is only between a buyer and a farmer.');
   }
 
+  // A product id is just context for the thread, not something either
+  // party can act on directly — but a fabricated or mismatched one would
+  // still show up as "Re: <wrong farmer's listing>" in the UI, so it's
+  // worth confirming the product is real, belongs to this exact farmer,
+  // and is actually a listing buyers can see before attaching it.
+  let validProductId: string | undefined;
+  if (parsed.data.productId) {
+    const product = await prisma.product.findUnique({
+      where: { id: parsed.data.productId },
+      select: { moderation: true, status: true, farmer: { select: { userId: true } } },
+    });
+    if (product && product.moderation === 'APPROVED' && product.status !== 'REMOVED' && product.farmer.userId === farmerId) {
+      validProductId = parsed.data.productId;
+    }
+  }
+
   const conversation = await prisma.conversation.upsert({
     where: { buyerId_farmerId: { buyerId, farmerId } },
-    create: { buyerId, farmerId, productId: parsed.data.productId },
-    update: parsed.data.productId ? { productId: parsed.data.productId } : {},
+    create: { buyerId, farmerId, productId: validProductId },
+    update: validProductId ? { productId: validProductId } : {},
   });
 
   revalidatePath('/messages');

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ConversationThread, type ChatMessage } from './conversation-thread';
@@ -17,14 +17,11 @@ type ConversationDetail = {
   messages: ChatMessage[];
 };
 
-/** Floating popup chat box — opens over whatever page you're on, draggable by its header to wherever's convenient. */
+/** Chat as a proper modal — slides in from the right, dims and locks the page behind it, main focus until closed. */
 export function ChatWidget({ conversationId, onClose }: { conversationId: string; onClose: () => void }) {
   const [detail, setDetail] = useState<ConversationDetail | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
-  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
-  const [dragging, setDragging] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef<{ startX: number; startY: number; originX: number; originY: number } | null>(null);
+  const [entered, setEntered] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -51,99 +48,90 @@ export function ChatWidget({ conversationId, onClose }: { conversationId: string
     };
   }, [conversationId]);
 
-  function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
-    // Don't hijack clicks on the name link, "Open" link, or close button.
-    if ((e.target as HTMLElement).closest('a,button')) return;
-    const rect = rootRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    dragRef.current = { startX: e.clientX, startY: e.clientY, originX: rect.left, originY: rect.top };
-    setDragging(true);
-  }
+  // Slide-in entrance — start off-screen, animate in on the next frame.
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setEntered(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
 
-  function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
-    if (!dragRef.current || !rootRef.current) return;
-    const { startX, startY, originX, originY } = dragRef.current;
-    const rect = rootRef.current.getBoundingClientRect();
-    const maxX = window.innerWidth - rect.width;
-    const maxY = window.innerHeight - rect.height;
-    const x = Math.min(Math.max(0, originX + (e.clientX - startX)), Math.max(0, maxX));
-    const y = Math.min(Math.max(0, originY + (e.clientY - startY)), Math.max(0, maxY));
-    setPos({ x, y });
-  }
+  // Lock background scroll while the modal is open.
+  useEffect(() => {
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, []);
 
-  function handlePointerUp(e: React.PointerEvent<HTMLDivElement>) {
-    if (!dragRef.current) return;
-    dragRef.current = null;
-    setDragging(false);
-    e.currentTarget.releasePointerCapture(e.pointerId);
-  }
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [onClose]);
 
   return (
-    <div
-      ref={rootRef}
-      role="dialog"
-      aria-label="Chat"
-      style={pos ? { left: pos.x, top: pos.y, right: 'auto', bottom: 'auto' } : undefined}
-      className={`card fixed z-50 flex h-[min(70vh,560px)] w-[min(92vw,380px)] flex-col overflow-hidden shadow-lg ${
-        pos ? '' : 'chat-widget-pos left-4'
-      }`}
-    >
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/40" onClick={onClose}>
       <div
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
-        className={`flex touch-none items-center gap-2.5 border-b border-line px-3.5 py-3 ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Chat"
+        onClick={(e) => e.stopPropagation()}
+        className={`flex h-full w-full max-w-[420px] flex-col bg-white shadow-xl transition-transform duration-300 ease-out ${
+          entered ? 'translate-x-0' : 'translate-x-full'
+        }`}
       >
-        <div className="relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-leaf-light text-sm font-extrabold text-leaf-dark">
-          {detail?.otherAvatar ? (
-            <Image src={detail.otherAvatar} alt="" fill sizes="36px" className="object-cover" />
-          ) : (
-            detail?.otherName[0] ?? '…'
-          )}
-        </div>
-        <div className="min-w-0 flex-1">
-          {detail?.otherFarmerProfileId ? (
-            <Link href={`/farmers/${detail.otherFarmerProfileId}`} className="block truncate text-[14px] font-bold hover:underline">
-              {detail.otherName}
-            </Link>
-          ) : (
-            <p className="truncate text-[14px] font-bold">{detail?.otherName ?? 'Chat'}</p>
-          )}
-          {detail?.product && <p className="truncate text-[11.5px] text-muted">Re: {detail.product.name}</p>}
-        </div>
-        {detail && (
-          <Link href={`/messages/${detail.id}`} onClick={onClose} className="shrink-0 text-[11.5px] font-semibold text-leaf-dark hover:underline">
-            Open
-          </Link>
-        )}
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close chat"
-          className="shrink-0 rounded-full p-1.5 text-muted transition-colors hover:bg-paper"
-        >
-          <CloseIcon className="h-4 w-4" />
-        </button>
-      </div>
-
-      <div className="min-h-0 flex-1 p-3">
-        {status === 'loading' && <div className="flex h-full items-center justify-center text-sm text-muted">Loading…</div>}
-        {status === 'error' && (
-          <div className="flex h-full items-center justify-center text-center text-sm text-muted">
-            Could not load this conversation.
+        <div className="flex items-center gap-2.5 border-b border-line px-4 pb-3 pt-[calc(0.75rem_+_env(safe-area-inset-top))]">
+          <div className="relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-leaf-light text-sm font-extrabold text-leaf-dark">
+            {detail?.otherAvatar ? (
+              <Image src={detail.otherAvatar} alt="" fill sizes="36px" className="object-cover" />
+            ) : (
+              detail?.otherName[0] ?? '…'
+            )}
           </div>
-        )}
-        {status === 'ready' && detail && (
-          <ConversationThread
-            conversationId={detail.id}
-            currentUserId={detail.viewerId}
-            initialMessages={detail.messages}
-            productName={detail.product?.name}
-            compact
-          />
-        )}
+          <div className="min-w-0 flex-1">
+            {detail?.otherFarmerProfileId ? (
+              <Link href={`/farmers/${detail.otherFarmerProfileId}`} className="block truncate text-[15px] font-bold hover:underline">
+                {detail.otherName}
+              </Link>
+            ) : (
+              <p className="truncate text-[15px] font-bold">{detail?.otherName ?? 'Chat'}</p>
+            )}
+            {detail?.product && <p className="truncate text-[12px] text-muted">Re: {detail.product.name}</p>}
+          </div>
+          {detail && (
+            <Link href={`/messages/${detail.id}`} onClick={onClose} className="shrink-0 text-[12.5px] font-semibold text-leaf-dark hover:underline">
+              Open
+            </Link>
+          )}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close chat"
+            className="shrink-0 rounded-full p-1.5 text-muted transition-colors hover:bg-paper"
+          >
+            <CloseIcon className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="min-h-0 flex-1 p-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))]">
+          {status === 'loading' && <div className="flex h-full items-center justify-center text-sm text-muted">Loading…</div>}
+          {status === 'error' && (
+            <div className="flex h-full items-center justify-center text-center text-sm text-muted">
+              Could not load this conversation.
+            </div>
+          )}
+          {status === 'ready' && detail && (
+            <ConversationThread
+              conversationId={detail.id}
+              currentUserId={detail.viewerId}
+              initialMessages={detail.messages}
+              productName={detail.product?.name}
+              compact
+            />
+          )}
+        </div>
       </div>
     </div>
   );

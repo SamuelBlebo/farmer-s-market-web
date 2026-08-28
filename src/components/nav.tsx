@@ -60,7 +60,7 @@ export async function Nav() {
   ];
   const canChat = user?.role === 'FARMER' || user?.role === 'BUYER';
   const items: NavItem[] = canChat
-    ? [...desktopItems, { label: 'Messages', href: '/messages', icon: <MessageIcon className="h-[18px] w-[18px]" />, badge: unreadMessages }]
+    ? [...desktopItems, { label: 'Messages', href: '/messages', icon: <MessageIcon className="h-[18px] w-[18px]" />, badge: unreadMessages + unreadSupport }]
     : desktopItems;
 
   const favoritesItem = { label: 'Saved', href: '/favorites', icon: <HeartIcon className="h-4 w-4" /> };
@@ -131,7 +131,7 @@ export async function Nav() {
                 </Link>
               )}
               {canChat && (
-                <NotificationBell href="/messages" count={unreadMessages} label="Messages" icon={<MessageIcon className="h-5 w-5" />} />
+                <NotificationBell href="/messages" count={unreadMessages + unreadSupport} label="Messages" icon={<MessageIcon className="h-5 w-5" />} />
               )}
               <NotificationBellMenu count={bellCount} label={bellLabel} />
               <ProfileMenu

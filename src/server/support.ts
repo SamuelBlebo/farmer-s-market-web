@@ -84,6 +84,30 @@ export async function getUnreadSupportCountForUser(userId: string): Promise<numb
   });
 }
 
+/**
+ * Read-only peek for the pinned "Support" row in the inbox — never creates a
+ * thread just because the user opened their messages, only once they
+ * actually click into it (getOrCreateSupportConversation does that part).
+ */
+export async function getSupportConversationPreview(userId: string) {
+  const conversation = await prisma.supportConversation.findUnique({
+    where: { userId },
+    include: { messages: { orderBy: { createdAt: 'desc' }, take: 1, select: { content: true } } },
+  });
+  if (!conversation) return null;
+
+  const unreadCount = await prisma.supportMessage.count({
+    where: { conversationId: conversation.id, fromAdmin: true, readAt: null },
+  });
+
+  return {
+    id: conversation.id,
+    lastMessage: conversation.messages[0]?.content ?? null,
+    lastMessageAt: conversation.lastMessageAt,
+    unreadCount,
+  };
+}
+
 /** For the notification feed — the actual reply, not just a count, so it can show a real timestamp and preview. */
 export async function getLatestUnreadSupportReply(userId: string) {
   return prisma.supportMessage.findFirst({

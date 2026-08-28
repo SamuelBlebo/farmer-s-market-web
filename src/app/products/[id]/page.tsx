@@ -215,7 +215,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
                   <div className="flex justify-between py-2">
                     <dt className="text-muted">Delivery cost</dt>
                     <dd className="text-right font-bold">
-                      {p.deliveryPaidBy === 'FARMER' ? 'Free — farmer delivers' : 'Buyer pays — arrange the cost on WhatsApp'}
+                      {p.deliveryPaidBy === 'FARMER' ? 'Free — farmer delivers' : 'Buyer pays — arrange the cost with the farmer'}
                     </dd>
                   </div>
                 </>

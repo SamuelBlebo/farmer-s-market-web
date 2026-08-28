@@ -5,11 +5,12 @@ import { LifecycleBadge, StatusBadge, VerifiedBadge } from '@/components/badges'
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { ChatButton } from '@/components/chat-button';
 import { ContactPrompt } from '@/components/contact-prompt';
-import { CheckIcon, EyeIcon, FlagIcon, PencilIcon, PinIcon, ShieldIcon, StarIcon, TruckIcon, WheatIcon } from '@/components/icons';
+import { CheckIcon, EyeIcon, FlagIcon, PencilIcon, PinIcon, StarIcon, TruckIcon, WheatIcon } from '@/components/icons';
 import { ProductCard } from '@/components/product-card';
 import { PriceQuantity } from '@/components/quantity-bar';
 import { ProductGallery } from '@/components/product-gallery';
 import { RecordView } from '@/components/record-view';
+import { SafetyTips } from '@/components/safety-tips';
 import { StickyContactBar } from '@/components/sticky-contact-bar';
 import { TrackedCallLink } from '@/components/tracked-call-link';
 import { TrustScoreBadge } from '@/components/trust-score-badge';
@@ -22,7 +23,6 @@ import {
   telLink,
   timeAgo,
 } from '@/lib/format';
-import { PLATFORM_NAME } from '@/lib/constants';
 import { computeTrustScore } from '@/lib/trust';
 import { getFarmerRatingSummary, getFollowerCount, getProduct, getRelatedProducts, recordProductView } from '@/server/queries';
 import { currentUser } from '@/server/authz';
@@ -289,16 +289,8 @@ export default async function ProductPage({ params }: { params: { id: string } }
             </div>
           </div>
 
-          <div className="card mt-3.5 p-4">
-            <p className="mb-2 flex items-center gap-1.5 text-sm font-bold">
-              <ShieldIcon className="h-4 w-4 text-leaf-dark" /> Safety tips
-            </p>
-            <ul className="list-disc space-y-1.5 pl-4 text-[13px] text-muted marker:text-leaf-dark">
-              <li>Inspect the produce before you pay — quality can vary by harvest.</li>
-              <li>Meet at the farm or an agreed public location for pickup.</li>
-              <li>Avoid sending full payment upfront to someone you haven&apos;t dealt with before.</li>
-              <li>{PLATFORM_NAME} never processes payments — always pay the farmer directly, only when satisfied.</li>
-            </ul>
+          <div className="mt-3.5">
+            <SafetyTips mode="buying" />
           </div>
 
           {user && (

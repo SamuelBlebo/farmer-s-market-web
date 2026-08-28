@@ -1,6 +1,7 @@
 import { ListingModeTabs } from '@/components/listing-mode-tabs';
 import { ProductForm } from '@/components/product-form';
 import { QuickPostForm } from '@/components/quick-post-form';
+import { SafetyTips } from '@/components/safety-tips';
 import { UNITS } from '@/lib/constants';
 import { requireFarmerProfile } from '@/server/authz';
 import { getCategories } from '@/server/queries';
@@ -39,6 +40,10 @@ export default async function NewListingPage({ searchParams }: { searchParams: {
       <p className="mt-3 text-center text-[12.5px] text-muted">
         An admin reviews new listings, usually the same day. You can edit or pause it any time.
       </p>
+
+      <div className="mt-5">
+        <SafetyTips mode="selling" />
+      </div>
     </div>
   );
 }

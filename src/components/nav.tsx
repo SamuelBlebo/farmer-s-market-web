@@ -91,6 +91,7 @@ export async function Nav() {
     bellLabel = 'Notifications';
   } else if (user?.role === 'ADMIN') {
     useShield = true;
+    postAction = { label: 'Post for Farmer', href: '/admin/listings/new', icon: <PlusIcon className="h-4 w-4" /> };
     accountItems = [
       { label: 'Admin Dashboard', href: '/admin', icon: <ShieldIcon className="h-4 w-4" /> },
       { label: 'Analytics', href: '/admin/analytics', icon: <DocumentIcon className="h-4 w-4" /> },

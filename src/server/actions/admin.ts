@@ -2,12 +2,14 @@
 
 import { randomBytes } from 'crypto';
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { normalizeGhanaPhone } from '@/lib/format';
-import { adminCreateFarmerSchema } from '@/lib/validation';
+import { adminCreateFarmerSchema, buyerProfileSchema, farmerProfileSchema } from '@/lib/validation';
 import { requireAdmin } from '@/server/authz';
 import { notifyFollowers } from '@/server/notifications';
+import { emailConflict, phoneConflict, type AccountState } from '@/server/actions/account';
 
 export type AdminCreateFarmerState = {
   error?: string;
@@ -227,4 +229,95 @@ export async function markFeedbackReviewed(formData: FormData) {
   const id = String(formData.get('feedbackId') ?? '');
   await prisma.feedback.update({ where: { id }, data: { status: 'REVIEWED' } });
   revalidatePath('/admin/feedback');
+}
+
+/** Admin editing a farmer's own profile fields — same schema/shape as the farmer's own /account/edit, just targeting an arbitrary farmerId instead of the caller's own profile. */
+export async function updateFarmerProfileAsAdmin(farmerId: string, _prev: AccountState, formData: FormData): Promise<AccountState> {
+  await requireAdmin();
+  const profile = await prisma.farmerProfile.findUniqueOrThrow({ where: { id: farmerId } });
+  const parsed = farmerProfileSchema.safeParse({
+    name: String(formData.get('name') ?? ''),
+    businessName: String(formData.get('businessName') ?? ''),
+    phone: String(formData.get('phone') ?? ''),
+    email: String(formData.get('email') ?? ''),
+    region: formData.get('region'),
+    town: String(formData.get('town') ?? ''),
+    image: String(formData.get('image') ?? ''),
+    coverImage: String(formData.get('coverImage') ?? ''),
+    description: String(formData.get('description') ?? '') || undefined,
+  });
+  if (!parsed.success) return { fieldErrors: parsed.error.flatten().fieldErrors };
+
+  const d = parsed.data;
+  const normalizedPhone = normalizeGhanaPhone(d.phone);
+  if (await phoneConflict(normalizedPhone, profile.userId)) return { error: 'That phone number is already in use.' };
+  if (d.email && (await emailConflict(d.email, profile.userId))) return { error: 'That email is already in use.' };
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: profile.userId },
+      data: { name: d.name, phone: normalizedPhone, email: d.email ?? null, image: d.image ?? null },
+    }),
+    prisma.farmerProfile.update({
+      where: { id: farmerId },
+      data: {
+        farmName: d.businessName,
+        region: d.region,
+        town: d.town,
+        phone: d.phone,
+        whatsapp: d.phone,
+        coverImage: d.coverImage ?? null,
+        description: d.description ?? null,
+      },
+    }),
+  ]);
+
+  revalidatePath('/admin');
+  revalidatePath(`/farmers/${farmerId}`);
+  redirect(`/admin/farmers/${farmerId}/edit?saved=1`);
+}
+
+/** Admin editing a buyer's own profile fields — same schema/shape as the buyer's own /account/edit. */
+export async function updateBuyerProfileAsAdmin(buyerId: string, _prev: AccountState, formData: FormData): Promise<AccountState> {
+  await requireAdmin();
+  const profile = await prisma.buyerProfile.findUniqueOrThrow({ where: { id: buyerId } });
+  const parsed = buyerProfileSchema.safeParse({
+    name: String(formData.get('name') ?? ''),
+    businessName: String(formData.get('businessName') ?? ''),
+    phone: String(formData.get('phone') ?? ''),
+    email: String(formData.get('email') ?? ''),
+    image: String(formData.get('image') ?? ''),
+  });
+  if (!parsed.success) return { fieldErrors: parsed.error.flatten().fieldErrors };
+
+  const d = parsed.data;
+  const normalizedPhone = normalizeGhanaPhone(d.phone);
+  if (await phoneConflict(normalizedPhone, profile.userId)) return { error: 'That phone number is already in use.' };
+  if (d.email && (await emailConflict(d.email, profile.userId))) return { error: 'That email is already in use.' };
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: profile.userId },
+      data: { name: d.name, phone: normalizedPhone, email: d.email ?? null, image: d.image ?? null },
+    }),
+    prisma.buyerProfile.update({
+      where: { id: buyerId },
+      data: { businessName: d.businessName, phone: d.phone, whatsapp: d.phone },
+    }),
+  ]);
+
+  revalidatePath('/admin');
+  redirect(`/admin/buyers/${buyerId}/edit?saved=1`);
+}
+
+/** Admin "Message" button — opens (or starts) that user's support thread and drops the admin straight into the reply view. Reuses the support inbox rather than the buyer/farmer marketplace chat, since an admin messaging someone isn't a buyer/farmer conversation. */
+export async function messageUserFromAdmin(formData: FormData) {
+  await requireAdmin();
+  const userId = String(formData.get('userId') ?? '');
+  const conversation = await prisma.supportConversation.upsert({
+    where: { userId },
+    create: { userId },
+    update: {},
+  });
+  redirect(`/admin/support?id=${conversation.id}`);
 }

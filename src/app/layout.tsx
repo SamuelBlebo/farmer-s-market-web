@@ -6,6 +6,7 @@ import { ChatWidgetProvider } from '@/components/chat-widget-provider';
 import { Footer } from '@/components/footer';
 import { Nav } from '@/components/nav';
 import { SupportChatWidget } from '@/components/support-chat-widget';
+import { SupportWidgetProvider } from '@/components/support-widget-provider';
 import { TopProgressBar } from '@/components/top-progress-bar';
 import { ToastProvider } from '@/components/toast-provider';
 import { ErrorMonitor } from '@/components/error-monitor';
@@ -59,15 +60,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <ErrorMonitor />
         <ToastProvider>
           <ChatWidgetProvider>
-            <Suspense fallback={null}>
-              <TopProgressBar />
-            </Suspense>
-            <div className="mx-auto max-w-[1120px] px-4 pb-[calc(4rem_+_env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))]">
-              <Nav />
-              {children}
-              <Footer />
-            </div>
-            {showSupportWidget && <SupportChatWidget />}
+            <SupportWidgetProvider>
+              <Suspense fallback={null}>
+                <TopProgressBar />
+              </Suspense>
+              <div className="mx-auto max-w-[1120px] px-4 pb-[calc(4rem_+_env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))]">
+                <Nav />
+                {children}
+                <Footer />
+              </div>
+              {showSupportWidget && <SupportChatWidget />}
+            </SupportWidgetProvider>
           </ChatWidgetProvider>
         </ToastProvider>
       </body>

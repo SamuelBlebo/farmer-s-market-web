@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ChatIcon, CloseIcon } from './icons';
 import { SupportThread, type SupportChatMessage } from './support-thread';
+import { useSupportWidget } from './support-widget-provider';
 
 type SupportSession = { id: string; messages: SupportChatMessage[] };
 
 /** Floating site-wide live chat with support — opens a lightweight thread, no page navigation. Replaces the old one-way feedback form. */
 export function SupportChatWidget() {
-  const [open, setOpen] = useState(false);
+  const { open, toggleSupport } = useSupportWidget();
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'signed-out' | 'error'>('idle');
   const [session, setSession] = useState<SupportSession | null>(null);
 
@@ -32,27 +33,18 @@ export function SupportChatWidget() {
       .catch(() => setStatus('error'));
   }
 
-  function toggle() {
-    const next = !open;
-    setOpen(next);
-    if (next && status === 'idle') load();
-  }
-
-  // Notification feed items link here with #support to jump straight into
-  // the chat instead of just landing on the homepage.
+  // Fires whether the panel was opened by its own button or by something
+  // elsewhere on the page (e.g. a notification feed link) via context.
   useEffect(() => {
-    if (window.location.hash !== '#support') return;
-    history.replaceState(null, '', window.location.pathname + window.location.search);
-    setOpen(true);
-    load();
+    if (open && status === 'idle') load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [open, status]);
 
   return (
     <>
       <button
         type="button"
-        onClick={toggle}
+        onClick={toggleSupport}
         aria-expanded={open}
         aria-label={open ? 'Close support chat' : 'Chat with support'}
         className="support-btn-pos fixed right-4 z-40 grid h-12 w-12 place-items-center rounded-full bg-leaf text-white shadow-lg transition-colors hover:bg-leaf-dark"

@@ -4,12 +4,14 @@ import { AdminResetPasswordButton } from '@/components/admin-reset-password-butt
 import { ModerationBadge, StatusBadge, VerifiedBadge } from '@/components/badges';
 import { CategoryIcon } from '@/components/category-icon';
 import { ChartIcon, ChatIcon, GearIcon, PlusIcon, StarIcon } from '@/components/icons';
+import { ListCardToggle } from '@/components/list-card-toggle';
 import { Pagination } from '@/components/pagination';
 import { formatPrice, lastActiveLabel } from '@/lib/format';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/server/authz';
 import { getAdminBuyers, getAdminFarmers, getAdminProducts } from '@/server/queries';
 import {
+  messageUserFromAdmin,
   moderateProduct,
   moderateReview,
   moderateWanted,
@@ -168,34 +170,68 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
           <PlusIcon className="h-3.5 w-3.5" /> Post for a farmer
         </Link>
       </div>
-      <div className="card mb-1 divide-y divide-line">
-        {allListings.items.map((p) => {
-          const thumb = p.images[0]?.url;
-          return (
-            <div key={p.id} className="flex flex-wrap items-center gap-3 p-3.5">
-              <div className="relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-[8px] bg-gradient-to-br from-[#E9F1E9] to-[#D6E5D8] text-lg">
-                {thumb ? (
-                  <Image src={thumb} alt="" fill sizes="40px" className="object-cover" />
-                ) : (
-                  <CategoryIcon slug={p.category.slug} className="h-5 w-5 text-leaf-dark/70" />
-                )}
-              </div>
-              <div className="min-w-[160px] flex-1">
-                <div className="font-bold">{p.name}</div>
-                <div className="text-[12.5px] text-muted">{p.farmer.farmName} · {formatPrice(p.priceMinor)} / {p.unit}</div>
-              </div>
-              {p.featured && (
-                <span aria-label="Featured" title="Featured">
-                  <StarIcon className="h-4 w-4 text-[#8A6100]" filled />
-                </span>
-              )}
-              <StatusBadge status={p.status} />
-              <ModerationBadge status={p.moderation} />
-              <Link href={`/admin/products/${p.id}/edit`} className="btn-ghost !px-3 !py-1.5 !text-[13px]">Edit</Link>
-            </div>
-          );
-        })}
-      </div>
+      <ListCardToggle
+        list={
+          <div className="card mb-1 divide-y divide-line">
+            {allListings.items.map((p) => {
+              const thumb = p.images[0]?.url;
+              return (
+                <div key={p.id} className="flex flex-wrap items-center gap-3 p-3.5">
+                  <div className="relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-[8px] bg-gradient-to-br from-[#E9F1E9] to-[#D6E5D8] text-lg">
+                    {thumb ? (
+                      <Image src={thumb} alt="" fill sizes="40px" className="object-cover" />
+                    ) : (
+                      <CategoryIcon slug={p.category.slug} className="h-5 w-5 text-leaf-dark/70" />
+                    )}
+                  </div>
+                  <div className="min-w-[160px] flex-1">
+                    <div className="font-bold">{p.name}</div>
+                    <div className="text-[12.5px] text-muted">{p.farmer.farmName} · {formatPrice(p.priceMinor)} / {p.unit}</div>
+                  </div>
+                  {p.featured && (
+                    <span aria-label="Featured" title="Featured">
+                      <StarIcon className="h-4 w-4 text-[#8A6100]" filled />
+                    </span>
+                  )}
+                  <StatusBadge status={p.status} />
+                  <ModerationBadge status={p.moderation} />
+                  <Link href={`/admin/products/${p.id}/edit`} className="btn-ghost !px-3 !py-1.5 !text-[13px]">Edit</Link>
+                </div>
+              );
+            })}
+          </div>
+        }
+        cards={
+          <div className="mb-1 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {allListings.items.map((p) => {
+              const thumb = p.images[0]?.url;
+              return (
+                <div key={p.id} className="card p-3.5">
+                  <div className="relative mb-2.5 grid h-32 w-full place-items-center overflow-hidden rounded-[8px] bg-gradient-to-br from-[#E9F1E9] to-[#D6E5D8]">
+                    {thumb ? (
+                      <Image src={thumb} alt="" fill sizes="220px" className="object-cover" />
+                    ) : (
+                      <CategoryIcon slug={p.category.slug} className="h-7 w-7 text-leaf-dark/70" />
+                    )}
+                    {p.featured && (
+                      <span className="absolute right-2 top-2" aria-label="Featured" title="Featured">
+                        <StarIcon className="h-4 w-4 text-[#8A6100]" filled />
+                      </span>
+                    )}
+                  </div>
+                  <div className="font-bold">{p.name}</div>
+                  <div className="mb-2 text-[12.5px] text-muted">{p.farmer.farmName} · {formatPrice(p.priceMinor)} / {p.unit}</div>
+                  <div className="mb-2 flex flex-wrap gap-1.5">
+                    <StatusBadge status={p.status} />
+                    <ModerationBadge status={p.moderation} />
+                  </div>
+                  <Link href={`/admin/products/${p.id}/edit`} className="btn-ghost w-full !py-1.5 !text-[13px]">Edit</Link>
+                </div>
+              );
+            })}
+          </div>
+        }
+      />
       <Pagination page={allListings.page} pages={allListings.pages} basePath="/admin" searchParams={searchParams} pageParam="listingsPage" />
 
       <div className="mb-2 mt-8 flex items-center gap-2">
@@ -204,50 +240,127 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
           <PlusIcon className="h-3.5 w-3.5" /> Add farmer
         </Link>
       </div>
-      <div className="card mb-1 divide-y divide-line">
-        {farmers.items.map((f) => (
-          <div key={f.id} className="flex flex-wrap items-center gap-3 p-3.5">
-            <div className="min-w-[160px] flex-1">
-              <div className="font-bold">{f.farmName}</div>
-              <div className="text-[12.5px] text-muted">
-                {f.town}, {f.region} · {f.phone} · {lastActiveLabel(f.user.lastActiveAt)}
-                {f.reviewCount > 0 && (
-                  <span className="inline-flex items-center gap-0.5">
-                    {' · '}<StarIcon className="h-3 w-3 text-gold" filled /> {f.rating.toFixed(1)} ({f.reviewCount})
-                  </span>
-                )}
+      <ListCardToggle
+        list={
+          <div className="card mb-1 divide-y divide-line">
+            {farmers.items.map((f) => (
+              <div key={f.id} className="flex flex-wrap items-center gap-3 p-3.5">
+                <div className="min-w-[160px] flex-1">
+                  <Link href={`/admin/farmers/${f.id}/edit`} className="font-bold hover:underline">{f.farmName}</Link>
+                  <div className="text-[12.5px] text-muted">
+                    {f.town}, {f.region} · {f.phone} · {lastActiveLabel(f.user.lastActiveAt)}
+                    {f.reviewCount > 0 && (
+                      <span className="inline-flex items-center gap-0.5">
+                        {' · '}<StarIcon className="h-3 w-3 text-gold" filled /> {f.rating.toFixed(1)} ({f.reviewCount})
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <VerifiedBadge status={f.verification} precise />
+                <form action={setFarmerVerification} className="flex gap-2">
+                  <input type="hidden" name="farmerId" value={f.id} />
+                  {f.verification !== 'VERIFIED' ? (
+                    <button name="status" value="VERIFIED" className="btn !px-3 !py-1.5 !text-[13px]">Mark verified</button>
+                  ) : (
+                    <button name="status" value="UNVERIFIED" className="btn-ghost !px-3 !py-1.5 !text-[13px]">Remove badge</button>
+                  )}
+                </form>
+                <form action={messageUserFromAdmin}>
+                  <input type="hidden" name="userId" value={f.userId} />
+                  <button className="btn-ghost inline-flex items-center gap-1.5 !px-3 !py-1.5 !text-[13px]">
+                    <ChatIcon className="h-3.5 w-3.5" /> Message
+                  </button>
+                </form>
+                <AdminResetPasswordButton userId={f.userId} />
               </div>
-            </div>
-            <VerifiedBadge status={f.verification} precise />
-            <form action={setFarmerVerification} className="flex gap-2">
-              <input type="hidden" name="farmerId" value={f.id} />
-              {f.verification !== 'VERIFIED' ? (
-                <button name="status" value="VERIFIED" className="btn !px-3 !py-1.5 !text-[13px]">Mark verified</button>
-              ) : (
-                <button name="status" value="UNVERIFIED" className="btn-ghost !px-3 !py-1.5 !text-[13px]">Remove badge</button>
-              )}
-            </form>
-            <AdminResetPasswordButton userId={f.userId} />
+            ))}
           </div>
-        ))}
-      </div>
+        }
+        cards={
+          <div className="mb-1 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {farmers.items.map((f) => (
+              <div key={f.id} className="card p-3.5">
+                <div className="mb-1 flex items-start justify-between gap-2">
+                  <Link href={`/admin/farmers/${f.id}/edit`} className="font-bold hover:underline">{f.farmName}</Link>
+                  <VerifiedBadge status={f.verification} precise />
+                </div>
+                <div className="mb-2.5 text-[12.5px] text-muted">
+                  {f.town}, {f.region} · {f.phone} · {lastActiveLabel(f.user.lastActiveAt)}
+                  {f.reviewCount > 0 && (
+                    <span className="inline-flex items-center gap-0.5">
+                      {' · '}<StarIcon className="h-3 w-3 text-gold" filled /> {f.rating.toFixed(1)} ({f.reviewCount})
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <form action={setFarmerVerification}>
+                    <input type="hidden" name="farmerId" value={f.id} />
+                    {f.verification !== 'VERIFIED' ? (
+                      <button name="status" value="VERIFIED" className="btn !px-3 !py-1.5 !text-[13px]">Verify</button>
+                    ) : (
+                      <button name="status" value="UNVERIFIED" className="btn-ghost !px-3 !py-1.5 !text-[13px]">Unverify</button>
+                    )}
+                  </form>
+                  <form action={messageUserFromAdmin}>
+                    <input type="hidden" name="userId" value={f.userId} />
+                    <button className="btn-ghost inline-flex items-center gap-1.5 !px-3 !py-1.5 !text-[13px]">
+                      <ChatIcon className="h-3.5 w-3.5" /> Message
+                    </button>
+                  </form>
+                </div>
+              </div>
+            ))}
+          </div>
+        }
+      />
       <Pagination page={farmers.page} pages={farmers.pages} basePath="/admin" searchParams={searchParams} pageParam="farmersPage" />
 
       <h2 id="buyers" className="mb-2 mt-8 scroll-mt-4 text-lg font-semibold tracking-tight">Buyers</h2>
-      <div className="card mb-1 divide-y divide-line">
-        {buyers.items.length === 0 && <p className="p-5 text-sm text-muted">No buyers yet.</p>}
-        {buyers.items.map((b) => (
-          <div key={b.id} className="flex flex-wrap items-center gap-3 p-3.5">
-            <div className="min-w-[160px] flex-1">
-              <div className="font-bold">{b.businessName}</div>
-              <div className="text-[12.5px] text-muted">
-                {b.town}, {b.region} · {b.phone} · {lastActiveLabel(b.user.lastActiveAt)}
-              </div>
+      {buyers.items.length === 0 ? (
+        <p className="card p-5 text-sm text-muted">No buyers yet.</p>
+      ) : (
+        <ListCardToggle
+          list={
+            <div className="card mb-1 divide-y divide-line">
+              {buyers.items.map((b) => (
+                <div key={b.id} className="flex flex-wrap items-center gap-3 p-3.5">
+                  <div className="min-w-[160px] flex-1">
+                    <Link href={`/admin/buyers/${b.id}/edit`} className="font-bold hover:underline">{b.businessName}</Link>
+                    <div className="text-[12.5px] text-muted">
+                      {b.town}, {b.region} · {b.phone} · {lastActiveLabel(b.user.lastActiveAt)}
+                    </div>
+                  </div>
+                  <form action={messageUserFromAdmin}>
+                    <input type="hidden" name="userId" value={b.userId} />
+                    <button className="btn-ghost inline-flex items-center gap-1.5 !px-3 !py-1.5 !text-[13px]">
+                      <ChatIcon className="h-3.5 w-3.5" /> Message
+                    </button>
+                  </form>
+                  <AdminResetPasswordButton userId={b.userId} />
+                </div>
+              ))}
             </div>
-            <AdminResetPasswordButton userId={b.userId} />
-          </div>
-        ))}
-      </div>
+          }
+          cards={
+            <div className="mb-1 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {buyers.items.map((b) => (
+                <div key={b.id} className="card p-3.5">
+                  <Link href={`/admin/buyers/${b.id}/edit`} className="font-bold hover:underline">{b.businessName}</Link>
+                  <div className="mb-2.5 text-[12.5px] text-muted">
+                    {b.town}, {b.region} · {b.phone} · {lastActiveLabel(b.user.lastActiveAt)}
+                  </div>
+                  <form action={messageUserFromAdmin}>
+                    <input type="hidden" name="userId" value={b.userId} />
+                    <button className="btn-ghost inline-flex items-center gap-1.5 !px-3 !py-1.5 !text-[13px]">
+                      <ChatIcon className="h-3.5 w-3.5" /> Message
+                    </button>
+                  </form>
+                </div>
+              ))}
+            </div>
+          }
+        />
+      )}
       <Pagination page={buyers.page} pages={buyers.pages} basePath="/admin" searchParams={searchParams} pageParam="buyersPage" />
 
       <h2 id="reported-listings" className="mb-2 mt-8 scroll-mt-4 text-lg font-semibold tracking-tight">Reported listings</h2>

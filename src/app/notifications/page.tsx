@@ -1,42 +1,13 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { BadgeCheckIcon, BellIcon, ChatIcon, FlagIcon, WarningIcon } from '@/components/icons';
+import { BellIcon } from '@/components/icons';
+import { NotificationFeedRow } from '@/components/notification-feed-row';
 import { timeAgo } from '@/lib/format';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/server/authz';
 import { getNotifications } from '@/server/queries';
 import { markAllNotificationsRead } from '@/server/notifications';
-import {
-  type FeedItem,
-  type FeedItemKind,
-  getAdminNotificationFeed,
-  getBuyerAttentionFeed,
-  getFarmerNotificationFeed,
-} from '@/server/notification-feed';
-
-const KIND_ICON: Record<FeedItemKind, React.ReactNode> = {
-  moderation: <BellIcon className="h-4 w-4" />,
-  report: <FlagIcon className="h-4 w-4" />,
-  farmer: <BadgeCheckIcon className="h-4 w-4" />,
-  chat: <ChatIcon className="h-4 w-4" />,
-  support: <ChatIcon className="h-4 w-4" />,
-  rejected: <WarningIcon className="h-4 w-4" />,
-};
-
-function FeedRow({ item }: { item: FeedItem }) {
-  return (
-    <Link href={item.href} className="flex items-center gap-3 p-3.5 transition-colors hover:bg-paper">
-      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-[8px] bg-leaf-light text-leaf-dark">
-        {KIND_ICON[item.kind]}
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold">{item.message}</p>
-        {item.subtext && <p className="truncate text-[12.5px] text-muted">{item.subtext}</p>}
-        <p className="text-[12px] text-muted">{timeAgo(item.createdAt)}</p>
-      </div>
-    </Link>
-  );
-}
+import { getAdminNotificationFeed, getBuyerAttentionFeed, getFarmerNotificationFeed } from '@/server/notification-feed';
 
 function EmptyState({ note }: { note: string }) {
   return (
@@ -61,7 +32,7 @@ export default async function NotificationsPage() {
           <EmptyState note="No pending listings, requests, reports, new farmers, or support messages." />
         ) : (
           <div className="card divide-y divide-line">
-            {feed.map((item) => <FeedRow key={item.id} item={item} />)}
+            {feed.map((item) => <NotificationFeedRow key={item.id} item={item} />)}
           </div>
         )}
       </>
@@ -79,7 +50,7 @@ export default async function NotificationsPage() {
           <EmptyState note="Rejected listings, new buyer messages, and support replies will show up here." />
         ) : (
           <div className="card divide-y divide-line">
-            {feed.map((item) => <FeedRow key={item.id} item={item} />)}
+            {feed.map((item) => <NotificationFeedRow key={item.id} item={item} />)}
           </div>
         )}
       </>
@@ -109,7 +80,7 @@ export default async function NotificationsPage() {
             <div className="mb-6">
               <h2 className="mb-2 text-lg font-semibold tracking-tight">Needs your attention</h2>
               <div className="card divide-y divide-line">
-                {attentionFeed.map((item) => <FeedRow key={item.id} item={item} />)}
+                {attentionFeed.map((item) => <NotificationFeedRow key={item.id} item={item} />)}
               </div>
             </div>
           )}

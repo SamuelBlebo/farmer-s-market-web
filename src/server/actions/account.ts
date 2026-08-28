@@ -16,12 +16,12 @@ import { requireAdmin, requireBuyerProfile, requireFarmerProfile, requireUser } 
 export type AccountState = { error?: string; fieldErrors?: Record<string, string[]> };
 
 /** Throws a field error rather than a generic one when the phone belongs to someone else. */
-async function phoneConflict(phone: string, ownerId: string) {
+export async function phoneConflict(phone: string, ownerId: string) {
   const existing = await prisma.user.findUnique({ where: { phone } });
   return Boolean(existing && existing.id !== ownerId);
 }
 
-async function emailConflict(email: string, ownerId: string) {
+export async function emailConflict(email: string, ownerId: string) {
   const existing = await prisma.user.findUnique({ where: { email } });
   return Boolean(existing && existing.id !== ownerId);
 }

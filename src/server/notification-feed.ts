@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { getConversations } from '@/server/chat';
 import { getAdminSupportConversations, getLatestUnreadSupportReply } from '@/server/support';
 
-export type FeedItemKind = 'moderation' | 'report' | 'farmer' | 'chat' | 'support' | 'rejected';
+export type FeedItemKind = 'moderation' | 'report' | 'farmer' | 'chat' | 'support' | 'rejected' | 'update';
 
 export type FeedItem = {
   id: string;

@@ -4,6 +4,7 @@ import { BadgeCheckIcon, ChatIcon, DocumentIcon, GridIcon, HeartIcon, MessageIco
 import { MobileMenu } from './mobile-menu';
 import { NavLinks, type NavItem } from './nav-links';
 import { NotificationBell } from './notification-bell';
+import { NotificationBellMenu } from './notification-bell-menu';
 import { ProfileMenu } from './profile-menu';
 import { SearchBar } from './search-bar';
 import { prisma } from '@/lib/prisma';
@@ -71,7 +72,6 @@ export async function Nav() {
     { label: 'My Account', href: '/account', icon: <UserIcon /> },
   ];
   let useShield = false;
-  let bellHref = '/account';
   let bellCount = 0;
   let bellLabel = '';
   let postAction: { label: string; href: string; icon: React.ReactNode } | null = null;
@@ -86,7 +86,6 @@ export async function Nav() {
       favoritesItem,
       { label: 'My Account', href: '/account', icon: <UserIcon /> },
     ];
-    bellHref = '/notifications';
     bellCount = farmerAttention + unreadMessages + unreadSupport;
     bellLabel = 'Notifications';
   } else if (user?.role === 'BUYER' && buyerProfile) {
@@ -96,7 +95,6 @@ export async function Nav() {
       favoritesItem,
       { label: 'My Account', href: '/account', icon: <UserIcon /> },
     ];
-    bellHref = '/notifications';
     bellCount = buyerAttention + unreadNotifications + unreadMessages + unreadSupport;
     bellLabel = 'Notifications';
   } else if (user?.role === 'ADMIN') {
@@ -110,7 +108,6 @@ export async function Nav() {
       favoritesItem,
       { label: 'My Account', href: '/account', icon: <UserIcon /> },
     ];
-    bellHref = '/notifications';
     bellCount = adminAttention as number;
     bellLabel = 'Notifications';
   }
@@ -136,7 +133,7 @@ export async function Nav() {
               {canChat && (
                 <NotificationBell href="/messages" count={unreadMessages} label="Messages" icon={<MessageIcon className="h-5 w-5" />} />
               )}
-              <NotificationBell href={bellHref} count={bellCount} label={bellLabel} />
+              <NotificationBellMenu count={bellCount} label={bellLabel} />
               <ProfileMenu
                 avatarUrl={dbUser?.image}
                 avatarLetter={user.name[0]?.toUpperCase() ?? '?'}

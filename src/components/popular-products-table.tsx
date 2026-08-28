@@ -8,7 +8,7 @@ type SortKey = 'views' | 'whatsapp' | 'calls';
 
 const COLUMNS: { key: SortKey; label: string }[] = [
   { key: 'views', label: 'Views' },
-  { key: 'whatsapp', label: 'WhatsApp Clicks' },
+  { key: 'whatsapp', label: 'Chat Clicks' },
   { key: 'calls', label: 'Call Clicks' },
 ];
 

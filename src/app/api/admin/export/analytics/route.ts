@@ -15,7 +15,7 @@ export async function GET(request: Request) {
     [
       ['Product Views', overview.productViews, rangeLabel],
       ['Farmer Storefront Views', overview.farmerViews, rangeLabel],
-      ['WhatsApp Clicks', overview.whatsappClicks, rangeLabel],
+      ['Chat Clicks', overview.whatsappClicks, rangeLabel],
       ['Call Clicks', overview.callClicks, rangeLabel],
       ['Searches Performed', overview.searches, rangeLabel],
       ['New Follows', overview.newFollows, rangeLabel],

@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   const rows = await getPopularProducts(resolveDateRange(range), 500);
 
   const csv = toCsv(
-    ['Product', 'Farmer', 'Views', 'WhatsApp Clicks', 'Call Clicks'],
+    ['Product', 'Farmer', 'Views', 'Chat Clicks', 'Call Clicks'],
     rows.map((p) => [p.name, p.farmName, p.views, p.whatsapp, p.calls]),
   );
 

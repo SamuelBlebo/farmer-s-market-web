@@ -116,11 +116,13 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
       {followedProducts.length > 0 && !hasFilters && (
         <div className="mb-5">
           <h2 className="eyebrow mb-2 flex items-center gap-1.5"><SproutIcon className="h-3.5 w-3.5" /> From Farmers You Follow</h2>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <HorizontalScroller>
             {followedProducts.map((p) => (
-              <ProductCard key={p.id} p={p} />
+              <div key={p.id} className="w-40 shrink-0 sm:w-48">
+                <ProductCard p={p} />
+              </div>
             ))}
-          </div>
+          </HorizontalScroller>
         </div>
       )}
 
@@ -207,11 +209,13 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
       {recentlyViewed.length > 0 && !hasFilters && (
         <div className="mb-5 mt-8">
           <h2 className="eyebrow mb-2 flex items-center gap-1.5"><ClockIcon className="h-3.5 w-3.5" /> Recently Viewed</h2>
-          <div className="grid grid-cols-3 gap-2.5 lg:grid-cols-6">
+          <HorizontalScroller>
             {recentlyViewed.map((p) => (
-              <ProductCard key={p.id} p={p} size="sm" />
+              <div key={p.id} className="w-28 shrink-0 sm:w-36">
+                <ProductCard p={p} size="sm" />
+              </div>
             ))}
-          </div>
+          </HorizontalScroller>
         </div>
       )}
 
@@ -236,11 +240,13 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
               View Seasonal Hub →
             </Link>
           </div>
-          <div className="grid grid-cols-3 gap-2.5 lg:grid-cols-6">
+          <HorizontalScroller>
             {seasonalPreview.map((p) => (
-              <ProductCard key={p.id} p={p} size="sm" />
+              <div key={p.id} className="w-28 shrink-0 sm:w-36">
+                <ProductCard p={p} size="sm" />
+              </div>
             ))}
-          </div>
+          </HorizontalScroller>
         </div>
       )}
     </>

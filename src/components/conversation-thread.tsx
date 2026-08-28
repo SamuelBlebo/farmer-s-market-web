@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { markConversationRead, sendMessage, sendVoiceMessage } from '@/server/actions/chat';
-import { chatTimeLabel } from '@/lib/format';
-import { CloseIcon, MicIcon, SendIcon } from './icons';
+import { chatDateHeading, messageBubbleTime } from '@/lib/format';
+import { CloseIcon, DoubleCheckIcon, MicIcon, SendIcon } from './icons';
 import { useToast } from './toast-provider';
 
 export type ChatMessage = {
@@ -244,33 +244,52 @@ export function ConversationThread({
 
   return (
     <div className={compact ? 'flex h-full flex-col' : 'flex h-[70vh] flex-col'}>
-      <div className="flex-1 space-y-2 overflow-y-auto rounded-2xl border border-line bg-paper p-3">
+      <div className="flex-1 space-y-1.5 overflow-y-auto rounded-2xl border border-line bg-leaf-light/25 p-3">
         {messages.length === 0 && (
           <p className="mt-8 text-center text-sm text-muted">Say hello — messages are private between you two.</p>
         )}
-        {messages.map((m) => {
+        {messages.map((m, i) => {
           const mine = m.senderId === currentUserId;
+          const createdAt = new Date(m.createdAt);
+          const prevCreatedAt = i > 0 ? new Date(messages[i - 1].createdAt) : null;
+          const isNewDay = !prevCreatedAt || prevCreatedAt.toDateString() !== createdAt.toDateString();
+
           return (
-            <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-[14px] ${mine ? 'bg-leaf text-white' : 'bg-white text-ink shadow-sm'}`}>
-                {m.type === 'VOICE' && m.audioUrl ? (
-                  <div className="flex min-w-0 items-center gap-1.5">
-                    <MicIcon className={`h-3.5 w-3.5 shrink-0 ${mine ? 'text-white/80' : 'text-muted'}`} />
-                    {/* min-w-0 so the native audio control's own intrinsic width can shrink to fit — otherwise it forces the bubble (and the page) wider than the viewport on narrow screens. */}
-                    {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-                    <audio controls preload="none" src={m.audioUrl} className="h-8 w-full min-w-0 max-w-[190px]" />
-                    {m.audioDurationSec != null && (
-                      <span className={`font-num shrink-0 text-[11px] ${mine ? 'text-white/70' : 'text-muted'}`}>
-                        {formatClock(m.audioDurationSec)}
-                      </span>
-                    )}
-                  </div>
-                ) : (
-                  <p className="whitespace-pre-wrap break-words">{m.content}</p>
-                )}
-                <p className={`mt-0.5 text-right text-[10.5px] ${mine ? 'text-white/70' : 'text-muted'}`}>
-                  {chatTimeLabel(new Date(m.createdAt))}
-                </p>
+            <div key={m.id}>
+              {isNewDay && (
+                <div className="my-2 flex justify-center">
+                  <span className="rounded-full bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-muted shadow-sm">
+                    {chatDateHeading(createdAt)}
+                  </span>
+                </div>
+              )}
+              <div className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
+                <div
+                  className={`max-w-[75%] rounded-2xl px-3 py-2 text-[14px] ${
+                    mine ? 'rounded-br-sm bg-leaf text-white' : 'rounded-bl-sm bg-white text-ink shadow-sm'
+                  }`}
+                >
+                  {m.type === 'VOICE' && m.audioUrl ? (
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <MicIcon className={`h-3.5 w-3.5 shrink-0 ${mine ? 'text-white/80' : 'text-muted'}`} />
+                      {/* min-w-0 so the native audio control's own intrinsic width can shrink to fit — otherwise it forces the bubble (and the page) wider than the viewport on narrow screens. */}
+                      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                      <audio controls preload="none" src={m.audioUrl} className="h-8 w-full min-w-0 max-w-[190px]" />
+                      {m.audioDurationSec != null && (
+                        <span className={`font-num shrink-0 text-[11px] ${mine ? 'text-white/70' : 'text-muted'}`}>
+                          {formatClock(m.audioDurationSec)}
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="whitespace-pre-wrap break-words">{m.content}</p>
+                  )}
+                  <p className={`mt-0.5 flex items-center justify-end gap-1 text-[10.5px] ${mine ? 'text-white/70' : 'text-muted'}`}>
+                    {messageBubbleTime(createdAt)}
+                    {/* Read receipt — a single check once it's sent, a brighter double check once the other side has actually opened the thread. */}
+                    {mine && <DoubleCheckIcon className={`h-3.5 w-3.5 ${m.readAt ? 'text-white' : 'text-white/50'}`} />}
+                  </p>
+                </div>
               </div>
             </div>
           );

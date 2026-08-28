@@ -83,6 +83,21 @@ export function chatTimeLabel(date: Date): string {
   return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
 }
 
+/** Always just the clock time — for a message bubble, where a date-divider pill above already says which day. */
+export function messageBubbleTime(date: Date): string {
+  return date.toLocaleTimeString('en-GH', { hour: 'numeric', minute: '2-digit' });
+}
+
+/** Full day heading for a chat's date-divider pill — "Today" / "Yesterday" / "12 August 2026". */
+export function chatDateHeading(date: Date): string {
+  const now = new Date();
+  if (date.toDateString() === now.toDateString()) return 'Today';
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
 export function harvestDateLabel(date: Date): string {
   return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
 }

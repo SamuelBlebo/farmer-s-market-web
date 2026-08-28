@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { AdminResetPasswordButton } from '@/components/admin-reset-password-button';
 import { ChatIcon } from '@/components/icons';
 import { ProfileForm } from '@/components/profile-form';
+import { SubmitButton } from '@/components/submit-button';
 import { lastActiveLabel } from '@/lib/format';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/server/authz';
@@ -47,9 +48,9 @@ export default async function AdminEditBuyerPage({ params }: { params: { id: str
       <div className="card mb-4 flex flex-wrap items-center gap-2 p-4">
         <form action={messageUserFromAdmin}>
           <input type="hidden" name="userId" value={buyer.user.id} />
-          <button className="btn-ghost inline-flex items-center gap-1.5 !px-3 !py-1.5 !text-[13px]">
+          <SubmitButton pendingLabel="Opening…" className="btn-ghost inline-flex items-center gap-1.5 !px-3 !py-1.5 !text-[13px]">
             <ChatIcon className="h-3.5 w-3.5" /> Message
-          </button>
+          </SubmitButton>
         </form>
         <AdminResetPasswordButton userId={buyer.user.id} />
       </div>

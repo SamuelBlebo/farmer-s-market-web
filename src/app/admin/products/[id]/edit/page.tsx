@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ModerationBadge, StatusBadge } from '@/components/badges';
 import { StarIcon } from '@/components/icons';
 import { ProductForm } from '@/components/product-form';
+import { SubmitButton } from '@/components/submit-button';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/server/authz';
 import { getCategories } from '@/server/queries';
@@ -50,49 +51,49 @@ export default async function AdminEditProductPage({ params }: { params: { id: s
             <form action={moderateProduct}>
               <input type="hidden" name="productId" value={product.id} />
               <input type="hidden" name="decision" value="APPROVED" />
-              <button className="btn !px-3 !py-1.5 !text-[13px]">Approve</button>
+              <SubmitButton pendingLabel="Approving…" className="btn !px-3 !py-1.5 !text-[13px]">Approve</SubmitButton>
             </form>
           )}
           {product.moderation !== 'REJECTED' && (
             <form action={moderateProduct}>
               <input type="hidden" name="productId" value={product.id} />
               <input type="hidden" name="decision" value="REJECTED" />
-              <button className="btn-ghost !px-3 !py-1.5 !text-[13px]">Reject</button>
+              <SubmitButton pendingLabel="Rejecting…" className="btn-ghost !px-3 !py-1.5 !text-[13px]">Reject</SubmitButton>
             </form>
           )}
           {product.status !== 'ACTIVE' && product.status !== 'REMOVED' && (
             <form action={setProductStatus}>
               <input type="hidden" name="productId" value={product.id} />
               <input type="hidden" name="status" value="ACTIVE" />
-              <button className="btn-ghost !px-3 !py-1.5 !text-[13px]">Set active</button>
+              <SubmitButton pendingLabel="Saving…" className="btn-ghost !px-3 !py-1.5 !text-[13px]">Set active</SubmitButton>
             </form>
           )}
           {product.status === 'ACTIVE' && (
             <form action={setProductStatus}>
               <input type="hidden" name="productId" value={product.id} />
               <input type="hidden" name="status" value="PAUSED" />
-              <button className="btn-ghost !px-3 !py-1.5 !text-[13px]">Pause</button>
+              <SubmitButton pendingLabel="Saving…" className="btn-ghost !px-3 !py-1.5 !text-[13px]">Pause</SubmitButton>
             </form>
           )}
           {product.status !== 'SOLD' && product.status !== 'REMOVED' && (
             <form action={setProductStatus}>
               <input type="hidden" name="productId" value={product.id} />
               <input type="hidden" name="status" value="SOLD" />
-              <button className="btn-ghost !px-3 !py-1.5 !text-[13px]">Mark sold</button>
+              <SubmitButton pendingLabel="Saving…" className="btn-ghost !px-3 !py-1.5 !text-[13px]">Mark sold</SubmitButton>
             </form>
           )}
           {product.status !== 'REMOVED' && (
             <form action={removeProduct}>
               <input type="hidden" name="productId" value={product.id} />
-              <button className="btn-ghost !px-3 !py-1.5 !text-[13px]">Remove listing</button>
+              <SubmitButton pendingLabel="Removing…" className="btn-ghost !px-3 !py-1.5 !text-[13px]">Remove listing</SubmitButton>
             </form>
           )}
           <form action={toggleFeatured}>
             <input type="hidden" name="productId" value={product.id} />
-            <button className="btn-ghost inline-flex items-center gap-1.5 !px-3 !py-1.5 !text-[13px]">
+            <SubmitButton pendingLabel="Saving…" className="btn-ghost inline-flex items-center gap-1.5 !px-3 !py-1.5 !text-[13px]">
               <StarIcon className="h-3.5 w-3.5" filled={product.featured} />
               {product.featured ? 'Unfeature' : 'Feature this listing'}
-            </button>
+            </SubmitButton>
           </form>
         </div>
       </div>

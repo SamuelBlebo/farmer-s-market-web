@@ -4,6 +4,7 @@ import { AdminResetPasswordButton } from '@/components/admin-reset-password-butt
 import { VerifiedBadge } from '@/components/badges';
 import { ChatIcon, StarIcon } from '@/components/icons';
 import { ProfileForm } from '@/components/profile-form';
+import { SubmitButton } from '@/components/submit-button';
 import { lastActiveLabel } from '@/lib/format';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/server/authz';
@@ -64,16 +65,16 @@ export default async function AdminEditFarmerPage({ params }: { params: { id: st
       <div className="card mb-4 flex flex-wrap items-center gap-2 p-4">
         <form action={messageUserFromAdmin}>
           <input type="hidden" name="userId" value={farmer.user.id} />
-          <button className="btn-ghost inline-flex items-center gap-1.5 !px-3 !py-1.5 !text-[13px]">
+          <SubmitButton pendingLabel="Opening…" className="btn-ghost inline-flex items-center gap-1.5 !px-3 !py-1.5 !text-[13px]">
             <ChatIcon className="h-3.5 w-3.5" /> Message
-          </button>
+          </SubmitButton>
         </form>
         <form action={setFarmerVerification}>
           <input type="hidden" name="farmerId" value={farmer.id} />
           {farmer.verification !== 'VERIFIED' ? (
-            <button name="status" value="VERIFIED" className="btn !px-3 !py-1.5 !text-[13px]">Mark verified</button>
+            <SubmitButton name="status" value="VERIFIED" pendingLabel="Verifying…" className="btn !px-3 !py-1.5 !text-[13px]">Mark verified</SubmitButton>
           ) : (
-            <button name="status" value="UNVERIFIED" className="btn-ghost !px-3 !py-1.5 !text-[13px]">Remove badge</button>
+            <SubmitButton name="status" value="UNVERIFIED" pendingLabel="Removing…" className="btn-ghost !px-3 !py-1.5 !text-[13px]">Remove badge</SubmitButton>
           )}
         </form>
         <AdminResetPasswordButton userId={farmer.user.id} />

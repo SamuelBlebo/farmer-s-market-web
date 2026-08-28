@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { SubmitButton } from '@/components/submit-button';
 import { timeAgo } from '@/lib/format';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/server/authz';
@@ -44,7 +45,7 @@ export default async function AdminFeedbackPage() {
               {f.status === 'OPEN' ? (
                 <form action={markFeedbackReviewed}>
                   <input type="hidden" name="feedbackId" value={f.id} />
-                  <button className="btn-ghost !px-3 !py-1.5 !text-[13px]">Mark reviewed</button>
+                  <SubmitButton pendingLabel="Saving…" className="btn-ghost !px-3 !py-1.5 !text-[13px]">Mark reviewed</SubmitButton>
                 </form>
               ) : (
                 <span className="badge bg-leaf-light text-leaf-dark">Reviewed</span>

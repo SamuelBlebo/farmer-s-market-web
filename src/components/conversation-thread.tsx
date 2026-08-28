@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { markConversationRead, sendMessage, sendVoiceMessage } from '@/server/actions/chat';
 import { chatDateHeading, messageBubbleTime } from '@/lib/format';
-import { CloseIcon, DoubleCheckIcon, MicIcon, SendIcon } from './icons';
+import { CloseIcon, DoubleCheckIcon, MicIcon, PauseIcon, PlayIcon, SendIcon } from './icons';
 import { useToast } from './toast-provider';
 
 export type ChatMessage = {
@@ -36,6 +36,93 @@ function formatClock(totalSeconds: number): string {
   const m = Math.floor(totalSeconds / 60);
   const s = totalSeconds % 60;
   return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+/** WhatsApp-style voice note player — a round play/pause button, a scrubbable progress bar, and a duration readout, instead of the browser's default <audio controls> widget. */
+function VoiceBubble({ src, durationSec, mine }: { src: string; durationSec: number | null; mine: boolean }) {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [playing, setPlaying] = useState(false);
+  const [currentSec, setCurrentSec] = useState(0);
+  const [totalSec, setTotalSec] = useState(durationSec ?? 0);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    const onTimeUpdate = () => setCurrentSec(audio.currentTime);
+    const onLoadedMetadata = () => {
+      if (Number.isFinite(audio.duration)) setTotalSec(audio.duration);
+    };
+    const onEnded = () => {
+      setPlaying(false);
+      setCurrentSec(0);
+    };
+    const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+    audio.addEventListener('timeupdate', onTimeUpdate);
+    audio.addEventListener('loadedmetadata', onLoadedMetadata);
+    audio.addEventListener('ended', onEnded);
+    audio.addEventListener('play', onPlay);
+    audio.addEventListener('pause', onPause);
+    return () => {
+      audio.removeEventListener('timeupdate', onTimeUpdate);
+      audio.removeEventListener('loadedmetadata', onLoadedMetadata);
+      audio.removeEventListener('ended', onEnded);
+      audio.removeEventListener('play', onPlay);
+      audio.removeEventListener('pause', onPause);
+    };
+  }, []);
+
+  function toggle() {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (playing) audio.pause();
+    else void audio.play();
+  }
+
+  function seek(e: React.MouseEvent<HTMLButtonElement>) {
+    const audio = audioRef.current;
+    if (!audio || !totalSec) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+    audio.currentTime = ratio * totalSec;
+    setCurrentSec(audio.currentTime);
+  }
+
+  const progress = totalSec ? Math.min(1, currentSec / totalSec) : 0;
+  const shownSeconds = playing || currentSec > 0 ? currentSec : totalSec;
+
+  return (
+    <div className="flex min-w-0 items-center gap-2 py-0.5">
+      <button
+        type="button"
+        onClick={toggle}
+        aria-label={playing ? 'Pause voice note' : 'Play voice note'}
+        className={`grid h-8 w-8 shrink-0 place-items-center rounded-full transition-colors ${
+          mine ? 'bg-white/20 text-white hover:bg-white/30' : 'bg-leaf-light text-leaf-dark hover:bg-leaf-light/70'
+        }`}
+      >
+        {playing ? <PauseIcon className="h-3.5 w-3.5" /> : <PlayIcon className="ml-0.5 h-3.5 w-3.5" />}
+      </button>
+      <button
+        type="button"
+        onClick={seek}
+        aria-label="Seek voice note"
+        className={`relative h-1.5 min-w-0 flex-1 rounded-full ${mine ? 'bg-white/25' : 'bg-ink/10'}`}
+      >
+        <span
+          className={`absolute inset-y-0 left-0 rounded-full ${mine ? 'bg-white' : 'bg-leaf'}`}
+          style={{ width: `${progress * 100}%` }}
+        />
+        <span
+          className={`absolute top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full shadow-sm ${mine ? 'bg-white' : 'bg-leaf'}`}
+          style={{ left: `calc(${progress * 100}% - 5px)` }}
+        />
+      </button>
+      <span className={`font-num shrink-0 text-[11px] ${mine ? 'text-white/80' : 'text-muted'}`}>{formatClock(Math.round(shownSeconds))}</span>
+      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+      <audio ref={audioRef} src={src} preload="metadata" className="hidden" />
+    </div>
+  );
 }
 
 export function ConversationThread({
@@ -270,16 +357,8 @@ export function ConversationThread({
                   }`}
                 >
                   {m.type === 'VOICE' && m.audioUrl ? (
-                    <div className="flex min-w-0 items-center gap-1.5">
-                      <MicIcon className={`h-3.5 w-3.5 shrink-0 ${mine ? 'text-white/80' : 'text-muted'}`} />
-                      {/* min-w-0 so the native audio control's own intrinsic width can shrink to fit — otherwise it forces the bubble (and the page) wider than the viewport on narrow screens. */}
-                      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-                      <audio controls preload="none" src={m.audioUrl} className="h-8 w-full min-w-0 max-w-[190px]" />
-                      {m.audioDurationSec != null && (
-                        <span className={`font-num shrink-0 text-[11px] ${mine ? 'text-white/70' : 'text-muted'}`}>
-                          {formatClock(m.audioDurationSec)}
-                        </span>
-                      )}
+                    <div className="w-[210px] max-w-full">
+                      <VoiceBubble src={m.audioUrl} durationSec={m.audioDurationSec} mine={mine} />
                     </div>
                   ) : (
                     <p className="whitespace-pre-wrap break-words">{m.content}</p>

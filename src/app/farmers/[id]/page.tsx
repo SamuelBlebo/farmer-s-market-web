@@ -16,7 +16,6 @@ import {
   SproutIcon,
   StarIcon,
   StoreIcon,
-  UserIcon,
   UsersIcon,
 } from '@/components/icons';
 import { ProductCard } from '@/components/product-card';
@@ -173,17 +172,7 @@ export default async function FarmerPage({ params }: { params: { id: string } })
 
       <div className="mb-5">
         <SectionCard title="Farm Reputation">
-          <div className="grid grid-cols-2 gap-2.5 p-4 sm:grid-cols-3 lg:grid-cols-6">
-            <StatCard
-              compact
-              icon={<UserIcon />}
-              label="Followers"
-              value={followerCount}
-              emptyIcon={<UsersIcon className="h-5 w-5" />}
-              emptyMessage="Share your farm to attract your first follower."
-              emptyHref="#share-farm"
-              emptyLinkLabel="Share Farm"
-            />
+          <div className="grid grid-cols-2 gap-2.5 p-4 sm:grid-cols-3 lg:grid-cols-5">
             <StatCard compact icon={<HeartIcon className="h-[18px] w-[18px]" />} label="Saved by buyers" value={savedByBuyers} />
             <StatCard compact icon={<StoreIcon />} label="Active listings" value={farmer.products.length} />
             <StatCard

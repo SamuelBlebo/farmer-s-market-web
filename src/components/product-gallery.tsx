@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import Image from 'next/image';
 import { CategoryIcon } from './category-icon';
 import { ChevronLeftIcon, ChevronRightIcon, CloseIcon, ZoomIcon } from './icons';
+import { SaveButton } from './save-button';
 
 const SWIPE_THRESHOLD = 40;
 
@@ -11,10 +12,13 @@ export function ProductGallery({
   images,
   name,
   categorySlug,
+  productId,
 }: {
   images: { url: string }[];
   name: string;
   categorySlug: string;
+  /** Signed-in users only — omit to skip the save overlay entirely. */
+  productId?: string;
 }) {
   const [active, setActive] = useState(0);
   const [zoomed, setZoomed] = useState(false);
@@ -79,6 +83,12 @@ export function ProductGallery({
           </>
         ) : (
           <CategoryIcon slug={categorySlug} className="h-16 w-16" />
+        )}
+
+        {productId && (
+          <div className="absolute right-2 top-2 z-10">
+            <SaveButton productId={productId} iconOnly />
+          </div>
         )}
       </div>
 

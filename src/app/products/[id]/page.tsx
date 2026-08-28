@@ -5,12 +5,11 @@ import { LifecycleBadge, StatusBadge, VerifiedBadge } from '@/components/badges'
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { ChatButton } from '@/components/chat-button';
 import { ContactPrompt } from '@/components/contact-prompt';
-import { CheckIcon, EyeIcon, FlagIcon, PencilIcon, PinIcon, StarIcon, TruckIcon, WheatIcon } from '@/components/icons';
+import { CheckIcon, EyeIcon, FlagIcon, PencilIcon, PinIcon, ShieldIcon, StarIcon, TruckIcon, WheatIcon } from '@/components/icons';
 import { ProductCard } from '@/components/product-card';
 import { PriceQuantity } from '@/components/quantity-bar';
 import { ProductGallery } from '@/components/product-gallery';
 import { RecordView } from '@/components/record-view';
-import { SaveButton } from '@/components/save-button';
 import { StickyContactBar } from '@/components/sticky-contact-bar';
 import { TrackedCallLink } from '@/components/tracked-call-link';
 import { TrustScoreBadge } from '@/components/trust-score-badge';
@@ -23,6 +22,7 @@ import {
   telLink,
   timeAgo,
 } from '@/lib/format';
+import { PLATFORM_NAME } from '@/lib/constants';
 import { computeTrustScore } from '@/lib/trust';
 import { getFarmerRatingSummary, getFollowerCount, getProduct, getRelatedProducts, recordProductView } from '@/server/queries';
 import { currentUser } from '@/server/authz';
@@ -98,7 +98,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
           instead of filling the viewport, unlike normal block layout. */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.25fr_1fr]">
         <div>
-          <ProductGallery images={p.images} name={p.name} categorySlug={p.category.slug} />
+          <ProductGallery images={p.images} name={p.name} categorySlug={p.category.slug} productId={user ? p.id : undefined} />
 
           {user && p.status === 'ACTIVE' && (
             <StickyContactBar
@@ -125,7 +125,9 @@ export default async function ProductPage({ params }: { params: { id: string } }
               </div>
             </div>
 
-            <div className="mt-2 flex flex-wrap gap-2">
+            <p className="mt-3 text-[15px] leading-relaxed text-muted">{p.description}</p>
+
+            <div className="mt-3 flex flex-wrap gap-2">
               {lifecycle === 'AVAILABLE_NOW' && (
                 <span className="badge bg-leaf-light text-leaf-dark">
                   <span className="h-1.5 w-1.5 rounded-full bg-leaf-dark" aria-hidden /> Available Now
@@ -163,7 +165,6 @@ export default async function ProductPage({ params }: { params: { id: string } }
                 <WheatIcon className="h-4 w-4" /> {harvestLabel(p.expectedHarvestDate)}
               </p>
             )}
-            <p className="mt-3 text-[15px] leading-relaxed text-muted">{p.description}</p>
 
             <div className="mt-4 border-t border-line pt-4">
               <PriceQuantity
@@ -269,12 +270,12 @@ export default async function ProductPage({ params }: { params: { id: string } }
             <div className="mt-4 border-t border-line pt-4">
               {p.status === 'ACTIVE' ? (
                 user ? (
-                  <div className="space-y-2">
+                  <div className="flex gap-2">
                     {user.role === 'BUYER' && (
-                      <ChatButton otherUserId={p.farmer.user.id} productId={p.id} label="Chat with farmer" className="btn w-full" />
+                      <ChatButton otherUserId={p.farmer.user.id} productId={p.id} label="Chat with farmer" className="btn flex-1" />
                     )}
                     {p.farmer.phone && (
-                      <TrackedCallLink href={telLink(p.farmer.phone)} productId={p.id} className="btn-ghost w-full" />
+                      <TrackedCallLink href={telLink(p.farmer.phone)} productId={p.id} className="btn-ghost flex-1" />
                     )}
                   </div>
                 ) : (
@@ -285,9 +286,19 @@ export default async function ProductPage({ params }: { params: { id: string } }
                   This listing is {p.status.toLowerCase()}. Browse the marketplace for what is available now.
                 </p>
               )}
-
-              {user && <SaveButton productId={p.id} className="mt-2 w-full" />}
             </div>
+          </div>
+
+          <div className="card mt-3.5 p-4">
+            <p className="mb-2 flex items-center gap-1.5 text-sm font-bold">
+              <ShieldIcon className="h-4 w-4 text-leaf-dark" /> Safety tips
+            </p>
+            <ul className="list-disc space-y-1.5 pl-4 text-[13px] text-muted marker:text-leaf-dark">
+              <li>Inspect the produce before you pay — quality can vary by harvest.</li>
+              <li>Meet at the farm or an agreed public location for pickup.</li>
+              <li>Avoid sending full payment upfront to someone you haven&apos;t dealt with before.</li>
+              <li>{PLATFORM_NAME} never processes payments — always pay the farmer directly, only when satisfied.</li>
+            </ul>
           </div>
 
           {user && (

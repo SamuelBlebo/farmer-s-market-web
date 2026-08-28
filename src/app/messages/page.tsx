@@ -31,18 +31,18 @@ export default async function MessagesPage({ searchParams }: { searchParams: { i
           </p>
         </div>
       ) : (
-        <div className="lg:grid lg:grid-cols-[340px_1fr] lg:items-start lg:gap-4">
+        <div className="sm:grid sm:grid-cols-[260px_1fr] sm:items-start sm:gap-4 lg:grid-cols-[340px_1fr]">
           <div className="card divide-y divide-line overflow-hidden rounded-2xl shadow-sm">
             {conversations.map((c) => (
               <div key={c.id}>
-                {/* Mobile — opens the floating widget, same as before. */}
-                <div className="lg:hidden">
+                {/* Narrow phones only — opens the floating widget, same as before. */}
+                <div className="sm:hidden">
                   <InboxConversationRow conversation={c} />
                 </div>
-                {/* Desktop — a plain link that swaps the right-hand pane, no widget. */}
+                {/* Anything wide enough for a split view — a plain link that swaps the right-hand pane. */}
                 <Link
                   href={`/messages?id=${c.id}`}
-                  className={`hidden items-center gap-3 px-4 py-3 transition-colors lg:flex ${
+                  className={`hidden items-center gap-3 px-4 py-3 transition-colors sm:flex ${
                     c.id === activeId ? 'bg-paper' : 'hover:bg-paper'
                   }`}
                 >
@@ -75,7 +75,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: { i
             ))}
           </div>
 
-          <div className="hidden lg:block">
+          <div className="hidden sm:block">
             {active ? (
               <div className="card flex h-[calc(100vh-220px)] min-h-[420px] flex-col p-4">
                 <div className="mb-3 flex items-center gap-3 border-b border-line pb-3">

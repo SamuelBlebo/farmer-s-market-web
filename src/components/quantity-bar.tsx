@@ -10,6 +10,7 @@ export function PriceQuantity({
   quantity,
   initialQty,
   fromPrice,
+  hidePrice = false,
 }: {
   priceMinor: number;
   unit: string;
@@ -17,6 +18,8 @@ export function PriceQuantity({
   initialQty: number | string;
   /** Lowest variant price, if the listing has variants — shown as "From GH¢X" instead of the flat price. */
   fromPrice?: number;
+  /** Skip the price line — for callers that already show price elsewhere (e.g. next to the product name). */
+  hidePrice?: boolean;
 }) {
   const left = Number(quantity);
   const start = Math.max(Number(initialQty), left, 1);
@@ -24,18 +27,20 @@ export function PriceQuantity({
 
   return (
     <div>
-      <div className="font-num text-xl font-bold tracking-tight">
-        {fromPrice !== undefined ? (
-          <>
-            <span className="font-sans text-xs font-semibold text-muted">From </span>
-            {formatPrice(fromPrice)}
-          </>
-        ) : (
-          formatPrice(priceMinor)
-        )}
-        <span className="ml-1 font-sans text-xs font-semibold text-muted">/ {unit}</span>
-      </div>
-      <div className="mt-1.5">
+      {!hidePrice && (
+        <div className="font-num text-xl font-bold tracking-tight">
+          {fromPrice !== undefined ? (
+            <>
+              <span className="font-sans text-xs font-semibold text-muted">From </span>
+              {formatPrice(fromPrice)}
+            </>
+          ) : (
+            formatPrice(priceMinor)
+          )}
+          <span className="ml-1 font-sans text-xs font-semibold text-muted">/ {unit}</span>
+        </div>
+      )}
+      <div className={hidePrice ? '' : 'mt-1.5'}>
         <div className="mb-1 flex justify-between text-[11.5px] font-semibold text-muted">
           <span>
             {formatQty(left)} {unit} left

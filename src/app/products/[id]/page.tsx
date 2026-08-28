@@ -14,7 +14,6 @@ import { SaveButton } from '@/components/save-button';
 import { StickyContactBar } from '@/components/sticky-contact-bar';
 import { TrackedCallLink } from '@/components/tracked-call-link';
 import { TrustScoreBadge } from '@/components/trust-score-badge';
-import { WhatsAppButton } from '@/components/whatsapp-button';
 import {
   formatPrice,
   formatQty,
@@ -23,7 +22,6 @@ import {
   lastActiveLabel,
   telLink,
   timeAgo,
-  whatsappProductLink,
 } from '@/lib/format';
 import { computeTrustScore } from '@/lib/trust';
 import { getFarmerRatingSummary, getFollowerCount, getProduct, getRelatedProducts, recordProductView } from '@/server/queries';
@@ -112,7 +110,20 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
           {/* Listing details — name, price, specs, and delivery together in one card. */}
           <div className="card mt-5 p-4">
-            <h1 className="text-xl font-bold leading-snug tracking-tight sm:text-2xl">{p.name}</h1>
+            <div className="flex items-start justify-between gap-3">
+              <h1 className="text-xl font-bold leading-snug tracking-tight sm:text-2xl">{p.name}</h1>
+              <div className="shrink-0 whitespace-nowrap text-right font-num text-lg font-bold tracking-tight sm:text-xl">
+                {p.variants[0]?.priceMinor !== undefined ? (
+                  <>
+                    <span className="block font-sans text-[11px] font-semibold text-muted">From</span>
+                    {formatPrice(p.variants[0].priceMinor)}
+                  </>
+                ) : (
+                  formatPrice(p.priceMinor)
+                )}
+                <span className="ml-1 font-sans text-xs font-semibold text-muted">/{p.unit}</span>
+              </div>
+            </div>
 
             <div className="mt-2 flex flex-wrap gap-2">
               {lifecycle === 'AVAILABLE_NOW' && (
@@ -161,6 +172,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
                 quantity={String(p.quantity)}
                 initialQty={String(p.initialQty)}
                 fromPrice={p.variants[0]?.priceMinor}
+                hidePrice
               />
             </div>
 
@@ -261,7 +273,6 @@ export default async function ProductPage({ params }: { params: { id: string } }
                     {user.role === 'BUYER' && (
                       <ChatButton otherUserId={p.farmer.user.id} productId={p.id} label="Chat with farmer" className="btn w-full" />
                     )}
-                    <WhatsAppButton href={whatsappProductLink(p.farmer.whatsapp, p.name)} className="w-full" trackEntityId={p.id} />
                     {p.farmer.phone && (
                       <TrackedCallLink href={telLink(p.farmer.phone)} productId={p.id} className="btn-ghost w-full" />
                     )}

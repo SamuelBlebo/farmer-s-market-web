@@ -95,7 +95,11 @@ export default async function ProductPage({ params }: { params: { id: string } }
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[1.25fr_1fr]">
+      {/* grid-cols-1 pins an explicit, fully-stretched single track below lg —
+          plain "grid" with no column count left grid-template-columns: none
+          on mobile, whose implicit auto-sized track shrinks to fit content
+          instead of filling the viewport, unlike normal block layout. */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.25fr_1fr]">
         <div>
           <ProductGallery images={p.images} name={p.name} categorySlug={p.category.slug} />
 
@@ -220,6 +224,8 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
         <div>
           <div className="card mb-3.5 p-4">
+            {/* Only on mobile — desktop's two-column layout already shows the h1 in the same view, so repeating it here would be redundant. */}
+            <h2 className="mb-2 text-[15px] font-bold leading-snug tracking-tight lg:hidden">{p.name}</h2>
             <PriceQuantity
               priceMinor={p.priceMinor}
               unit={p.unit}

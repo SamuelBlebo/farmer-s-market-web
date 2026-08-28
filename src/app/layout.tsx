@@ -57,7 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Suspense fallback={null}>
               <TopProgressBar />
             </Suspense>
-            <div className="mx-auto max-w-[1120px] px-4 pb-[calc(4rem+env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))]">
+            <div className="mx-auto max-w-[1120px] px-4 pb-[calc(4rem_+_env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))]">
               <Nav />
               {children}
               <Footer />

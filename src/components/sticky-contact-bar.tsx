@@ -37,7 +37,7 @@ export function StickyContactBar({
     <>
       <div ref={markerRef} aria-hidden className="h-px" />
       <div
-        className={`fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-4px_16px_rgba(0,0,0,0.08)] transition-transform duration-300 ease-out sm:hidden ${
+        className={`fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white p-3 pb-[calc(0.75rem_+_env(safe-area-inset-bottom))] shadow-[0_-4px_16px_rgba(0,0,0,0.08)] transition-transform duration-300 ease-out sm:hidden ${
           visible ? 'translate-y-0' : 'translate-y-full'
         }`}
       >

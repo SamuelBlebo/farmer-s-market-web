@@ -1,7 +1,8 @@
 # Farmers Market — web
 
 A produce marketplace for Ghana. Farmers list what they have; buyers find it and
-message the farmer on WhatsApp. No internal chat, no payments, no logistics.
+reach the farmer directly — WhatsApp, phone, or in-app chat (text and voice
+notes). No payments, no logistics.
 
 ## Stack
 
@@ -64,15 +65,17 @@ so the admin dashboard has something to act on.
 | Route | Who | What |
 | --- | --- | --- |
 | `/` | anyone | Marketplace — search, category, region, price, verified-only, sort |
-| `/products/[id]` | anyone | Listing detail, WhatsApp contact, save, report |
+| `/products/[id]` | anyone | Listing detail — chat, WhatsApp, and call contact, save, report |
 | `/farmers/[id]` | anyone | Farmer profile and their active listings |
-| `/wanted` | anyone | Buyer requests, contact buyer on WhatsApp |
+| `/wanted` | anyone | Buyer requests, contact buyer on WhatsApp or chat |
 | `/wanted/new` | buyer | Post a request |
+| `/messages` | signed in (farmer/buyer) | Chat inbox — split view (list + open thread) from 640px up, floating widget on narrower phones |
 | `/favorites` | signed in | Listings you've saved |
 | `/dashboard` | farmer | Their listings — edit, pause, mark sold |
 | `/dashboard/listings/new` | farmer | Post produce |
 | `/dashboard/listings/[id]/edit` | owner only | Edit a listing |
 | `/admin` | admin | Approvals, verification, reports, categories |
+| `/admin/listings/new` | admin | Post a listing on a farmer's behalf (phone/USSD intake) |
 | `/admin/analytics` | admin | Marketplace insights and CSV exports |
 | `/admin/feedback` | admin | Review submissions from the feedback widget and `/support` |
 | `/admin/system` | admin | Live database/Cloudinary/env status, app version, and platform counts |
@@ -111,6 +114,29 @@ Roles never come from the client. `register` accepts `FARMER` or `BUYER` only, s
 Unauthenticated access to `/admin/*` redirects to `/admin/login`, never the
 farmer/buyer `/login` — see the `authorized()` callback in `src/auth.config.ts`.
 
+`role` on the session is re-read from the database on every request in
+`currentUser()`, not trusted from the JWT — a demotion (or any other role
+change made directly in the database) takes effect on the very next request,
+not whenever that user's session token next happens to refresh.
+
+## In-app chat
+
+An optional alternative to WhatsApp/phone contact, not a replacement — both
+stay available everywhere. One continuing thread per buyer/farmer pair
+(`Conversation`, keyed on `buyerId`/`farmerId`), with `productId` marking
+whichever listing it's currently about. Supports text and voice notes
+(recorded in the browser via `MediaRecorder`, uploaded to Cloudinary the same
+unsigned way photos are). No moderation queue — it's private 1:1 messages
+between two consenting parties, not public content.
+
+Polling, not WebSockets — Vercel serverless functions can't hold a persistent
+connection open, so `ConversationThread` polls `/api/conversations/[id]/messages`
+every few seconds while a thread is open instead. `/messages` is a split view
+(list + open thread side by side) from 640px up; below that, chat opens as a
+floating modal instead of a full page. Every write (`startConversation`,
+`sendMessage`, `markConversationRead`) re-checks that the caller is actually a
+participant in that specific conversation before touching it.
+
 ## How money and quantity are stored
 
 Prices are integer pesewas (`priceMinor`), never floats. `initialQty` is kept
@@ -139,13 +165,19 @@ own requests regardless of status via `getMyWanted`.
 6. As a buyer, post a wanted request → it shows "Pending review" under Your requests, and is absent from the public `/wanted` list.
 7. Sign in as admin → `/admin` → approve the request → it appears on `/wanted`. Reject a different one → it stays hidden, buyer still sees its status.
 8. Report a listing as a buyer → it shows in the admin report queue → remove it → it leaves the marketplace.
-9. Open a product → confirm both WhatsApp and Call Farmer buttons work with the farmer's real number.
+9. Open a product → confirm Chat, WhatsApp, and Call Farmer all work — Chat opens a thread with the farmer, WhatsApp/Call use their real number.
 10. Visit `/admin` signed out → redirected to `/admin/login`, not `/login`. Sign in as a farmer or buyer and try `/admin` → same redirect.
+11. As a buyer, start a chat from a product → send a text message, then a voice note → both appear in the thread and in the farmer's inbox.
+12. Sign in as the farmer in a second browser (or incognito) → reply from `/messages` → confirm it shows up for the buyer within a few seconds (polling, not push).
 
 ## V2
 
-Orders and quotes, reviews after a completed deal, saved-search alerts when
-matching produce is posted, listing expiry with a "still available?" nudge,
-true OTP/SMS phone verification (needs an SMS provider — Twilio Verify,
-Africa's Talking, or AWS SNS), a price board computed from listings, and
-token auth so the Expo app can post listings natively.
+Orders and quotes, saved-search alerts when matching produce is posted,
+listing expiry with a "still available?" nudge, true OTP/SMS phone
+verification (needs an SMS provider — Twilio Verify, Africa's Talking, or AWS
+SNS), a price board computed from listings, real-time chat delivery (push
+instead of polling — needs a WebSocket-capable host, which Vercel serverless
+isn't), and token auth so the Expo app can post listings and chat natively.
+
+Already shipped since the original scope: buyer reviews of a farmer (with a
+moderation queue, same pattern as listings), and in-app chat with voice notes.

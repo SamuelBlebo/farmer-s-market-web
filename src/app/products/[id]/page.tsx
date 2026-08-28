@@ -11,7 +11,6 @@ import { PriceQuantity } from '@/components/quantity-bar';
 import { ProductGallery } from '@/components/product-gallery';
 import { RecordView } from '@/components/record-view';
 import { SaveButton } from '@/components/save-button';
-import { SectionCard, SectionRow } from '@/components/section-card';
 import { StickyContactBar } from '@/components/sticky-contact-bar';
 import { TrackedCallLink } from '@/components/tracked-call-link';
 import { TrustScoreBadge } from '@/components/trust-score-badge';
@@ -111,79 +110,114 @@ export default async function ProductPage({ params }: { params: { id: string } }
             />
           )}
 
-          <h1 className="mt-5 text-xl font-bold leading-snug tracking-tight sm:text-2xl">{p.name}</h1>
+          {/* Listing details — name, price, specs, and delivery together in one card. */}
+          <div className="card mt-5 p-4">
+            <h1 className="text-xl font-bold leading-snug tracking-tight sm:text-2xl">{p.name}</h1>
 
-          {/* Product Trust Bar — buying-decision signals, reusing the lifecycle/delivery/verification data computed above rather than recalculating anything. */}
-          <div className="mt-2 flex flex-wrap gap-2">
-            {lifecycle === 'AVAILABLE_NOW' && (
-              <span className="badge bg-leaf-light text-leaf-dark">
-                <span className="h-1.5 w-1.5 rounded-full bg-leaf-dark" aria-hidden /> Available Now
-              </span>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {lifecycle === 'AVAILABLE_NOW' && (
+                <span className="badge bg-leaf-light text-leaf-dark">
+                  <span className="h-1.5 w-1.5 rounded-full bg-leaf-dark" aria-hidden /> Available Now
+                </span>
+              )}
+              {lifecycle === 'UPCOMING_HARVEST' && (
+                <span className="badge bg-gold-light text-[#8A6100]">
+                  <WheatIcon className="h-3 w-3" /> {harvestLabel(p.expectedHarvestDate)}
+                </span>
+              )}
+              {p.deliveryAvailable ? (
+                <span className="badge bg-leaf-light text-leaf-dark">
+                  <TruckIcon className="h-3 w-3" /> Delivery Available
+                </span>
+              ) : (
+                <span className="badge bg-paper text-muted">
+                  <PinIcon className="h-3 w-3" /> Pickup Only
+                </span>
+              )}
+              {p.farmer.verification === 'VERIFIED' && (
+                <span className="badge bg-leaf-light text-leaf-dark">
+                  <CheckIcon className="h-3 w-3" /> Verified Farmer
+                </span>
+              )}
+            </div>
+
+            <div className="mt-2 flex flex-wrap gap-2">
+              <StatusBadge status={p.status} />
+              {lifecycle !== 'ONGOING' && <LifecycleBadge lifecycle={lifecycle} />}
+              <span className="badge bg-paper text-muted">{p.category.name}</span>
+              <span className="badge bg-paper text-muted">Listed {timeAgo(p.createdAt)}</span>
+            </div>
+            {p.status === 'ACTIVE' && (
+              <p className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-muted">
+                <WheatIcon className="h-4 w-4" /> {harvestLabel(p.expectedHarvestDate)}
+              </p>
             )}
-            {lifecycle === 'UPCOMING_HARVEST' && (
-              <span className="badge bg-gold-light text-[#8A6100]">
-                <WheatIcon className="h-3 w-3" /> {harvestLabel(p.expectedHarvestDate)}
-              </span>
+            <p className="mt-3 text-[15px] leading-relaxed text-muted">{p.description}</p>
+
+            <div className="mt-4 border-t border-line pt-4">
+              <PriceQuantity
+                priceMinor={p.priceMinor}
+                unit={p.unit}
+                quantity={String(p.quantity)}
+                initialQty={String(p.initialQty)}
+                fromPrice={p.variants[0]?.priceMinor}
+              />
+            </div>
+
+            {p.variants.length > 0 && (
+              <div className="mt-3 space-y-1.5 border-t border-line pt-3">
+                <p className="eyebrow">Choose a variant</p>
+                {p.variants.map((v) => (
+                  <div key={v.id} className="flex items-center justify-between text-sm">
+                    <span>{v.name}{v.quantity ? ` · ${formatQty(String(v.quantity))} ${p.unit}` : ''}</span>
+                    <span className="font-num font-bold">{formatPrice(v.priceMinor)}</span>
+                  </div>
+                ))}
+              </div>
             )}
-            {p.deliveryAvailable ? (
-              <span className="badge bg-leaf-light text-leaf-dark">
-                <TruckIcon className="h-3 w-3" /> Delivery Available
-              </span>
-            ) : (
-              <span className="badge bg-paper text-muted">
-                <PinIcon className="h-3 w-3" /> Pickup Only
-              </span>
-            )}
-            {p.farmer.verification === 'VERIFIED' && (
-              <span className="badge bg-leaf-light text-leaf-dark">
-                <CheckIcon className="h-3 w-3" /> Verified Farmer
-              </span>
-            )}
+
+            <dl className="mt-4 border-t border-line pt-4 text-sm">
+              <div className="flex justify-between border-b border-line py-2">
+                <dt className="text-muted">Quantity available</dt>
+                <dd className="font-bold">{formatQty(String(p.quantity))} {p.unit}</dd>
+              </div>
+              <div className="flex justify-between border-b border-line py-2">
+                <dt className="text-muted">Location</dt>
+                <dd className="font-bold">{p.town}, {p.region}</dd>
+              </div>
+              <div className="flex justify-between border-b border-line py-2">
+                <dt className="text-muted">Category</dt>
+                <dd className="font-bold">{p.category.name}</dd>
+              </div>
+              {p.deliveryAvailable ? (
+                <>
+                  <div className="flex justify-between border-b border-line py-2">
+                    <dt className="text-muted">Delivery</dt>
+                    <dd>
+                      <span className="badge bg-leaf-light text-leaf-dark">
+                        <TruckIcon className="h-3 w-3" /> Available
+                      </span>
+                    </dd>
+                  </div>
+                  <div className="flex justify-between py-2">
+                    <dt className="text-muted">Delivery cost</dt>
+                    <dd className="text-right font-bold">
+                      {p.deliveryPaidBy === 'FARMER' ? 'Free — farmer delivers' : 'Buyer pays — arrange the cost on WhatsApp'}
+                    </dd>
+                  </div>
+                </>
+              ) : (
+                <div className="flex justify-between py-2">
+                  <dt className="text-muted">Delivery</dt>
+                  <dd className="font-bold">Pickup only</dd>
+                </div>
+              )}
+            </dl>
           </div>
+        </div>
 
-          <div className="mt-2 flex flex-wrap gap-2">
-            <StatusBadge status={p.status} />
-            {lifecycle !== 'ONGOING' && <LifecycleBadge lifecycle={lifecycle} />}
-            <span className="badge bg-paper text-muted">{p.category.name}</span>
-            <span className="badge bg-paper text-muted">Listed {timeAgo(p.createdAt)}</span>
-          </div>
-          {p.status === 'ACTIVE' && (
-            <p className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-muted">
-              <WheatIcon className="h-4 w-4" /> {harvestLabel(p.expectedHarvestDate)}
-            </p>
-          )}
-          <p className="mt-3 text-[15px] leading-relaxed text-muted">{p.description}</p>
-
-          <div className="mb-3.5 mt-4">
-            <SectionCard title="Delivery">
-              <dl className="divide-y divide-line">
-                <SectionRow label="Pickup location" value={`${p.town}, ${p.region}`} />
-                {p.deliveryAvailable ? (
-                  <>
-                    <SectionRow
-                      label="Delivery"
-                      value={
-                        <span className="badge bg-leaf-light text-leaf-dark">
-                          <TruckIcon className="h-3 w-3" /> Available
-                        </span>
-                      }
-                    />
-                    <SectionRow
-                      label="Delivery cost"
-                      value={
-                        p.deliveryPaidBy === 'FARMER'
-                          ? 'Free — farmer delivers'
-                          : 'Buyer pays — arrange the cost on WhatsApp'
-                      }
-                    />
-                  </>
-                ) : (
-                  <SectionRow label="Delivery" value="Pickup only" />
-                )}
-              </dl>
-            </SectionCard>
-          </div>
-
+        <div>
+          {/* Farmer + contact — who's selling it and how to reach them, together in one card. */}
           <div className="card p-4">
             <div className="flex items-center gap-3">
               <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-leaf-light font-extrabold text-leaf-dark">
@@ -219,73 +253,34 @@ export default async function ProductPage({ params }: { params: { id: string } }
               </div>
             </dl>
             <Link href={`/farmers/${p.farmer.id}`} className="btn-ghost mt-3 w-full">View farmer profile</Link>
-          </div>
-        </div>
 
-        <div>
-          <div className="card mb-3.5 p-4">
-            {/* Only on mobile — desktop's two-column layout already shows the h1 in the same view, so repeating it here would be redundant. */}
-            <h2 className="mb-2 text-[15px] font-bold leading-snug tracking-tight lg:hidden">{p.name}</h2>
-            <PriceQuantity
-              priceMinor={p.priceMinor}
-              unit={p.unit}
-              quantity={String(p.quantity)}
-              initialQty={String(p.initialQty)}
-              fromPrice={p.variants[0]?.priceMinor}
-            />
-
-            {p.variants.length > 0 && (
-              <div className="mt-3 space-y-1.5 border-t border-line pt-3">
-                <p className="eyebrow">Choose a variant</p>
-                {p.variants.map((v) => (
-                  <div key={v.id} className="flex items-center justify-between text-sm">
-                    <span>{v.name}{v.quantity ? ` · ${formatQty(String(v.quantity))} ${p.unit}` : ''}</span>
-                    <span className="font-num font-bold">{formatPrice(v.priceMinor)}</span>
+            <div className="mt-4 border-t border-line pt-4">
+              {p.status === 'ACTIVE' ? (
+                user ? (
+                  <div className="space-y-2">
+                    {user.role === 'BUYER' && (
+                      <ChatButton otherUserId={p.farmer.user.id} productId={p.id} label="Chat with farmer" className="btn w-full" />
+                    )}
+                    <WhatsAppButton href={whatsappProductLink(p.farmer.whatsapp, p.name)} className="w-full" trackEntityId={p.id} />
+                    {p.farmer.phone && (
+                      <TrackedCallLink href={telLink(p.farmer.phone)} productId={p.id} className="btn-ghost w-full" />
+                    )}
                   </div>
-                ))}
-              </div>
-            )}
-
-            <dl className="mt-4 text-sm">
-              <div className="flex justify-between border-b border-line py-2">
-                <dt className="text-muted">Quantity available</dt>
-                <dd className="font-bold">{formatQty(String(p.quantity))} {p.unit}</dd>
-              </div>
-              <div className="flex justify-between border-b border-line py-2">
-                <dt className="text-muted">Location</dt>
-                <dd className="font-bold">{p.town}, {p.region}</dd>
-              </div>
-              <div className="flex justify-between py-2">
-                <dt className="text-muted">Category</dt>
-                <dd className="font-bold">{p.category.name}</dd>
-              </div>
-            </dl>
-
-            {p.status === 'ACTIVE' ? (
-              user ? (
-                <div className="mt-4 space-y-2">
-                  {user.role === 'BUYER' && (
-                    <ChatButton otherUserId={p.farmer.user.id} productId={p.id} label="Chat with farmer" className="btn w-full" />
-                  )}
-                  <WhatsAppButton href={whatsappProductLink(p.farmer.whatsapp, p.name)} className="w-full" trackEntityId={p.id} />
-                  {p.farmer.phone && (
-                    <TrackedCallLink href={telLink(p.farmer.phone)} productId={p.id} className="btn-ghost w-full" />
-                  )}
-                </div>
+                ) : (
+                  <ContactPrompt message="Sign in to contact this farmer." />
+                )
               ) : (
-                <ContactPrompt message="Sign in to contact this farmer." className="mt-4" />
-              )
-            ) : (
-              <p className="mt-4 rounded-[10px] bg-paper p-3 text-center text-sm text-muted">
-                This listing is {p.status.toLowerCase()}. Browse the marketplace for what is available now.
-              </p>
-            )}
+                <p className="rounded-[10px] bg-paper p-3 text-center text-sm text-muted">
+                  This listing is {p.status.toLowerCase()}. Browse the marketplace for what is available now.
+                </p>
+              )}
 
-            {user && <SaveButton productId={p.id} className="mt-2 w-full" />}
+              {user && <SaveButton productId={p.id} className="mt-2 w-full" />}
+            </div>
           </div>
 
           {user && (
-            <form action={reportProduct} className="card mt-3 p-4">
+            <form action={reportProduct} className="card mt-3.5 p-4">
               <input type="hidden" name="productId" value={p.id} />
               <label className="label" htmlFor="reason">Something wrong with this listing?</label>
               <input id="reason" name="reason" className="input" placeholder="e.g. price is wrong, farmer not responding" required />

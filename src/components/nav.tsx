@@ -10,7 +10,7 @@ import { prisma } from '@/lib/prisma';
 import { currentUser } from '@/server/authz';
 import { getUnreadMessageCount } from '@/server/chat';
 import { getUnreadNotificationCount } from '@/server/queries';
-import { getUnreadSupportCountForAdmin } from '@/server/support';
+import { getUnreadSupportCountForAdmin, getUnreadSupportCountForUser } from '@/server/support';
 
 const VERIFICATION_LABEL = { VERIFIED: 'Verified', PENDING: 'Pending', UNVERIFIED: 'Unverified' } as const;
 const ROLE_LABEL = { FARMER: 'Farmer', BUYER: 'Buyer', ADMIN: 'Admin' } as const;
@@ -18,29 +18,37 @@ const ROLE_LABEL = { FARMER: 'Farmer', BUYER: 'Buyer', ADMIN: 'Admin' } as const
 export async function Nav() {
   const user = await currentUser();
 
-  const [requestsCount, dbUser, farmerProfile, buyerProfile, farmerAttention, buyerAttention, adminAttention, unreadNotifications, unreadMessages] = await Promise.all([
-    prisma.wantedListing.count({ where: { status: 'OPEN', moderation: 'APPROVED' } }),
-    user ? prisma.user.findUnique({ where: { id: user.id }, select: { image: true } }) : null,
-    user?.role === 'FARMER' ? prisma.farmerProfile.findUnique({ where: { userId: user.id } }) : null,
-    user?.role === 'BUYER' ? prisma.buyerProfile.findUnique({ where: { userId: user.id } }) : null,
-    // "Needs attention" counts — real, per-role, not decorative.
-    user?.role === 'FARMER'
-      ? prisma.product.count({ where: { farmer: { userId: user.id }, moderation: 'REJECTED' } })
-      : 0,
-    user?.role === 'BUYER'
-      ? prisma.wantedListing.count({ where: { buyer: { userId: user.id }, moderation: 'REJECTED' } })
-      : 0,
-    user?.role === 'ADMIN'
-      ? Promise.all([
-          prisma.product.count({ where: { moderation: 'PENDING' } }),
-          prisma.wantedListing.count({ where: { moderation: 'PENDING' } }),
-          prisma.report.count({ where: { status: 'OPEN' } }),
-          getUnreadSupportCountForAdmin(),
-        ]).then(([a, b, c, d]) => a + b + c + d)
-      : 0,
-    user?.role === 'BUYER' ? getUnreadNotificationCount(user.id) : 0,
-    user?.role === 'FARMER' || user?.role === 'BUYER' ? getUnreadMessageCount(user.id) : 0,
-  ]);
+  const sevenDaysAgo = new Date(Date.now() - 7 * 86_400_000);
+
+  const [requestsCount, dbUser, farmerProfile, buyerProfile, farmerAttention, buyerAttention, adminAttention, unreadNotifications, unreadMessages, unreadSupport] =
+    await Promise.all([
+      prisma.wantedListing.count({ where: { status: 'OPEN', moderation: 'APPROVED' } }),
+      user ? prisma.user.findUnique({ where: { id: user.id }, select: { image: true } }) : null,
+      user?.role === 'FARMER' ? prisma.farmerProfile.findUnique({ where: { userId: user.id } }) : null,
+      user?.role === 'BUYER' ? prisma.buyerProfile.findUnique({ where: { userId: user.id } }) : null,
+      // "Needs attention" counts — real, per-role, not decorative. Kept in
+      // sync with what getFarmerNotificationFeed/getBuyerAttentionFeed/
+      // getAdminNotificationFeed actually list at /notifications.
+      user?.role === 'FARMER'
+        ? prisma.product.count({ where: { farmer: { userId: user.id }, moderation: 'REJECTED' } })
+        : 0,
+      user?.role === 'BUYER'
+        ? prisma.wantedListing.count({ where: { buyer: { userId: user.id }, moderation: 'REJECTED' } })
+        : 0,
+      user?.role === 'ADMIN'
+        ? Promise.all([
+            prisma.product.count({ where: { moderation: 'PENDING' } }),
+            prisma.wantedListing.count({ where: { moderation: 'PENDING' } }),
+            prisma.review.count({ where: { moderation: 'PENDING' } }),
+            prisma.report.count({ where: { status: 'OPEN' } }),
+            prisma.farmerProfile.count({ where: { verification: { not: 'VERIFIED' }, createdAt: { gte: sevenDaysAgo } } }),
+            getUnreadSupportCountForAdmin(),
+          ]).then(([a, b, c, d, e, f]) => a + b + c + d + e + f)
+        : 0,
+      user?.role === 'BUYER' ? getUnreadNotificationCount(user.id) : 0,
+      user?.role === 'FARMER' || user?.role === 'BUYER' ? getUnreadMessageCount(user.id) : 0,
+      user?.role === 'FARMER' || user?.role === 'BUYER' ? getUnreadSupportCountForUser(user.id) : 0,
+    ]);
 
   // Desktop shows Marketplace/Requests as text links in the header bar, plus
   // Messages as an icon next to the notification bell (added below). Mobile
@@ -78,9 +86,9 @@ export async function Nav() {
       favoritesItem,
       { label: 'My Account', href: '/account', icon: <UserIcon /> },
     ];
-    bellHref = '/dashboard/listings';
-    bellCount = farmerAttention;
-    bellLabel = 'Listings needing attention';
+    bellHref = '/notifications';
+    bellCount = farmerAttention + unreadMessages + unreadSupport;
+    bellLabel = 'Notifications';
   } else if (user?.role === 'BUYER' && buyerProfile) {
     postAction = { label: 'Post Request', href: '/wanted/new', icon: <PlusIcon className="h-4 w-4" /> };
     accountItems = [
@@ -89,7 +97,7 @@ export async function Nav() {
       { label: 'My Account', href: '/account', icon: <UserIcon /> },
     ];
     bellHref = '/notifications';
-    bellCount = buyerAttention + unreadNotifications;
+    bellCount = buyerAttention + unreadNotifications + unreadMessages + unreadSupport;
     bellLabel = 'Notifications';
   } else if (user?.role === 'ADMIN') {
     useShield = true;
@@ -102,9 +110,9 @@ export async function Nav() {
       favoritesItem,
       { label: 'My Account', href: '/account', icon: <UserIcon /> },
     ];
-    bellHref = '/admin';
+    bellHref = '/notifications';
     bellCount = adminAttention as number;
-    bellLabel = 'Items awaiting review';
+    bellLabel = 'Notifications';
   }
 
   return (

@@ -83,3 +83,12 @@ export async function getUnreadSupportCountForUser(userId: string): Promise<numb
     where: { readAt: null, fromAdmin: true, conversation: { userId } },
   });
 }
+
+/** For the notification feed — the actual reply, not just a count, so it can show a real timestamp and preview. */
+export async function getLatestUnreadSupportReply(userId: string) {
+  return prisma.supportMessage.findFirst({
+    where: { fromAdmin: true, readAt: null, conversation: { userId } },
+    orderBy: { createdAt: 'desc' },
+    select: { id: true, content: true, createdAt: true },
+  });
+}

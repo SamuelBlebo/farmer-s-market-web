@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ChatIcon, CloseIcon } from './icons';
 import { SupportThread, type SupportChatMessage } from './support-thread';
@@ -13,28 +13,40 @@ export function SupportChatWidget() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'signed-out' | 'error'>('idle');
   const [session, setSession] = useState<SupportSession | null>(null);
 
+  function load() {
+    setStatus('loading');
+    fetch('/api/support/me')
+      .then((res) => {
+        if (res.status === 401) {
+          setStatus('signed-out');
+          return null;
+        }
+        if (!res.ok) throw new Error('failed');
+        return res.json();
+      })
+      .then((data: SupportSession | null) => {
+        if (!data) return;
+        setSession(data);
+        setStatus('ready');
+      })
+      .catch(() => setStatus('error'));
+  }
+
   function toggle() {
     const next = !open;
     setOpen(next);
-    if (next && status === 'idle') {
-      setStatus('loading');
-      fetch('/api/support/me')
-        .then((res) => {
-          if (res.status === 401) {
-            setStatus('signed-out');
-            return null;
-          }
-          if (!res.ok) throw new Error('failed');
-          return res.json();
-        })
-        .then((data: SupportSession | null) => {
-          if (!data) return;
-          setSession(data);
-          setStatus('ready');
-        })
-        .catch(() => setStatus('error'));
-    }
+    if (next && status === 'idle') load();
   }
+
+  // Notification feed items link here with #support to jump straight into
+  // the chat instead of just landing on the homepage.
+  useEffect(() => {
+    if (window.location.hash !== '#support') return;
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+    setOpen(true);
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>

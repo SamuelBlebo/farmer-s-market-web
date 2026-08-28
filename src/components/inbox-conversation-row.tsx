@@ -7,13 +7,13 @@ import { MicIcon } from './icons';
 import { chatTimeLabel } from '@/lib/format';
 import type { ConversationSummary } from '@/server/chat';
 
-/** An inbox row — opens the floating widget on a plain click, falls back to the full thread page for new-tab/modifier clicks. */
+/** An inbox row — opens the floating widget on a plain click, falls back to the split-view inbox for new-tab/modifier clicks. */
 export function InboxConversationRow({ conversation: c }: { conversation: ConversationSummary }) {
   const { openChat } = useChatWidget();
 
   return (
     <Link
-      href={`/messages/${c.id}`}
+      href={`/messages?id=${c.id}`}
       onClick={(e) => {
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         e.preventDefault();

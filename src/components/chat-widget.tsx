@@ -101,7 +101,7 @@ export function ChatWidget({ conversationId, onClose }: { conversationId: string
             {detail?.product && <p className="truncate text-[12px] text-muted">Re: {detail.product.name}</p>}
           </div>
           {detail && (
-            <Link href={`/messages/${detail.id}`} onClick={onClose} className="shrink-0 text-[12.5px] font-semibold text-leaf-dark hover:underline">
+            <Link href={`/messages?id=${detail.id}`} onClick={onClose} className="shrink-0 text-[12.5px] font-semibold text-leaf-dark hover:underline">
               Open
             </Link>
           )}

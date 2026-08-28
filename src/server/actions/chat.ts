@@ -80,7 +80,6 @@ export async function sendMessage(_prev: ChatActionState, formData: FormData): P
     }),
   ]);
 
-  revalidatePath(`/messages/${parsed.data.conversationId}`);
   revalidatePath('/messages');
   return {};
 }
@@ -112,7 +111,6 @@ export async function sendVoiceMessage(conversationId: string, audioUrl: string,
     }),
   ]);
 
-  revalidatePath(`/messages/${parsed.data.conversationId}`);
   revalidatePath('/messages');
   return {};
 }

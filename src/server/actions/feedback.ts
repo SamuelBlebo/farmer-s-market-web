@@ -12,7 +12,7 @@ const RATE_LIMIT = 5;
 const RATE_WINDOW_MS = 10 * 60_000;
 
 export async function submitFeedback(_prev: FeedbackActionState, formData: FormData): Promise<FeedbackActionState> {
-  if (isRateLimited(`feedback:${clientIp(headers())}`, RATE_LIMIT, RATE_WINDOW_MS)) {
+  if (await isRateLimited(`feedback:${clientIp(headers())}`, RATE_LIMIT, RATE_WINDOW_MS)) {
     return { error: "You're sending feedback a bit fast — try again in a few minutes." };
   }
 

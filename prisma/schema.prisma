@@ -441,6 +441,22 @@ model AnalyticsEvent {
   @@index([type, createdAt])
 }
 
+// Fixed-window rate limiting backed by the shared database rather than
+// per-instance memory — required once there's more than one server
+// instance (Vercel serverless functions don't share memory across
+// invocations, so an in-memory limiter silently doesn't limit anything
+// in production). windowStart is rounded down to the window size, so the
+// same (key, windowStart) pair accumulates one row per window.
+model RateLimitBucket {
+  id          String   @id @default(cuid())
+  key         String
+  windowStart DateTime
+  count       Int      @default(1)
+
+  @@unique([key, windowStart])
+  @@index([windowStart])
+}
+
 model Report {
   id         String       @id @default(cuid())
   productId  String

@@ -11,7 +11,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
   const user = await currentUser();
   if (!user) return NextResponse.json({ error: 'Not signed in' }, { status: 401 });
 
-  if (isRateLimited(`messages-poll:${clientIp(request.headers)}`, RATE_LIMIT, RATE_WINDOW_MS)) {
+  if (await isRateLimited(`messages-poll:${clientIp(request.headers)}`, RATE_LIMIT, RATE_WINDOW_MS)) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   }
 

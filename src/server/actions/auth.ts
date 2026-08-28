@@ -159,7 +159,7 @@ export async function logout() {
  * this can't be used to enumerate registered addresses.
  */
 export async function requestPasswordReset(_prev: AuthState, formData: FormData): Promise<AuthState> {
-  if (isRateLimited(`reset:${clientIp(headers())}`, RESET_REQUEST_LIMIT, RESET_REQUEST_WINDOW_MS)) {
+  if (await isRateLimited(`reset:${clientIp(headers())}`, RESET_REQUEST_LIMIT, RESET_REQUEST_WINDOW_MS)) {
     // Same generic response as a successful request — this endpoint never confirms or denies anything either way.
     return { success: true };
   }

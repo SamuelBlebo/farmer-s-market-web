@@ -5,7 +5,7 @@ import { LifecycleBadge, StatusBadge, VerifiedBadge } from '@/components/badges'
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { ChatButton } from '@/components/chat-button';
 import { ContactPrompt } from '@/components/contact-prompt';
-import { CheckIcon, EyeIcon, FlagIcon, PencilIcon, PinIcon, StarIcon, TruckIcon, WheatIcon } from '@/components/icons';
+import { EyeIcon, FlagIcon, PencilIcon, PinIcon, StarIcon, TruckIcon, WheatIcon } from '@/components/icons';
 import { ProductCard } from '@/components/product-card';
 import { PriceQuantity } from '@/components/quantity-bar';
 import { ProductGallery } from '@/components/product-gallery';
@@ -147,11 +147,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
                   <PinIcon className="h-3 w-3" /> Pickup Only
                 </span>
               )}
-              {p.farmer.verification === 'VERIFIED' && (
-                <span className="badge bg-leaf-light text-leaf-dark">
-                  <CheckIcon className="h-3 w-3" /> Verified Farmer
-                </span>
-              )}
+              <VerifiedBadge status={p.farmer.verification} />
             </div>
 
             <div className="mt-2 flex flex-wrap gap-2">

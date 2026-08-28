@@ -98,6 +98,7 @@ export const productSchema = z
     variants: z.array(variantSchema).max(10).optional(),
     deliveryAvailable: z.boolean().optional(),
     deliveryPaidBy: z.enum(['FARMER', 'BUYER']).optional(),
+    negotiable: z.boolean().optional(),
   })
   .strict();
 

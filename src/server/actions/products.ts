@@ -38,6 +38,7 @@ function readForm(formData: FormData) {
     // Checkboxes only appear in FormData when checked.
     deliveryAvailable: formData.get('deliveryAvailable') === 'on',
     deliveryPaidBy: String(formData.get('deliveryPaidBy') ?? '') || undefined,
+    negotiable: formData.get('negotiable') === 'on',
   };
 }
 
@@ -77,6 +78,7 @@ export async function createProduct(_prev: ActionState, formData: FormData): Pro
       town: profile.town,
       expectedHarvestDate: toHarvestDate(d.expectedHarvestDate),
       ...deliveryFields(d),
+      negotiable: d.negotiable ?? false,
       // New listings queue for admin approval before they hit the marketplace.
       moderation: 'PENDING',
       images: d.images?.length
@@ -124,6 +126,7 @@ export async function adminCreateProduct(farmerId: string, _prev: ActionState, f
       town: farmer.town,
       expectedHarvestDate: toHarvestDate(d.expectedHarvestDate),
       ...deliveryFields(d),
+      negotiable: d.negotiable ?? false,
       moderation: 'APPROVED',
       images: d.images?.length
         ? { create: d.images.map((img, i) => ({ url: img.url, publicId: img.publicId, sortOrder: i })) }
@@ -176,6 +179,7 @@ export async function updateProduct(
       town: farmer.town,
       expectedHarvestDate: toHarvestDate(d.expectedHarvestDate),
       ...deliveryFields(d),
+      negotiable: d.negotiable ?? false,
       // Full replace: the form always submits the complete desired photo set,
       // so dropping and recreating is simpler and correct than diffing.
       images: {

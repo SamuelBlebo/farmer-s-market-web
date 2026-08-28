@@ -147,6 +147,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
                   <PinIcon className="h-3 w-3" /> Pickup Only
                 </span>
               )}
+              {p.negotiable && <span className="badge bg-gold-light text-[#8A6100]">Price Negotiable</span>}
               <VerifiedBadge status={p.farmer.verification} />
             </div>
 

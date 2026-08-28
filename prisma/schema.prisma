@@ -252,6 +252,8 @@ model Product {
   // between buyer and farmer, same as everything else in this app.
   deliveryAvailable   Boolean          @default(false)
   deliveryPaidBy      DeliveryPayer?
+  // Farmer-set — shown as a "Negotiable" badge so buyers know haggling is welcome.
+  negotiable          Boolean          @default(false)
   // Admin editorial pick — shown in the homepage's Featured section.
   featured            Boolean          @default(false)
   createdAt           DateTime         @default(now())

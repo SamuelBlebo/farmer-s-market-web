@@ -25,6 +25,7 @@ type Initial = {
   variants?: { name: string; price: number; quantity?: number | null }[];
   deliveryAvailable?: boolean;
   deliveryPaidBy?: 'FARMER' | 'BUYER' | null;
+  negotiable?: boolean;
 };
 
 function toDateInput(d: Date): string {
@@ -81,6 +82,11 @@ export function ProductForm({
           </select>
         </label>
       </div>
+
+      <label className="mb-3.5 flex items-center gap-2">
+        <input type="checkbox" name="negotiable" defaultChecked={initial?.negotiable ?? false} />
+        <span className="text-sm font-semibold">Price is negotiable</span>
+      </label>
 
       <label className="mb-3.5 block">
         <span className="label">Quantity available</span>

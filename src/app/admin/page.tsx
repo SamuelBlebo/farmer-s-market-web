@@ -218,7 +218,7 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
                 )}
               </div>
             </div>
-            <VerifiedBadge status={f.verification} />
+            <VerifiedBadge status={f.verification} precise />
             <form action={setFarmerVerification} className="flex gap-2">
               <input type="hidden" name="farmerId" value={f.id} />
               {f.verification !== 'VERIFIED' ? (

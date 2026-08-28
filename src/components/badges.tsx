@@ -2,7 +2,16 @@ import type { ModerationStatus, ProductStatus, VerificationStatus } from '@prism
 import { CheckIcon } from './icons';
 import { LIFECYCLE_LABEL, type ProductLifecycle } from '@/lib/format';
 
-export function VerifiedBadge({ status, large = false }: { status: VerificationStatus; large?: boolean }) {
+export function VerifiedBadge({
+  status,
+  large = false,
+  precise = false,
+}: {
+  status: VerificationStatus;
+  large?: boolean;
+  /** Shows the real "Pending" status instead of simplifying it to "Not Verified" — for the admin queue, where that distinction is operationally meaningful. Everywhere else, a pending request still isn't a verified farm. */
+  precise?: boolean;
+}) {
   const size = large ? 'px-3 py-1 text-[13px]' : '';
   if (status === 'VERIFIED')
     return (
@@ -11,7 +20,7 @@ export function VerifiedBadge({ status, large = false }: { status: VerificationS
       </span>
     );
   if (status === 'PENDING')
-    return <span className={`badge bg-gold-light text-[#8A6100] ${size}`}>Pending</span>;
+    return <span className={`badge bg-gold-light text-[#8A6100] ${size}`}>{precise ? 'Pending' : 'Not Verified'}</span>;
   return <span className={`badge bg-paper text-muted ${size}`}>Unverified</span>;
 }
 

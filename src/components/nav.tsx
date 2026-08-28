@@ -10,6 +10,7 @@ import { prisma } from '@/lib/prisma';
 import { currentUser } from '@/server/authz';
 import { getUnreadMessageCount } from '@/server/chat';
 import { getUnreadNotificationCount } from '@/server/queries';
+import { getUnreadSupportCountForAdmin } from '@/server/support';
 
 const VERIFICATION_LABEL = { VERIFIED: 'Verified', PENDING: 'Pending', UNVERIFIED: 'Unverified' } as const;
 const ROLE_LABEL = { FARMER: 'Farmer', BUYER: 'Buyer', ADMIN: 'Admin' } as const;
@@ -34,7 +35,8 @@ export async function Nav() {
           prisma.product.count({ where: { moderation: 'PENDING' } }),
           prisma.wantedListing.count({ where: { moderation: 'PENDING' } }),
           prisma.report.count({ where: { status: 'OPEN' } }),
-        ]).then(([a, b, c]) => a + b + c)
+          getUnreadSupportCountForAdmin(),
+        ]).then(([a, b, c, d]) => a + b + c + d)
       : 0,
     user?.role === 'BUYER' ? getUnreadNotificationCount(user.id) : 0,
     user?.role === 'FARMER' || user?.role === 'BUYER' ? getUnreadMessageCount(user.id) : 0,
@@ -95,7 +97,7 @@ export async function Nav() {
     accountItems = [
       { label: 'Admin Dashboard', href: '/admin', icon: <ShieldIcon className="h-4 w-4" /> },
       { label: 'Analytics', href: '/admin/analytics', icon: <DocumentIcon className="h-4 w-4" /> },
-      { label: 'Feedback', href: '/admin/feedback', icon: <ChatIcon className="h-4 w-4" /> },
+      { label: 'Support', href: '/admin/support', icon: <ChatIcon className="h-4 w-4" /> },
       { label: 'System Health', href: '/admin/system', icon: <BadgeCheckIcon className="h-4 w-4" /> },
       favoritesItem,
       { label: 'My Account', href: '/account', icon: <UserIcon /> },

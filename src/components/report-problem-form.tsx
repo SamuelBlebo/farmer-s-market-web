@@ -6,7 +6,7 @@ import { BadgeCheckIcon } from './icons';
 import { SubmitButton } from './submit-button';
 import { submitFeedback, type FeedbackActionState } from '@/server/actions/feedback';
 
-/** Full-page counterpart to the floating FeedbackWidget — same server action, in-page layout. */
+/** In-page "report a problem" form — a specific-issue report, distinct from the site-wide live support chat. */
 export function ReportProblemForm() {
   const pathname = usePathname();
   const [state, formAction] = useFormState(submitFeedback, {} as FeedbackActionState);

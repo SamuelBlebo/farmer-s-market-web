@@ -55,11 +55,11 @@ body { @apply bg-paper text-ink antialiased; }
    base distance clears the mobile sticky contact bar / bottom chrome, plus
    whatever the device's home-indicator inset actually is (0 on devices
    without one, so this is a no-op there). */
-.feedback-btn-pos { bottom: calc(5rem + env(safe-area-inset-bottom)); }
+.support-btn-pos { bottom: calc(5rem + env(safe-area-inset-bottom)); }
 @media (min-width: 640px) {
-  .feedback-btn-pos { bottom: calc(1.5rem + env(safe-area-inset-bottom)); }
+  .support-btn-pos { bottom: calc(1.5rem + env(safe-area-inset-bottom)); }
 }
-.feedback-panel-pos { bottom: calc(8.5rem + env(safe-area-inset-bottom)); }
+.support-panel-pos { bottom: calc(8.5rem + env(safe-area-inset-bottom)); }
 @media (min-width: 640px) {
-  .feedback-panel-pos { bottom: calc(6rem + env(safe-area-inset-bottom)); }
+  .support-panel-pos { bottom: calc(6rem + env(safe-area-inset-bottom)); }
 }

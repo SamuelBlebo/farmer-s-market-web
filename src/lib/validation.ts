@@ -141,6 +141,15 @@ export const sendVoiceMessageSchema = z.object({
   durationSec: z.coerce.number().int().min(1).max(300),
 });
 
+export const sendSupportMessageSchema = z.object({
+  content: z.string().min(1, 'Type a message').max(2000),
+});
+
+export const adminReplySupportSchema = z.object({
+  conversationId: z.string().min(1),
+  content: z.string().min(1, 'Type a message').max(2000),
+});
+
 export const feedbackSchema = z.object({
   message: z.string().min(5, 'Tell us a bit more').max(2000),
   page: z.string().max(200).optional(),

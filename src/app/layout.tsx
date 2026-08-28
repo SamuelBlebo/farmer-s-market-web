@@ -3,13 +3,14 @@ import type { Metadata, Viewport } from 'next';
 import { Manrope } from 'next/font/google';
 import './globals.css';
 import { ChatWidgetProvider } from '@/components/chat-widget-provider';
-import { FeedbackWidget } from '@/components/feedback-widget';
 import { Footer } from '@/components/footer';
 import { Nav } from '@/components/nav';
+import { SupportChatWidget } from '@/components/support-chat-widget';
 import { TopProgressBar } from '@/components/top-progress-bar';
 import { ToastProvider } from '@/components/toast-provider';
 import { ErrorMonitor } from '@/components/error-monitor';
 import { PLATFORM_NAME, SITE_URL } from '@/lib/constants';
+import { currentUser } from '@/server/authz';
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -47,7 +48,11 @@ export const metadata: Metadata = {
 // of 0 — required for the safe-area padding used below and on fixed bars.
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#0D4E37', viewportFit: 'cover' };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Admins staff the support inbox rather than chat into it themselves.
+  const user = await currentUser();
+  const showSupportWidget = user?.role !== 'ADMIN';
+
   return (
     <html lang="en" className={manrope.variable}>
       <body>
@@ -62,7 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {children}
               <Footer />
             </div>
-            <FeedbackWidget />
+            {showSupportWidget && <SupportChatWidget />}
           </ChatWidgetProvider>
         </ToastProvider>
       </body>

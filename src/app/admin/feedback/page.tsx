@@ -28,7 +28,7 @@ export default async function AdminFeedbackPage() {
       {feedback.length === 0 ? (
         <div className="card p-10 text-center">
           <p className="font-bold">No feedback yet.</p>
-          <p className="mt-1 text-sm text-muted">Submissions from the floating widget and the support page show up here.</p>
+          <p className="mt-1 text-sm text-muted">Submissions from the &quot;Report a problem&quot; form on the Support page show up here.</p>
         </div>
       ) : (
         <div className="card divide-y divide-line">

@@ -84,8 +84,8 @@ export default async function AdminPage({ searchParams }: { searchParams: AdminS
           <Link href="/admin/analytics" className="btn-ghost inline-flex items-center gap-1.5">
             <ChartIcon className="h-4 w-4" /> Analytics
           </Link>
-          <Link href="/admin/feedback" className="btn-ghost inline-flex items-center gap-1.5">
-            <ChatIcon className="h-4 w-4" /> Feedback
+          <Link href="/admin/support" className="btn-ghost inline-flex items-center gap-1.5">
+            <ChatIcon className="h-4 w-4" /> Support
           </Link>
           <Link href="/admin/system" className="btn-ghost inline-flex items-center gap-1.5">
             <GearIcon className="h-4 w-4" /> System

@@ -31,11 +31,15 @@ export const currentUser = cache(async () => {
   // or reseed still decodes fine even though its user id no longer exists.
   // Treat that as signed-out here so no caller downstream (account actions,
   // ownership checks, etc.) ever runs a write against a row that's gone.
-  const dbUser = await prisma.user.findUnique({ where: { id: sessionUser.id }, select: { lastActiveAt: true } });
+  const dbUser = await prisma.user.findUnique({ where: { id: sessionUser.id }, select: { role: true, lastActiveAt: true } });
   if (!dbUser) return null;
 
   await touchLastActive(sessionUser.id, dbUser.lastActiveAt);
-  return sessionUser;
+  // Role comes from this fresh read, not the JWT's (possibly stale) copy —
+  // the token only gets a new role at next sign-in, so without this an
+  // admin demoted mid-session would keep admin access on every request
+  // until their session token happened to refresh.
+  return { ...sessionUser, role: dbUser.role };
 });
 
 export async function requireUser() {

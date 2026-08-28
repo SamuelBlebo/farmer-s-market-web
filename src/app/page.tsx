@@ -211,8 +211,8 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
           <h2 className="eyebrow mb-2 flex items-center gap-1.5"><ClockIcon className="h-3.5 w-3.5" /> Recently Viewed</h2>
           <HorizontalScroller>
             {recentlyViewed.map((p) => (
-              <div key={p.id} className="w-28 shrink-0 sm:w-36">
-                <ProductCard p={p} size="sm" />
+              <div key={p.id} className="w-40 shrink-0 sm:w-48">
+                <ProductCard p={p} />
               </div>
             ))}
           </HorizontalScroller>
@@ -224,8 +224,8 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
           <h2 className="eyebrow mb-2 flex items-center gap-1.5"><FireIcon className="h-3.5 w-3.5" /> Trending Produce</h2>
           <HorizontalScroller>
             {trending.map((p) => (
-              <div key={p.id} className="w-28 shrink-0 sm:w-36">
-                <ProductCard p={p} size="sm" />
+              <div key={p.id} className="w-40 shrink-0 sm:w-48">
+                <ProductCard p={p} />
               </div>
             ))}
           </HorizontalScroller>
@@ -242,8 +242,8 @@ export default async function MarketplacePage({ searchParams }: { searchParams: 
           </div>
           <HorizontalScroller>
             {seasonalPreview.map((p) => (
-              <div key={p.id} className="w-28 shrink-0 sm:w-36">
-                <ProductCard p={p} size="sm" />
+              <div key={p.id} className="w-40 shrink-0 sm:w-48">
+                <ProductCard p={p} />
               </div>
             ))}
           </HorizontalScroller>
